@@ -1,36 +1,15 @@
-(function(){
-    let uaonline = {
-        type: 'video',
-        name: 'UA Online',
-        version: '1.0.0',
-        icon: 'https://cdn-icons-png.flaticon.com/512/1179/1179069.png',
-        description: 'Демо-версія з результатами',
-
-        search: async function(query, onSearchResult){
-            onSearchResult([
-                {
-                    title: `Тест результат для "${query}" (uakino)`,
-                    url: 'https://uakino.me/1234-test',
-                    poster: '',
-                    description: 'Це демо-запис',
-                    quality: 'HD',
-                    type: 'video'
-                }
-            ])
-        },
-
-        item: async function(item, onItemReady){
-            onItemReady([
-                {
-                    file: 'https://example.com/video.mp4',
-                    title: 'Тестове відео',
-                    url: 'https://example.com/video.mp4',
-                    type: 'video'
-                }
-            ])
+search: async function(query, onSearchResult){
+    let results = [
+        {
+            title: `Тестовий результат для "${query}" (uakino)`,
+            url: 'https://uakino.me/test-video',
+            poster: '',
+            description: 'Це фейковий результат для перевірки',
+            quality: 'HD',
+            type: 'video'
         }
-    }
+    ]
 
-    if (window.plugin) window.plugin(uaonline)
-    else window.addEventListener('plugin', () => window.plugin(uaonline))
-})();
+    console.log('[UA Online] Тестовий результат:', results)
+    onSearchResult(results)
+}
