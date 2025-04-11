@@ -4,7 +4,7 @@
         name: 'UA Online',
         version: '1.0.0',
         icon: 'https://cdn-icons-png.flaticon.com/512/1179/1179069.png',
-        description: 'Пошук онлайн-фільмів з uakino.me та uaserials.pro',
+        description: 'Онлайн-пошук з uakino.me та uaserials.pro',
 
         search: async function(query, onSearchResult){
             let results = []
@@ -20,18 +20,11 @@
                         poster: '',
                         description: '',
                         quality: '',
-                        time: '',
-                        country: '',
-                        original_title: '',
-                        year: '',
-                        genres: '',
-                        episode_count: '',
-                        season_count: '',
-                        voice: ''
+                        type: 'video'
                     })
                 })
             } catch(e) {
-                console.error('uakino.me error:', e)
+                console.error('[UA Online] uakino.me error:', e)
             }
 
             // uaserials.pro
@@ -48,18 +41,11 @@
                         poster: img?.src || '',
                         description: '',
                         quality: '',
-                        time: '',
-                        country: '',
-                        original_title: '',
-                        year: '',
-                        genres: '',
-                        episode_count: '',
-                        season_count: '',
-                        voice: ''
+                        type: 'video'
                     })
                 })
             } catch(e) {
-                console.error('uaserials.pro error:', e)
+                console.error('[UA Online] uaserials.pro error:', e)
             }
 
             onSearchResult(results)
@@ -73,14 +59,14 @@
                     onItemReady([{
                         file: iframe[1],
                         title: 'UA Online',
-                        type: 'video',
-                        url: iframe[1]
+                        url: iframe[1],
+                        type: 'video'
                     }])
                 } else {
-                    throw 'iframe not found'
+                    onItemReady([])
                 }
             } catch(e){
-                console.error('item load error:', e)
+                console.error('[UA Online] item error:', e)
                 onItemReady([])
             }
         }
@@ -88,5 +74,4 @@
 
     if (window.plugin) window.plugin(uaonline)
     else window.addEventListener('plugin', () => window.plugin(uaonline))
-
 })();
