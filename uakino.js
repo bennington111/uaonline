@@ -1,90 +1,92 @@
-(function () {
-    function UAOnline() {
-        let network = Lampa.Network;
-        let searchQuery = '';
-        let selectedSource = 'uakino'; // або 'uaserials'
+(function(){
+    let uaonline = {
+        type: 'video',
+        name: 'UA Online',
+        version: '1.0.0',
+        icon: 'https://cdn-icons-png.flaticon.com/512/1179/1179069.png',
+        description: 'Пошук онлайн-фільмів з uakino.me та uaserials.pro',
 
-        this.search = function (query, call) {
-            searchQuery = query;
+        search: async function(query, onSearchResult){
+            let results = []
 
-            if (selectedSource === 'uakino') {
-                network.silent(`https://uakino.me/index.php?do=search&subaction=search&story=${encodeURIComponent(query)}`, (html) => {
-                    const results = [];
-                    let matches = html.matchAll(/<div class="shortstory".*?<a href="(.*?)".*?<img src="(.*?)".*?<div class="title">(.*?)<\/div>/gs);
-                    for (const match of matches) {
-                        results.push({
-                            title: match[3].trim(),
-                            url: match[1],
-                            poster: match[2],
-                        });
-                    }
-                    call(results);
-                });
+            // uakino.me
+            try {
+                let html = await fetch(`https://uakino.me/index.php?do=search&subaction=search&story=${encodeURIComponent(query)}`).then(r => r.text())
+                let dom = new DOMParser().parseFromString(html, 'text/html')
+                dom.querySelectorAll('.short .title a').forEach(el => {
+                    results.push({
+                        title: el.textContent.trim() + ' (uakino)',
+                        url: el.href,
+                        poster: '',
+                        description: '',
+                        quality: '',
+                        time: '',
+                        country: '',
+                        original_title: '',
+                        year: '',
+                        genres: '',
+                        episode_count: '',
+                        season_count: '',
+                        voice: ''
+                    })
+                })
+            } catch(e) {
+                console.error('uakino.me error:', e)
             }
 
-            else if (selectedSource === 'uaserials') {
-                network.silent(`https://uaserials.pro/search/?q=${encodeURIComponent(query)}`, (html) => {
-                    const results = [];
-                    let matches = html.matchAll(/class="poster poster-xs".*?href="(.*?)".*?src="(.*?)".*?alt="(.*?)"/gs);
-                    for (const match of matches) {
-                        results.push({
-                            title: match[3].trim(),
-                            url: 'https://uaserials.pro' + match[1],
-                            poster: match[2],
-                        });
-                    }
-                    call(results);
-                });
+            // uaserials.pro
+            try {
+                let html = await fetch(`https://uaserials.pro/search?query=${encodeURIComponent(query)}`).then(r => r.text())
+                let dom = new DOMParser().parseFromString(html, 'text/html')
+                dom.querySelectorAll('.ser-thumbnail').forEach(card => {
+                    let link = card.querySelector('a')
+                    let img = card.querySelector('img')
+                    let title = img?.alt || link?.title || 'Без назви'
+                    results.push({
+                        title: title.trim() + ' (uaserials)',
+                        url: link?.href,
+                        poster: img?.src || '',
+                        description: '',
+                        quality: '',
+                        time: '',
+                        country: '',
+                        original_title: '',
+                        year: '',
+                        genres: '',
+                        episode_count: '',
+                        season_count: '',
+                        voice: ''
+                    })
+                })
+            } catch(e) {
+                console.error('uaserials.pro error:', e)
             }
-        };
 
-        this.get = function (url, call) {
-            network.silent(url, (html) => {
-                let iframeMatch = html.match(/<iframe[^>]*src="([^"]+player[^"]+)"[^>]*>/i);
-                if (iframeMatch) {
-                    call({
-                        url: iframeMatch[1],
-                        method: 'iframe'
-                    });
+            onSearchResult(results)
+        },
+
+        item: async function(item, onItemReady){
+            try {
+                let html = await fetch(item.url).then(r => r.text())
+                let iframe = html.match(/<iframe[^>]+src=["']([^"']+)["']/)
+                if(iframe && iframe[1]){
+                    onItemReady([{
+                        file: iframe[1],
+                        title: 'UA Online',
+                        type: 'video',
+                        url: iframe[1]
+                    }])
                 } else {
-                    call(false);
+                    throw 'iframe not found'
                 }
-            });
-        };
-
-        this.menu = function (call) {
-            call([
-                {
-                    title: 'Джерело: UAKINO',
-                    subtitle: selectedSource === 'uakino' ? '✅ Вибрано' : '',
-                    onClick: () => {
-                        selectedSource = 'uakino';
-                        Lampa.Controller.toggle('content');
-                        Lampa.Noty.show('Обрано UAKINO');
-                    }
-                },
-                {
-                    title: 'Джерело: UAserials',
-                    subtitle: selectedSource === 'uaserials' ? '✅ Вибрано' : '',
-                    onClick: () => {
-                        selectedSource = 'uaserials';
-                        Lampa.Controller.toggle('content');
-                        Lampa.Noty.show('Обрано UAserials');
-                    }
-                }
-            ]);
-        };
-
-        this.type = 'video';
-        this.title = 'UA Online';
+            } catch(e){
+                console.error('item load error:', e)
+                onItemReady([])
+            }
+        }
     }
 
-    UAOnline.prototype.component = function () {
-        return this;
-    };
+    if (window.plugin) window.plugin(uaonline)
+    else window.addEventListener('plugin', () => window.plugin(uaonline))
 
-    Lampa.Platform.add({
-        name: 'UA Online',
-        component: UAOnline
-    });
 })();
