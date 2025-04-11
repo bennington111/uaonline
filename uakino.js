@@ -7,10 +7,11 @@
         description: 'Онлайн-пошук з uakino.me та uaserials.pro',
 
         search: async function(query, onSearchResult){
+            console.log('[UA Online] Запит:', query)
             let results = []
             results.push({
-                title: 'Шрек (uakino)',
-                url: 'https://uakino.me/123-shrek.html',
+                title: query + ' (uakino)',
+                url: 'https://example.com/test',
                 poster: '',
                 description: 'Тестовий результат',
                 quality: '',
@@ -20,9 +21,10 @@
         },
 
         item: async function(item, onItemReady){
+            console.log('[UA Online] item:', item)
             onItemReady([{
-                file: 'https://some-stream-url.com/video.mp4',
-                title: 'Дивитися',
+                file: 'https://test-stream.com/video.mp4',
+                title: 'Перегляд',
                 type: 'video'
             }])
         }
