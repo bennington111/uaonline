@@ -1,29 +1,66 @@
 (function(){
-    window.lampa_provider = {
-        type: 'video',
-        name: 'UA Online',
-        version: '1.0.0',
-        logo: 'https://cdn-icons-png.flaticon.com/512/1179/1179069.png',
-        description: 'Пошук і перегляд з uakino.me та uaserials.pro',
-
-        get: async function(imdb_id, type, season, episode, callback){
-            // Тут реалізуйте логіку пошуку джерел за допомогою imdb_id або назви фільму
-            // Наприклад, використовуючи fetch для отримання даних з uakino.me та uaserials.pro
-            // Після отримання даних, викликайте callback з масивом джерел
-            callback([
-                {
-                    title: 'Тестова серія',
-                    file: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-                    quality: 'HD',
-                    info: 'Тест (uakino)',
-                    player: true
+    function UAOnlineComponent(){
+        return {
+            component: 'uaonline',
+            name: 'UA Online',
+            type: 'video',
+            version: '1.0.0',
+            description: 'Перегляд з uakino.me та uaserials.pro',
+            onContextMenu: function(item){
+                return {
+                    title: 'Відкрити UA Online',
+                    subtitle: 'uakino.me / uaserials.pro',
+                    url: ''
                 }
-            ]);
-        },
+            },
+            onItem: async function(item, callback){
+                let sources = []
 
-        play: function(item, callback){
-            // Тут реалізуйте логіку відтворення вибраного джерела
-            callback(item.file);
+                try {
+                    let html = await fetch(`https://uakino.me/index.php?do=search&subaction=search&story=${encodeURIComponent(item.title)}`).then(r => r.text())
+                    let dom = new DOMParser().parseFromString(html, 'text/html')
+                    let link = dom.querySelector('.short .title a')?.href
+                    if(link){
+                        let page = await fetch(link).then(r => r.text())
+                        let iframe = page.match(/<iframe[^>]+src=["']([^"']+)["']/)
+                        if(iframe && iframe[1]){
+                            sources.push({
+                                file: iframe[1],
+                                title: 'uakino',
+                                url: iframe[1],
+                                type: 'video'
+                            })
+                        }
+                    }
+                } catch(e) {
+                    console.error('[UA Online] uakino.me error:', e)
+                }
+
+                try {
+                    let html = await fetch(`https://uaserials.pro/search?query=${encodeURIComponent(item.title)}`).then(r => r.text())
+                    let dom = new DOMParser().parseFromString(html, 'text/html')
+                    let link = dom.querySelector('.ser-thumbnail a')?.href
+                    if(link){
+                        let page = await fetch(link).then(r => r.text())
+                        let iframe = page.match(/<iframe[^>]+src=["']([^"']+)["']/)
+                        if(iframe && iframe[1]){
+                            sources.push({
+                                file: iframe[1],
+                                title: 'uaserials',
+                                url: iframe[1],
+                                type: 'video'
+                            })
+                        }
+                    }
+                } catch(e) {
+                    console.error('[UA Online] uaserials.pro error:', e)
+                }
+
+                callback(sources)
+            }
         }
-    };
+    }
+
+    if (window.plugin) window.plugin(UAOnlineComponent())
+    else window.addEventListener('plugin', () => window.plugin(UAOnlineComponent()))
 })();
