@@ -1,26 +1,13 @@
 (function () {
-    function startPlugin() {
-        window.lampa_plugin = true;
-
-        const uaonline = {
+    function uaonline_component() {
+        return {
             type: 'video',
-            name: 'UA Online',
             version: '1.0.0',
+            name: 'UA Online',
+            description: 'Перегляд з uakino та uaserials',
             component: 'uaonline',
-            onContextMenu: function (object) {
-                return {
-                    name: 'UA Online',
-                    description: 'Тестовий плагін',
-                    component: 'uaonline'
-                };
-            },
-            onSearch: function (query, onready) {
-                // Повертаємо пустий результат для тесту
-                onready([]);
-            },
-            onItem: function (object, onready) {
-                // Повертаємо тестовий файл
-                onready([
+            onItem: function (object, callback) {
+                callback([
                     {
                         title: 'Тестовий файл UA Online',
                         file: 'https://example.com/test.mp4',
@@ -29,10 +16,8 @@
                 ]);
             }
         };
-
-        window.lampa_plugin_api && window.lampa_plugin_api.register(uaonline);
     }
 
-    if (window.lampa_plugin_api) startPlugin();
-    else document.addEventListener("lampa_plugin_api", startPlugin);
+    if (window.plugin) window.plugin(uaonline_component());
+    else window.addEventListener('plugin', () => window.plugin(uaonline_component()));
 })();
