@@ -1,31 +1,38 @@
 (function () {
-    function uaonline_component() {
-        return {
-            component: 'uaonline',
-            name: 'UA Online',
+    function startPlugin() {
+        window.lampa_plugin = true;
+
+        const uaonline = {
             type: 'video',
+            name: 'UA Online',
             version: '1.0.0',
-            icon: 'https://cdn-icons-png.flaticon.com/512/1179/1179069.png',
-            description: 'Перегляд з uakino та uaserials',
-
-            onContextMenu(object) {
-                return null; // Нічого особливого тут не потрібно
+            component: 'uaonline',
+            onContextMenu: function (object) {
+                return {
+                    name: 'UA Online',
+                    description: 'Тестовий плагін',
+                    component: 'uaonline'
+                };
             },
-
-            onItem(object, callback) {
-                // Тут — приклад. Замінити логікою парсингу із uakino/uaserials
-                callback([
+            onSearch: function (query, onready) {
+                // Повертаємо пустий результат для тесту
+                onready([]);
+            },
+            onItem: function (object, onready) {
+                // Повертаємо тестовий файл
+                onready([
                     {
-                        title: 'UA Online — 1080p',
-                        file: 'https://example.com/stream.m3u8',
-                        quality: '1080p',
-                        url: 'https://example.com/stream.m3u8'
+                        title: 'Тестовий файл UA Online',
+                        file: 'https://example.com/test.mp4',
+                        type: 'video'
                     }
                 ]);
             }
-        }
+        };
+
+        window.lampa_plugin_api && window.lampa_plugin_api.register(uaonline);
     }
 
-    if (window.plugin) window.plugin(uaonline_component());
-    else window.addEventListener('plugin', () => window.plugin(uaonline_component()));
+    if (window.lampa_plugin_api) startPlugin();
+    else document.addEventListener("lampa_plugin_api", startPlugin);
 })();
