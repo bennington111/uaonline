@@ -1,12 +1,5 @@
-(function () {
-    var uaonline = {
-        title: 'UAkino (1080p)',
-        url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-        quality: '1080p',
-        info: 'Тестовий потік UAKino'
-    };
-
-    function init() {
+(function(){
+    function startPlugin(){
         var manifest = {
             type: 'video',
             version: '1.0.0',
@@ -15,23 +8,33 @@
             component: 'uaonline'
         };
 
-        Lampa.Plugin(manifest, function (plugin) {
-            plugin.component = function (name) {
-                if (name === 'uaonline') return comp;
+        Lampa.Plugin(manifest, function(plugin){
+            plugin.component = function(name){
+                if(name === 'uaonline') return component;
             };
+
             return plugin;
         });
     }
 
-    var comp = {
-        item: function (object, resolve, reject) {
-            resolve([uaonline]);
+    var component = {
+        item: function(object, resolve, reject){
+            var sources = [
+                {
+                    title: 'UAKino (1080p)',
+                    url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+                    quality: '1080p',
+                    info: 'Тестовий потік UAKino'
+                }
+            ];
+
+            resolve(sources);
         },
-        search: function () {},
-        add: function () {},
-        contextmenu: function () {}
+        search: function(){},
+        add: function(){},
+        contextmenu: function(){}
     };
 
-    if (window.Lampa) init();
-    else window.addEventListener('lampa', init);
+    if(window.Lampa) startPlugin();
+    else window.addEventListener('lampa', startPlugin);
 })();
