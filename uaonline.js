@@ -4,7 +4,7 @@
             type: 'video',
             version: '1.0.0',
             name: 'Онлайн UA Online',
-            description: 'Тестовий клон online_mod для перевірки',
+            description: 'Тестовий плагін із одним джерелом',
             component: 'uaonline'
         }
 
@@ -21,10 +21,10 @@
         item: function(object, resolve, reject) {
             resolve([
                 {
-                    title: 'Тестовий потік (720p)',
+                    title: 'Тестовий стрім (720p)',
                     url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
                     quality: '720p',
-                    info: 'Тестове джерело'
+                    info: 'Test HLS'
                 }
             ])
         },
