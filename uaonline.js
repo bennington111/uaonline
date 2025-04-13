@@ -1,32 +1,34 @@
-(function() {
-    function startPlugin() {
-        const manifest = {
+(function(){
+    function startPlugin(){
+        var manifest = {
             type: 'video',
             version: '1.0.0',
             name: 'Онлайн UA Online',
-            description: 'Перегляд з UAKino',
+            description: 'Джерело з сайтів uakino та uaserials',
             component: 'uaonline'
-        };
+        }
 
-        Lampa.Plugin(manifest, function(plugin) {
-            plugin.component = {
-                item: function(object, resolve, reject) {
-                    resolve([
-                        {
-                            title: 'UAKino 1080p',
-                            url: 'https://example.com/stream.mp4',
-                            quality: '1080p',
-                            info: 'Тестовий стрім UAKino'
-                        }
-                    ]);
-                },
-                search: function() {},
-                add: function() {},
-                contextmenu: function() {}
-            };
-        });
+        var component = {
+            item: function(object, resolve, reject) {
+                resolve([
+                    {
+                        title: 'UAkino (1080p)',
+                        url: 'https://example.com/stream.mp4',
+                        quality: '1080p',
+                        info: 'UAKino тестовий стрім'
+                    }
+                ])
+            },
+            search: function(){},
+            add: function(){},
+            contextmenu: function(){}
+        }
+
+        Lampa.Plugin(manifest, function(plugin){
+            plugin.component = component
+        })
     }
 
-    if (window.Lampa) startPlugin();
-    else window.addEventListener('lampa', startPlugin);
+    if(window.Lampa) startPlugin()
+    else window.addEventListener('lampa', startPlugin)
 })();
