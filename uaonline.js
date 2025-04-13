@@ -8,32 +8,25 @@
             component: 'uaonline'
         }
 
-        Lampa.Plugin(manifest, function(plugin){
-            plugin.component = function(name){
-                if(name === 'uaonline') return component
+        function component(){
+            this.item = function(object, resolve, reject){
+                resolve([{
+                    title: 'UAKino (тест)',
+                    url: 'https://example.com/stream.mp4',
+                    quality: 'HD',
+                    info: 'UAKino тестове посилання'
+                }])
             }
 
-            return plugin
-        })
+            this.search = function(){}
+            this.add = function(){}
+            this.contextmenu = function(){}
+        }
+
+        Lampa.Component.add(manifest.component, component)
+        Lampa.Plugin.register(manifest)
     }
 
-    var component = {
-        item: function(object, resolve, reject) {
-            // Тестове джерело для прикладу, заміни потім на реальні URL
-            resolve([
-                {
-                    title: 'UAkino (1080p)',
-                    url: 'https://example.com/stream.mp4',
-                    quality: '1080p',
-                    info: 'UAKino тестовий стрім'
-                }
-            ])
-        },
-        search: function(){},
-        add: function(){},
-        contextmenu: function(){}
-    }
-
-    if(window.Lampa) startPlugin()
+    if(window.Lampa && Lampa.Component && Lampa.Plugin) startPlugin()
     else window.addEventListener('lampa', startPlugin)
 })();
