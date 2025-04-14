@@ -1,18 +1,15 @@
 (function () {
     function startPlugin() {
-        var manifest = {
+        Lampa.Plugin({
             type: 'video',
-            version: '1.0.0',
             name: 'UA Test Source',
-            description: 'Тестове джерело для Lampa',
-            component: 'uatest'
-        };
-
-        Lampa.Plugin(manifest, function (plugin) {
+            component: 'uatest',
+            version: '1.0.0',
+            description: 'Тестове джерело Lampa'
+        }, function (plugin) {
             plugin.component = function (name) {
-                if (name === 'uatest') return component;
+                return name === 'uatest' ? component : null;
             };
-            return plugin;
         });
     }
 
@@ -20,10 +17,10 @@
         item: function (object, resolve, reject) {
             resolve([
                 {
-                    title: 'Test Video 720p',
+                    title: 'UA Demo Stream',
                     url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-                    quality: '720p',
-                    info: 'Це тестове відео'
+                    quality: '1080p',
+                    info: 'Тестовий потік для перевірки'
                 }
             ]);
         },
