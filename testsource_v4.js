@@ -1,62 +1,40 @@
-(function(){
-    if (!window.app) return;
+(function () {
+    function start() {
+        function uaonline(component) {
+            component.addSource({
+                title: 'Онлайн UA',
+                description: 'uaonline test',
+                onClick: function () {
+                    let html = `
+                        <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
+                            <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+                                    frameborder="0" allowfullscreen 
+                                    style="position:absolute;top:0;left:0;width:100%;height:100%;">
+                            </iframe>
+                        </div>
+                    `;
 
-    function waitForElement(selector, callback, timeout = 10000) {
-        const interval = 100;
-        const maxTries = timeout / interval;
-        let tries = 0;
-        const timer = setInterval(() => {
-            const el = document.querySelector(selector);
-            if (el) {
-                clearInterval(timer);
-                callback(el);
-            } else if (++tries > maxTries) {
-                clearInterval(timer);
-            }
-        }, interval);
-    }
-
-    function addSourceButton() {
-        waitForElement('.selectbox__content', (container) => {
-            const titleEl = container.querySelector('.selectbox__title');
-            if (!titleEl || titleEl.textContent.trim() !== 'Джерело') return;
-
-            const scrollBody = container.querySelector('.scroll__body');
-            if (!scrollBody) return;
-
-            if (scrollBody.querySelector('[data-uaonline]')) return; // запобігти дублю
-
-            const item = document.createElement('div');
-            item.className = 'selectbox-item selectbox-item--icon selector';
-            item.setAttribute('data-uaonline', 'true');
-
-            item.innerHTML = `
-                <div class="selectbox-item__icon">🌐</div>
-                <div>
-                    <div class="selectbox-item__title">Онлайн UA</div>
-                    <div class="selectbox-item__subtitle">uaonline test</div>
-                </div>
-            `;
-
-            item.addEventListener('click', () => {
-                Lampa.Player.play({
-                    title: 'UA Online Example',
-                    url: 'https://example.com/stream.m3u8',
-                    method: 'play'
-                });
+                    Modal.open({
+                        title: 'Онлайн UA',
+                        html: html,
+                        onBack: function () {
+                            Modal.close();
+                            Controller.toggle('content');
+                        }
+                    });
+                }
             });
+        }
 
-            scrollBody.appendChild(item);
-            console.log('[UAOnline] Кнопка додана');
+        if (window.appready) uaonline(Lampa.Player);
+        else Lampa.Listener.follow('app', function (e) {
+            if (e.type == 'ready') uaonline(Lampa.Player);
         });
     }
 
-    // Очікуємо появу контенту
-    const observer = new MutationObserver(() => {
-        addSourceButton();
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    console.log('[UAOnline] Ініціалізовано');
+    if (!window.Plugin) {
+        setTimeout(start, 500);
+    } else {
+        start();
+    }
 })();
