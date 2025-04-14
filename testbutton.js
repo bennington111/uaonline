@@ -21,23 +21,34 @@
             <span>${mod_title}</span>
         </div>`;
 
+    function waitForButtonsContainer(callback, tries = 0) {
+        const container = $('.full-start__buttons');
+        if (container.length) {
+            console.log('UAOnline: контейнер знайдено');
+            callback(container);
+        } else {
+            if (tries < 20) { // до 2 секунд
+                setTimeout(() => waitForButtonsContainer(callback, tries + 1), 100);
+            } else {
+                console.log('UAOnline: контейнер кнопок не знайдено після очікування');
+            }
+        }
+    }
+
     function init() {
         console.log('UAOnline: плагін ініціалізується');
         Lampa.Listener.follow('full', function (e) {
             console.log('UAOnline: подія full ->', e.type);
             if (e.type == 'complite') {
-                const btn = $(Lampa.Lang.translate(button));
-                btn.on('hover:enter', function () {
-                    console.log('UAOnline: натиснуто кнопку');
-                    loadStream(e.data.movie);
-                });
-                const container = $('.full-start__buttons');
-                if (container.length) {
-                    console.log('UAOnline: додаємо кнопку');
+                waitForButtonsContainer(function(container){
+                    const btn = $(Lampa.Lang.translate(button));
+                    btn.on('hover:enter', function () {
+                        console.log('UAOnline: натиснуто кнопку');
+                        loadStream(e.data.movie);
+                    });
                     container.prepend(btn);
-                } else {
-                    console.log('UAOnline: контейнер кнопок не знайдено');
-                }
+                    console.log('UAOnline: кнопку додано');
+                });
             }
         });
     }
