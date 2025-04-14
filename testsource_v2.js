@@ -1,14 +1,18 @@
 console.log('[UAOnline]: testsource_v2.js завантажено');
 
 Lampa.Listener.follow('full', function (e) {
-    console.log(`[UAOnline: подія full ->] ${e.type}`);
+    console.log(`[UAOnline: подія full ->] ${e.type}`, e);
 
     if (e.type === 'complite') {
-        waitForScrollBody();
+        // перевіряємо, що це екран з джерелами перегляду
+        if (e.data && (e.data.movie || e.data.episodes)) {
+            console.log('[UAOnline]: це фільм або серіал, пробую додати кнопку');
+            waitForSourceButtons();
+        }
     }
 });
 
-function waitForScrollBody(attempt = 0) {
+function waitForSourceButtons(attempt = 0) {
     const container = document.querySelector('.selectbox__content .scroll__body');
 
     if (container) {
@@ -34,7 +38,7 @@ function waitForScrollBody(attempt = 0) {
         container.appendChild(button);
         console.log('[UAOnline]: кнопка додана в scroll__body');
     } else if (attempt < 20) {
-        setTimeout(() => waitForScrollBody(attempt + 1), 300);
+        setTimeout(() => waitForSourceButtons(attempt + 1), 300);
     } else {
         console.warn('[UAOnline]: scroll__body не знайдено після 20 спроб');
     }
