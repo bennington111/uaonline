@@ -6,35 +6,36 @@
             name: 'Онлайн UA Online',
             description: 'Джерело з сайтів uakino та uaserials',
             component: 'uaonline'
-        };
+        }
 
         Lampa.Plugin(manifest, function(plugin){
             plugin.component = function(name){
-                if(name === 'uaonline') return component;
-            };
+                if(name === 'uaonline') return component
+            }
 
-            return plugin;
-        });
+            return plugin
+        })
     }
 
     var component = {
-        item: function(object, resolve, reject){
-            var sources = [
+        item: function(object, resolve, reject) {
+            resolve([
                 {
-                    title: 'UAKino (1080p)',
+                    title: 'UAkino (1080p)',
                     url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
                     quality: '1080p',
                     info: 'Тестовий потік UAKino'
                 }
-            ];
-
-            resolve(sources);
+            ])
         },
         search: function(){},
         add: function(){},
-        contextmenu: function(){}
-    };
+        contextmenu: function(){},
+        id: 'uaonline',
+        type: 'video',
+        name: 'Онлайн UA Online'
+    }
 
-    if(window.Lampa) startPlugin();
-    else window.addEventListener('lampa', startPlugin);
+    if(window.Lampa) startPlugin()
+    else window.addEventListener('lampa', startPlugin)
 })();
