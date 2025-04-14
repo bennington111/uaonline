@@ -4,20 +4,20 @@ Lampa.Listener.follow('full', function (e) {
     console.log(`[UAOnline: подія full ->] ${e.type}`);
 
     if (e.type === 'complite') {
-        waitForContainer();
+        waitForScrollBody();
     }
 });
 
-function waitForContainer(attempt = 0) {
-    const container = document.querySelector('.selectbox__content');
+function waitForScrollBody(attempt = 0) {
+    const container = document.querySelector('.selectbox__content .scroll__body');
 
     if (container) {
-        console.log('[UAOnline]: контейнер знайдено, додаю кнопку');
+        console.log('[UAOnline]: scroll__body знайдено, додаю кнопку');
 
         const button = document.createElement('div');
         button.className = 'selectbox-item selectbox-item--icon selector';
-        button.style.border = '3px solid red'; // 🟥 Видима рамка
-        button.style.background = '#ffdddd'; // 🩷 Фон
+        button.style.border = '3px solid red';
+        button.style.background = '#ffdddd';
         button.innerHTML = `
             <div class="selectbox-item__icon">🧪</div>
             <div>
@@ -32,10 +32,10 @@ function waitForContainer(attempt = 0) {
         });
 
         container.appendChild(button);
-        console.log('[UAOnline]: кнопка реально додана у', container);
+        console.log('[UAOnline]: кнопка додана в scroll__body');
     } else if (attempt < 20) {
-        setTimeout(() => waitForContainer(attempt + 1), 300);
+        setTimeout(() => waitForScrollBody(attempt + 1), 300);
     } else {
-        console.warn('[UAOnline]: контейнер не знайдено після 20 спроб');
+        console.warn('[UAOnline]: scroll__body не знайдено після 20 спроб');
     }
 }
