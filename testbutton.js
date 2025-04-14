@@ -3,6 +3,7 @@
     const mod_title = 'UA Онлайн';
 
     function loadStream(movie) {
+        console.log('UAOnline: запускаємо плеєр для', movie.title);
         Lampa.Player.play({
             title: movie.title,
             url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
@@ -21,13 +22,22 @@
         </div>`;
 
     function init() {
+        console.log('UAOnline: плагін ініціалізується');
         Lampa.Listener.follow('full', function (e) {
+            console.log('UAOnline: подія full ->', e.type);
             if (e.type == 'complite') {
                 const btn = $(Lampa.Lang.translate(button));
                 btn.on('hover:enter', function () {
+                    console.log('UAOnline: натиснуто кнопку');
                     loadStream(e.data.movie);
                 });
-                $('.full-start__buttons').prepend(btn);
+                const container = $('.full-start__buttons');
+                if (container.length) {
+                    console.log('UAOnline: додаємо кнопку');
+                    container.prepend(btn);
+                } else {
+                    console.log('UAOnline: контейнер кнопок не знайдено');
+                }
             }
         });
     }
