@@ -1,34 +1,36 @@
-(function () {
-    function startPlugin() {
-        Lampa.Plugin({
+(function(){
+    function start(){
+        var manifest = {
             type: 'video',
-            name: 'UA Test Source',
-            component: 'uatest',
             version: '1.0.0',
-            description: 'Тестове джерело Lampa'
-        }, function (plugin) {
-            plugin.component = function (name) {
-                return name === 'uatest' ? component : null;
+            name: 'Онлайн UA Simple',
+            description: 'Тестовий UA плагін',
+            component: 'uasimple'
+        };
+
+        Lampa.Plugin(manifest, function(plugin){
+            plugin.component = function(name){
+                if(name === 'uasimple') return component;
             };
         });
     }
 
     var component = {
-        item: function (object, resolve, reject) {
+        item: function(object, resolve, reject){
             resolve([
                 {
-                    title: 'UA Demo Stream',
+                    title: 'UA Simple Stream',
                     url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
                     quality: '1080p',
-                    info: 'Тестовий потік для перевірки'
+                    info: 'Demo HLS'
                 }
             ]);
         },
-        search: function () {},
-        add: function () {},
-        contextmenu: function () {}
+        search: function(){},
+        add: function(){},
+        contextmenu: function(){}
     };
 
-    if (window.Lampa) startPlugin();
-    else window.addEventListener('lampa', startPlugin);
+    if (window.Lampa) start();
+    else window.addEventListener('lampa', start);
 })();
