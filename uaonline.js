@@ -1,34 +1,44 @@
 (function () {
+    if (!window.Lampa || !Lampa.Listener) return;
+
     console.log('[UAOnline] Плагін завантажено');
 
-    function addButton(e) {
-        if (e.render.find('.uaonline--button').length) return;
+    const buttonHTML = `
+        <div class="selectbox-item selectbox-item--icon selector uaonline--button">
+            <div class="selectbox-item__icon">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path d="M10 15l5.19-3L10 9v6zm-8 4V5a2 2 0 012-2h16a2 2 0 012 2v14a2 2 0 01-2 2H4a2 2 0 01-2-2z"/></svg>
+            </div>
+            <div class="selectbox-item__title">Онлайн UA Online</div>
+        </div>`;
 
-        const button = $('<div class="selectbox-item selectbox-item--icon selector uaonline--button">\
-            <div class="selectbox-item__icon"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h10v2H4z"/></svg></div>\
-            <div class="selectbox-item__title">Онлайн UA Online</div>\
-        </div>');
+    function addButton({ render, movie }) {
+        if (render.find('.uaonline--button').length) return;
 
-        button.on('hover:enter', function () {
-            console.log('[UAOnline] Натиснуто кнопку UA Online');
+        const btn = $(buttonHTML);
+
+        btn.on('hover:enter', () => {
+            console.log('[UAOnline] Натискання кнопки, фільм:', movie);
+
+            const id = Lampa.Utils.hash(movie.number_of_seasons ? movie.original_name : movie.original_title);
+            const all = Lampa.Storage.get('clarification_search', '{}');
 
             Lampa.Activity.push({
                 url: '',
-                title: 'UA Online',
+                title: Lampa.Lang.translate('title_online'),
                 component: 'uaonline',
-                search: e.movie.title,
-                search_one: e.movie.title,
-                search_two: e.movie.original_title,
-                movie: e.movie,
-                page: 1
+                search: all[id] ? all[id] : movie.title,
+                search_one: movie.title,
+                search_two: movie.original_title,
+                movie: movie,
+                page: 1,
+                clarification: !!all[id]
             });
         });
 
-        e.render.after(button);
-        console.log('[UAOnline] Кнопка додана');
+        render.after(btn);
     }
 
-    Lampa.Listener.follow('full', function (e) {
+    Lampa.Listener.follow('full', (e) => {
         if (e.type === 'complite') {
             addButton({
                 render: e.object.activity.render().find('.view--torrent'),
@@ -37,14 +47,17 @@
         }
     });
 
+    // Безпечна перевірка, якщо вже відкритий фільм
     try {
-        if (Lampa.Activity.active().component === 'full') {
+        const active = Lampa.Activity.active();
+        if (active && active.component === 'full' && active.activity && active.card) {
             addButton({
-                render: Lampa.Activity.active().activity.render().find('.view--torrent'),
-                movie: Lampa.Activity.active().card
+                render: active.activity.render().find('.view--torrent'),
+                movie: active.card
             });
         }
     } catch (err) {
-        console.warn('[UAOnline] Помилка при додаванні кнопки:', err);
+        console.warn('[UAOnline] Помилка при перевірці активності:', err);
     }
+
 })();
