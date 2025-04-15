@@ -1,94 +1,73 @@
-(function () {
-    function UAOnline() {
-        let network = Lampa.Api.network;
-
-        return {
-            type: 'provider',
-            name: 'UA Online',
-            version: '1.0.0',
-            icon: 'https://cdn-icons-png.flaticon.com/512/1179/1179069.png',
-            description: 'Онлайн-джерела: uakino.me та uaserials.pro',
-
-            component: true,
-
-            search: function (query, year, type, callback) {
-                callback([]);
-            },
-
-            get: function (params, callback) {
-                let results = [];
-
-                // uakino.me
-                let query = params.title;
-                network.silent(`https://uakino.me/index.php?do=search&subaction=search&story=${encodeURIComponent(query)}`, (html) => {
-                    let matches = html.match(/<div class="short">([\s\S]*?)<\/div>/g) || [];
-                    matches.forEach(block => {
-                        let link = block.match(/<a href="([^"]+)"[^>]*>([^<]+)<\/a>/);
-                        if (link) {
-                            results.push({
-                                title: link[2] + ' (uakino)',
-                                url: link[1],
-                                poster: '',
-                                voice: 'uakino.me',
-                                quality: '',
-                                info: '',
-                                json: {
-                                    source: 'uakino',
-                                    url: link[1]
-                                }
-                            });
-                        }
-                    });
-                    checkDone();
-                });
-
-                // uaserials.pro
-                network.silent(`https://uaserials.pro/search?query=${encodeURIComponent(query)}`, (html) => {
-                    let matches = html.match(/<div class="ser-thumbnail">([\s\S]*?)<\/div>/g) || [];
-                    matches.forEach(block => {
-                        let link = block.match(/<a href="([^"]+)"/);
-                        let img = block.match(/<img src="([^"]+)" alt="([^"]*)"/);
-                        if (link) {
-                            results.push({
-                                title: (img ? img[2] : 'Без назви') + ' (uaserials)',
-                                url: link[1],
-                                poster: img ? img[1] : '',
-                                voice: 'uaserials.pro',
-                                quality: '',
-                                info: '',
-                                json: {
-                                    source: 'uaserials',
-                                    url: link[1]
-                                }
-                            });
-                        }
-                    });
-                    checkDone();
-                });
-
-                let calls = 0;
-                function checkDone() {
-                    calls++;
-                    if (calls === 2) callback(results);
+(function() {
+    var uakinoPlugin = {
+        init: function() {
+            Lampa.Template.add('uakino_button', `<div class="menu__item selector" data-action="uakino">UA Kino</div>`);
+            
+            // Додайте кнопку в головне меню
+            Lampa.Listener.follow('app', function(e) {
+                if (e.type === 'ready') {
+                    $('.menu .menu__list').append(Lampa.Template.get('uakino_button', {}, true));
                 }
-            },
+            });
 
-            play: function (object, callback) {
-                network.silent(object.url, (html) => {
-                    let iframe = html.match(/<iframe[^>]+src=['"]([^'"]+)['"]/);
-                    if (iframe && iframe[1]) {
-                        callback({
-                            file: iframe[1],
-                            title: 'UA Online',
-                            url: iframe[1]
-                        });
-                    } else {
-                        callback([]);
-                    }
-                }, () => callback([]));
-            }
-        };
-    }
+            // Додайте обробник натискання кнопки
+            $('body').on('click', '.menu__item[data-action="uakino"]', function() {
+                uakinoPlugin.fetchMovies();
+            });
+        },
 
-    if (window.lampa_provider) window.lampa_provider(UAOnline());
-    else window.addEventListener('l
+        fetchMovies: function() {
+            var url = 'https://uakino.me'; // Головна сторінка сайту
+            
+            Lampa.Utils.request({
+                url: url,
+                method: 'GET',
+                dataType: 'text',
+                success: function(response) {
+                    var movies = uakinoPlugin.parseMovies(response);
+                    uakinoPlugin.showMovies(movies);
+                },
+                error: function() {
+                    Lampa.Noty.show('Не вдалося завантажити дані з UA Kino');
+                }
+            });
+        },
+
+        parseMovies: function(html) {
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(html, 'text/html');
+            var movies = [];
+            
+            // Напишіть логіку парсингу
+            doc.querySelectorAll('.movie-item').forEach(function(item) {
+                var title = item.querySelector('.title').textContent;
+                var link = item.querySelector('a').href;
+                var poster = item.querySelector('img').src;
+                
+                movies.push({ title: title, link: link, poster: poster });
+            });
+
+            return movies;
+        },
+
+        showMovies: function(movies) {
+            var items = movies.map(function(movie) {
+                return {
+                    title: movie.title,
+                    image: movie.poster,
+                    url: movie.link
+                };
+            });
+
+            Lampa.Activity.push({
+                url: '',
+                title: 'UA Kino',
+                component: 'category',
+                items: items,
+                page: 1
+            });
+        }
+    };
+
+    uakinoPlugin.init();
+})();
