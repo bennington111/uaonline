@@ -1,37 +1,22 @@
-(function () {
-    if (!window.Lampa || !Lampa.Listener) return;
+Lampa.Component.add('full', {
+    onCreate: function (component) {
+        const container = component.render().find('.selectbox');
 
-    console.log('[UAOnline] Плагін завантажено');
+        if (!container.length) {
+            console.warn('[UAOnline] Не знайдено selectbox');
+            return;
+        }
 
-    function observeSelectbox(callback) {
-        const observer = new MutationObserver(() => {
-            const el = document.querySelector('.selectbox');
-            if (el) {
-                observer.disconnect();
-                console.log('[UAOnline] Знайдено .selectbox');
-                callback(el);
-            }
-        });
-
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-
-        setTimeout(() => observer.disconnect(), 10000);
-    }
-
-    function addSourceButton(container) {
-        const btn = document.createElement('div');
-        btn.className = 'selectbox-item selectbox-item--icon selector';
-        btn.innerHTML = `
-            <div class="selectbox-item__icon">
-                <i class="fa fa-globe"></i>
+        const btn = $(`
+            <div class="selectbox-item selectbox-item--icon selector">
+                <div class="selectbox-item__icon">
+                    <i class="fa fa-globe"></i>
+                </div>
+                <div class="selectbox-item__title">Онлайн UA Online</div>
             </div>
-            <div class="selectbox-item__title">Онлайн UA Online</div>
-        `;
+        `);
 
-        btn.addEventListener('click', () => {
+        btn.on('hover:enter', function () {
             console.log('[UAOnline] Клік по кнопці');
             Lampa.Activity.push({
                 url: '',
@@ -43,16 +28,7 @@
             });
         });
 
-        container.appendChild(btn);
+        container.append(btn);
+        console.log('[UAOnline] Кнопка додана через Component.add');
     }
-
-    Lampa.Listener.follow('activity', function (e) {
-        console.log('[UAOnline] Activity event:', e);
-
-        if (e.component === 'full' && e.type === 'start') {
-            console.log('[UAOnline] Повноекранна картка запущена');
-            observeSelectbox(addSourceButton);
-        }
-    });
-
-})();
+});
