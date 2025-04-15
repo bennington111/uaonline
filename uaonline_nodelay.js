@@ -6,7 +6,7 @@
         name: 'Онлайн UA Online',
         condition: () => true,
         onSearch: function (query, callback) {
-            callback([]);
+            callback([]); // порожній список
         },
         onCancel: function () {}
     });
@@ -17,7 +17,7 @@
             e.object.appendSource({
                 title: 'UA Online',
                 url: '',
-                component: 'uaonline',
+                component: 'online', // ← тут змінив
                 onClick: function () {
                     console.log('[UAOnline] Натиснуто кнопку джерела');
                 }
