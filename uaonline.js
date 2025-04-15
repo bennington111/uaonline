@@ -1,38 +1,58 @@
-Lampa.Component.add('full', {
-    onCreate: function (component) {
-        setTimeout(() => {
-            try {
-                const container = component.render().find('.selectbox');
+(function () {
+    if (!window.Lampa || !Lampa.Listener) return;
 
-                if (!container || !container.length) {
-                    console.warn('[UAOnline] selectbox не знайдено');
-                    return;
-                }
+    console.log('[UAOnline] Плагін завантажено');
 
-                const btn = $(`
-                    <div class="selectbox-item selectbox-item--icon selector">
-                        <div class="selectbox-item__icon"><i class="fa fa-globe"></i></div>
-                        <div class="selectbox-item__title">Онлайн UA Online</div>
-                    </div>
-                `);
-
-                btn.on('hover:enter', () => {
-                    console.log('[UAOnline] Клік на кнопку');
-                    Lampa.Activity.push({
-                        url: '',
-                        title: 'UA Online',
-                        component: 'online',
-                        search: '',
-                        search_one: '',
-                        name: 'UA Online'
-                    });
-                });
-
-                container.append(btn);
-                console.log('[UAOnline] Кнопка успішно додана');
-            } catch (e) {
-                console.error('[UAOnline] Помилка при вставці кнопки:', e);
+    function observeSelectbox(callback) {
+        const observer = new MutationObserver(() => {
+            const el = document.querySelector('.selectbox');
+            if (el) {
+                observer.disconnect();
+                console.log('[UAOnline] Знайдено .selectbox');
+                callback(el);
             }
-        }, 1000); // даємо 1 секунду на рендер
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        setTimeout(() => observer.disconnect(), 10000);
     }
-});
+
+    function addSourceButton(container) {
+        const btn = document.createElement('div');
+        btn.className = 'selectbox-item selectbox-item--icon selector';
+        btn.innerHTML = `
+            <div class="selectbox-item__icon">
+                <i class="fa fa-globe"></i>
+            </div>
+            <div class="selectbox-item__title">Онлайн UA Online</div>
+        `;
+
+        btn.addEventListener('click', () => {
+            console.log('[UAOnline] Клік по кнопці');
+            Lampa.Activity.push({
+                url: '',
+                title: 'UA Online',
+                component: 'online',
+                search: '',
+                search_one: '',
+                name: 'UA Online'
+            });
+        });
+
+        container.appendChild(btn);
+    }
+
+    Lampa.Listener.follow('activity', function (e) {
+        console.log('[UAOnline] Activity event:', e);
+
+        if (e.component === 'full' && e.type === 'start') {
+            console.log('[UAOnline] Повноекранна картка запущена');
+            observeSelectbox(addSourceButton);
+        }
+    });
+
+})();
