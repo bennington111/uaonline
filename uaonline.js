@@ -49,8 +49,8 @@
     Lampa.Listener.follow('activity', function (e) {
         console.log('[UAOnline] Activity event:', e);
 
-        if (e && e.type === 'object' && e.object && e.object.name) {
-            console.log('[UAOnline] Отримано картку:', e.object.name);
+        if (e.component === 'full' && e.type === 'start') {
+            console.log('[UAOnline] Повноекранна картка запущена');
             observeSelectbox(addSourceButton);
         }
     });
