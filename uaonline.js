@@ -18,7 +18,6 @@
             subtree: true
         });
 
-        // safety timeout через 10 секунд
         setTimeout(() => observer.disconnect(), 10000);
     }
 
@@ -48,7 +47,9 @@
     }
 
     Lampa.Listener.follow('activity', function (e) {
-        if (e.type === 'object' && e.object && e.object.name) {
+        console.log('[UAOnline] Activity event:', e);
+
+        if (e && e.type === 'object' && e.object && e.object.name) {
             console.log('[UAOnline] Отримано картку:', e.object.name);
             observeSelectbox(addSourceButton);
         }
