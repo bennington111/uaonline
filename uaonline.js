@@ -42,7 +42,7 @@ console.log('UAOnline plugin loaded');
 
     Lampa.Listener.follow('selectbox', function (event) {
         if (event.type === 'open') {
-            setTimeout(addSourceButton, 10); // Трохи зачекати, щоб DOM точно завантажився
+            setTimeout(addSourceButton, 100); // Трохи зачекати, щоб DOM точно завантажився
         }
     });
 })();
