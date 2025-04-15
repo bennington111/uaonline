@@ -1,5 +1,3 @@
-//12.04.2025 - Fix
-
 (function () {
     'use strict';
 
@@ -17,7 +15,7 @@
 
     function decodeSecret(input, password) {
       var result = '';
-      password = password || Lampa.Storage.get('online_mod_secret_password', '') + '';
+      password = password || Lampa.Storage.get('ua_mod_secret_password', '') + '';
 
       if (input && password) {
         var hash = Lampa.Utils.hash(password);
@@ -55,7 +53,7 @@
     }
 
     function rezka2Mirror() {
-      var url = Lampa.Storage.get('online_mod_rezka2_mirror', '') + '';
+      var url = Lampa.Storage.get('ua_mod_rezka2_mirror', '') + '';
       if (!url) return 'https://kvk.zone';
       if (url.indexOf('://') == -1) url = 'https://' + url;
       if (url.charAt(url.length - 1) === '/') url = url.substring(0, url.length - 1);
@@ -63,7 +61,7 @@
     }
 
     function kinobaseMirror() {
-      var url = Lampa.Storage.get('online_mod_kinobase_mirror', '') + '';
+      var url = Lampa.Storage.get('ua_mod_kinobase_mirror', '') + '';
       if (!url) return 'https://kinobase.org';
       if (url.indexOf('://') == -1) url = 'https://' + url;
       if (url.charAt(url.length - 1) === '/') url = url.substring(0, url.length - 1);
@@ -104,7 +102,7 @@
 
     function proxy(name) {
       var ip = getMyIp() || '';
-      var param_ip = Lampa.Storage.field('online_mod_proxy_find_ip') === true ? 'ip' + ip + '/' : '';
+      var param_ip = Lampa.Storage.field('ua_mod_proxy_find_ip') === true ? 'ip' + ip + '/' : '';
       var proxy1 = new Date().getHours() % 2 ? 'https://cors.nb557.workers.dev:8443/' : 'https://cors.fx666.workers.dev:8443/';
       var proxy2 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/';
       var proxy3 = 'https://cors557.deno.dev/';
@@ -118,8 +116,8 @@
         proxy_secret_ip = proxy_secret + (param_ip || 'ip/');
       }
 
-      var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true;
-      var proxy_other_url = proxy_other ? Lampa.Storage.field('online_mod_proxy_other_url') + '' : '';
+      var proxy_other = Lampa.Storage.field('ua_mod_proxy_other') === true;
+      var proxy_other_url = proxy_other ? Lampa.Storage.field('ua_mod_proxy_other_url') + '' : '';
       var user_proxy1 = (proxy_other_url || proxy1) + param_ip;
       var user_proxy2 = (proxy_other_url || proxy2) + param_ip;
       var user_proxy3 = (proxy_other_url || proxy3) + param_ip;
@@ -131,7 +129,7 @@
       if (name === 'cookie2') return user_proxy2;
       if (name === 'cookie3') return user_proxy3;
 
-      if (Lampa.Storage.field('online_mod_proxy_' + name) === true) {
+      if (Lampa.Storage.field('ua_mod_proxy_' + name) === true) {
         if (name === 'iframe') return user_proxy2;
         if (name === 'lumex') return user_proxy2;
         if (name === 'rezka') return user_proxy2;
@@ -494,8 +492,8 @@
       extract.season_num = [];
       extract.media = [];
       var select_title = '';
-      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
-      var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
+      var prefer_http = Lampa.Storage.field('ua_mod_prefer_http') === true;
+      var prefer_mp4 = Lampa.Storage.field('ua_mod_prefer_mp4') === true;
       var prox = component.proxy('lumex');
       var host = atob('aHR0cHM6Ly9wLmx1bWV4LnNwYWNl');
       var ref = host + '/';
@@ -1003,7 +1001,7 @@
 
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, filter_items.voice[choice.voice]].join('') : object.movie.original_title + element.title);
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -1064,7 +1062,7 @@
               }
             }, function () {
               element.loading = false;
-              Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+              Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
             });
           });
           component.append(item);
@@ -1081,7 +1079,7 @@
                   quality: element.qualitys
                 });
               }, function () {
-                Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+                Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
               });
             }
           });
@@ -1098,7 +1096,7 @@
       extract.season_num = [];
       extract.media = [];
       var select_title = '';
-      Lampa.Storage.field('online_mod_prefer_http') === true;
+      Lampa.Storage.field('ua_mod_prefer_http') === true;
       var embed = atob('aHR0cHM6Ly9hcGkubGFtcGEuc3RyZWFtL2x1bWV4Lw==');
       var api_suffix = '/' + encodeURIComponent(btoa(window.location.href));
       var cub_id = encodeURIComponent(btoa(Lampa.Storage.get('account', '{}').email || 'none'));
@@ -1405,7 +1403,7 @@
 
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, filter_items.voice[choice.voice]].join('') : object.movie.original_title + element.title);
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -1470,7 +1468,7 @@
               }
             }, function () {
               element.loading = false;
-              Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+              Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
             });
           });
           component.append(item);
@@ -1487,7 +1485,7 @@
                   quality: element.qualitys
                 });
               }, function () {
-                Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+                Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
               });
             }
           });
@@ -1501,9 +1499,9 @@
       var extract = {};
       var object = _object;
       var select_title = '';
-      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
-      var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
-      var proxy_mirror = Lampa.Storage.field('online_mod_proxy_rezka2_mirror') === true;
+      var prefer_http = Lampa.Storage.field('ua_mod_prefer_http') === true;
+      var prefer_mp4 = Lampa.Storage.field('ua_mod_prefer_mp4') === true;
+      var proxy_mirror = Lampa.Storage.field('ua_mod_proxy_rezka2_mirror') === true;
       var prox = component.proxy('rezka2');
       var host = prox && !proxy_mirror ? 'https://rezka.ag' : Utils.rezka2Mirror();
       var ref = host + '/';
@@ -1522,7 +1520,7 @@
         prox_enc += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
       }
 
-      var cookie = Lampa.Storage.get('online_mod_rezka2_cookie', '') + '';
+      var cookie = Lampa.Storage.get('ua_mod_rezka2_cookie', '') + '';
       if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + Utils.randomId(26) + (cookie ? '; ' + cookie : '');
 
       if (cookie) {
@@ -1549,7 +1547,7 @@
         var login_form = str.match(/<form id="check-form" class="check-form" method="post" action="\/ajax\/login\/">/);
 
         if (login_form) {
-          error_message = Lampa.Lang.translate('online_mod_authorization_required') + ' HDrezka';
+          error_message = Lampa.Lang.translate('ua_mod_authorization_required') + ' HDrezka';
           return;
         }
 
@@ -1563,7 +1561,7 @@
         var verify_form = str.match(/<span>MIRROR<\/span>.*<button type="submit" onclick="\$\.cookie(\([^)]*\))/);
 
         if (verify_form) {
-          error_message = Lampa.Lang.translate('online_mod_unsupported_mirror') + ' HDrezka';
+          error_message = Lampa.Lang.translate('ua_mod_unsupported_mirror') + ' HDrezka';
           return;
         }
 
@@ -1792,7 +1790,7 @@
             if (callback) callback(data, have_more, query);
           }, function (a, c) {
             if (prox && a.status == 403 && (!a.responseText || a.responseText.indexOf('<div>105</div>') !== -1)) {
-              Lampa.Storage.set('online_mod_proxy_rezka2', 'false');
+              Lampa.Storage.set('ua_mod_proxy_rezka2', 'false');
             }
 
             if (a.status == 403 && a.responseText) {
@@ -2363,7 +2361,7 @@
 
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, filter_items.voice[choice.voice]].join('') : object.movie.original_title + element.title);
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -2424,7 +2422,7 @@
               }
             }, function (error) {
               element.loading = false;
-              Lampa.Noty.show(error || Lampa.Lang.translate(extract.blocked ? 'online_mod_blockedlink' : 'online_mod_nolink'));
+              Lampa.Noty.show(error || Lampa.Lang.translate(extract.blocked ? 'ua_mod_blockedlink' : 'ua_mod_nolink'));
             });
           });
           component.append(item);
@@ -2441,7 +2439,7 @@
                   quality: element.qualitys
                 });
               }, function (error) {
-                Lampa.Noty.show(error || Lampa.Lang.translate(extract.blocked ? 'online_mod_blockedlink' : 'online_mod_nolink'));
+                Lampa.Noty.show(error || Lampa.Lang.translate(extract.blocked ? 'ua_mod_blockedlink' : 'ua_mod_nolink'));
               });
             }
           });
@@ -2458,7 +2456,7 @@
       var is_playlist = false;
       var quality_type = '';
       var translation = '';
-      var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
+      var prefer_mp4 = Lampa.Storage.field('ua_mod_prefer_mp4') === true;
       var file_type = prefer_mp4 ? 'mp4' : 'hls';
       var prox = component.proxy('kinobase');
       var host = prox ? 'https://kinobase.org' : Utils.kinobaseMirror();
@@ -2466,7 +2464,7 @@
       var embed = ref;
       var logged_in = !(prox || Lampa.Platform.is('android'));
       var user_agent = Utils.baseUserAgent();
-      var check_cookie = Lampa.Storage.get('online_mod_kinobase_cookie', '') + '';
+      var check_cookie = Lampa.Storage.get('ua_mod_kinobase_cookie', '') + '';
       var prox_enc_stream = '';
       var decrypt = Utils.decodeSecret([21, 65, 66, 83, 20, 68, 66, 66, 80, 84, 64, 19, 13, 20, 31, 80, 69, 87, 84, 64, 88, 89, 90, 31, 69, 83, 75, 94, 68, 69, 7, 24, 23, 69, 83, 75, 94, 68, 69, 4, 24, 23, 69, 68, 75, 27, 20, 97, 122, 117, 110, 115, 98, 102, 99, 109, 97, 115, 24, 23, 112, 121, 117, 114, 107, 101, 111, 100, 114, 26, 16, 76, 68, 81, 67, 26, 20, 65, 89, 84, 16, 76, 20, 71, 87, 70, 23, 68, 85, 74, 23, 9, 17, 109, 105, 12, 22, 70, 88, 69, 20, 65, 90, 85, 78, 83, 66, 25, 10, 20, 95, 67, 88, 91, 13, 16, 79, 86, 70, 17, 82, 91, 84, 67, 93, 92, 89, 64, 17, 11, 20, 31, 88, 85, 78, 23, 112, 126, 123, 100, 86, 68, 67, 92, 69, 29, 31, 70, 85, 69, 69, 85, 127, 69, 91, 92, 101, 64, 69, 95, 94, 94, 31, 22, 13, 94, 81, 86, 82, 14, 5, 24, 92, 84, 87, 80, 9, 10, 82, 86, 83, 77, 15, 10, 27, 85, 89, 84, 64, 9, 22, 29, 22, 22, 67, 83, 72, 77, 24, 92, 69, 91, 88, 21, 31, 11, 25, 65, 85, 67, 22, 68, 86, 67, 67, 92, 104, 64, 88, 91, 81, 23, 11, 16, 9, 12, 20, 71, 87, 70, 23, 80, 102, 86, 94, 80, 17, 11, 20, 81, 67, 94, 90, 67, 93, 94, 88, 28, 30, 77, 77, 2, 23, 66, 80, 68, 20, 81, 127, 94, 77, 23, 9, 17, 80, 65, 89, 85, 68, 80, 88, 90, 25, 31, 79, 23, 68, 85, 77, 66, 70, 95, 22, 5, 12, 22, 77, 2, 23, 66, 80, 68, 20, 111, 123, 124, 113, 67, 64, 65, 100, 81, 70, 67, 85, 74, 67, 20, 12, 22, 82, 66, 88, 83, 77, 94, 91, 95, 22, 108, 122, 122, 120, 77, 67, 68, 99, 83, 69, 66, 83, 67, 77, 31, 29, 74, 22, 64, 95, 95, 67, 23, 88, 68, 84, 88, 20, 10, 22, 86, 76, 89, 87, 69, 95, 91, 89, 30, 93, 21, 23, 65, 24, 77, 20, 69, 83, 67, 23, 71, 65, 66, 94, 28, 76, 22, 69, 75, 91, 14, 17, 67, 20, 74, 31, 11, 25, 74, 15, 17, 66, 92, 94, 69, 30, 74, 82, 90, 85, 22, 9, 23, 80, 69, 87, 84, 64, 88, 89, 90, 31, 31, 75, 68, 12, 20, 76, 13, 20, 65, 87, 66, 25, 103, 88, 80, 79, 81, 69, 92, 67, 25, 10, 20, 87, 67, 90, 84, 66, 89, 86, 89, 20, 97, 90, 85, 78, 83, 66, 83, 68, 28, 94, 70, 64, 30, 77, 16, 73, 91, 85, 72, 83, 70, 23, 11, 16, 86, 71, 64, 10, 22, 73, 12, 22, 70, 88, 69, 20, 83, 87, 95, 6, 4, 3, 25, 10, 20, 74, 22, 85, 93, 87, 72, 106, 82, 64, 68, 70, 14, 23, 18, 30, 88, 93, 85, 73, 101, 81, 67, 67, 64, 21, 23, 87, 94, 89, 95, 94, 83, 10, 25, 19, 26, 82, 89, 91, 92, 95, 85, 21, 23, 85, 91, 87, 76, 13, 22, 20, 23, 86, 94, 80, 78, 24, 23, 81, 85, 77, 13, 20, 21, 24, 83, 82, 66, 28, 25, 71, 91, 66, 66, 14, 23, 18, 30, 73, 88, 71, 69, 26, 20, 80, 83, 68, 106, 84, 70, 88, 70, 64, 13, 22, 20, 23, 80, 81, 69, 101, 87, 69, 95, 64, 77, 27, 20, 66, 83, 64, 99, 95, 93, 92, 88, 65, 69, 12, 20, 64, 95, 94, 93, 88, 67, 31, 69, 81, 67, 98, 89, 84, 82, 91, 68, 66, 24, 23, 85, 92, 92, 86, 70, 101, 95, 89, 82, 89, 69, 77, 13, 20, 70, 95, 90, 83, 89, 71, 23, 84, 88, 84, 87, 70, 99, 95, 93, 92, 88, 65, 69, 26, 20, 68, 83, 68, 112, 89, 64, 84, 68, 66, 86, 90, 10, 25, 64, 93, 95, 82, 91, 64, 24, 67, 92, 67, 125, 95, 66, 81, 69, 64, 81, 85, 27, 20, 82, 90, 81, 86, 68, 121, 87, 67, 81, 67, 64, 85, 91, 12, 16, 78, 94, 90, 85, 89, 67, 25, 85, 92, 92, 86, 70, 120, 88, 64, 82, 68, 70, 88, 91, 24, 17, 85, 91, 89, 69, 95, 85, 82, 14, 17, 65, 93, 89, 82, 95, 78, 25, 87, 94, 88, 71, 88, 90, 85, 21, 23, 100, 93, 87, 77, 82, 68, 90, 74, 13, 20, 70, 95, 90, 83, 89, 71, 23, 103, 88, 80, 79, 81, 69, 92, 67, 21, 23, 82, 95, 105, 93, 89, 95, 68, 3, 23, 16, 31, 80, 90, 25, 95, 94, 80, 67, 24, 17, 80, 90, 104, 68, 85, 88, 83, 77, 11, 22, 16, 25, 80, 94, 23, 69, 81, 80, 82, 77, 27, 22, 111, 3, 23, 22, 19, 22, 73, 12, 22, 68, 75, 78, 20, 74, 22, 64, 69, 79, 16, 66, 23, 16, 31, 87, 94, 86, 78, 99, 92, 67, 65, 65, 22, 9, 23, 18, 30, 90, 88, 91, 90, 95, 81, 23, 11, 16, 95, 97, 91, 88, 82, 15, 23, 18, 30, 88, 93, 85, 73, 22, 9, 23, 80, 69, 87, 84, 64, 88, 89, 90, 31, 69, 85, 77, 67, 93, 95, 81, 71, 30, 77, 16, 80, 81, 20, 25, 69, 81, 67, 66, 89, 87, 80, 71, 31, 91, 81, 67, 94, 95, 93, 23, 9, 12, 11, 20, 21, 126, 117, 120, 115, 22, 17, 74, 72, 23, 69, 85, 77, 67, 93, 95, 81, 71, 25, 66, 73, 73, 82, 20, 12, 11, 9, 23, 20, 120, 124, 118, 112, 19, 31, 79, 23, 95, 86, 25, 31, 71, 84, 66, 64, 94, 88, 87, 74, 25, 71, 68, 85, 87, 82, 69, 67, 16, 23, 71, 84, 66, 64, 94, 88, 87, 74, 25, 71, 68, 85, 87, 82, 69, 67, 17, 89, 65, 93, 90, 24, 23, 20, 67, 76, 84, 87, 84, 69, 71, 21, 26, 16, 66, 74, 29, 10, 22, 93, 81, 22, 24, 74, 82, 64, 69, 95, 90, 80, 69, 30, 90, 88, 89, 65, 90, 81, 67, 83, 25, 25, 68, 81, 69, 66, 93, 89, 81, 67, 23, 84, 91, 92, 70, 88, 82, 66, 85, 17, 76, 73, 29, 22, 22, 68, 67, 83, 90, 82, 71, 66, 20, 29, 12, 22, 77, 25, 82, 88, 66, 83, 20, 94, 80, 16, 17, 66, 71, 84, 68, 20, 17, 16, 16, 17, 24, 104, 30, 67, 71, 82, 68, 111, 93, 86, 64, 80, 25, 29, 25, 66, 85, 74, 67, 28, 66, 83, 64, 67, 95, 94, 94, 68, 26, 68, 68, 88, 30, 31, 75, 25, 94, 82, 17, 30, 71, 82, 66, 68, 80, 89, 83, 66, 24, 71, 66, 85, 83, 92, 68, 71, 24, 22, 71, 82, 66, 68, 80, 89, 83, 66, 24, 71, 66, 85, 83, 92, 68, 71, 25, 67, 71, 82, 68, 28, 25, 21, 71, 68, 85, 87, 82, 69, 67, 27, 27, 20, 74, 75, 29, 12, 22, 77, 25, 82, 88, 66, 83, 20, 94, 80, 16, 17, 65, 91, 85, 22, 18, 17, 22, 24, 22, 107, 27, 106, 104, 104, 24, 107, 26, 101, 24, 104, 85, 29, 27, 30, 24, 68, 92, 68, 64, 25, 69, 81, 67, 66, 89, 87, 80, 71, 31, 67, 70, 91, 31, 25, 66, 23, 93, 87, 22, 28, 68, 83, 68, 77, 94, 90, 86, 69, 26, 68, 67, 83, 90, 82, 71, 66, 31, 20, 68, 83, 68, 77, 94, 90, 86, 69, 26, 68, 67, 83, 90, 82, 71, 66, 30, 66, 88, 82, 28, 25, 21, 71, 68, 85, 87, 82, 69, 67, 27, 27, 20, 74, 75, 29, 12, 22, 77, 25, 82, 88, 66, 83, 20, 94, 80, 16, 17, 68, 81, 69, 66, 93, 89, 81, 67, 23, 66, 70, 93, 31, 20, 69, 83, 67, 23, 71, 65, 66, 94, 28, 76, 66, 73, 73, 82, 14, 17, 20, 85, 93, 87, 72, 27, 27, 20, 68, 68, 88, 13, 22, 67, 92, 67, 64, 88, 88, 83, 68, 24, 69, 75, 91, 24, 17, 70, 85, 69, 87, 93, 74, 13, 20, 66, 83, 64, 67, 95, 94, 94, 68, 26, 85, 87, 64, 86, 75, 25, 2, 23, 73, 10, 22, 16, 25, 81, 85, 77, 23, 9, 17, 80, 65, 89, 85, 68, 80, 88, 90, 25, 67, 70, 91, 26, 16, 93, 86, 64, 80, 31, 79, 23, 68, 85, 74, 25, 68, 68, 69, 92, 31, 77, 68, 64, 71, 81, 11, 22, 22, 80, 83, 68, 27, 27, 20, 68, 68, 88, 13, 22, 69, 75, 91, 24, 17, 70, 85, 69, 87, 93, 74, 13, 20, 85, 87, 64, 86, 75, 25, 2, 23, 73, 10, 22, 16, 25, 70, 95, 74, 67, 20, 12, 22, 82, 66, 88, 83, 77, 94, 91, 95, 30, 65, 69, 90, 28, 25, 83, 85, 69, 87, 29, 76, 22, 66, 92, 68, 26, 65, 67, 71, 95, 30, 75, 77, 78, 68, 84, 12, 20, 21, 70, 95, 74, 67, 22, 29, 22, 65, 69, 90, 10, 25, 66, 70, 93, 26, 20, 71, 87, 66, 88, 90, 71, 11, 22, 80, 86, 66, 81, 68, 30, 15, 17, 75, 15, 23, 18, 30, 94, 82, 64, 98, 85, 70, 94, 70, 68, 25, 10, 20, 87, 67, 90, 84, 66, 89, 86, 89, 28, 68, 68, 88, 30, 77, 16, 75, 82, 71, 31, 70, 65, 68, 94, 24, 66, 67, 77, 65, 83, 14, 23, 20, 87, 92, 67, 103, 82, 68, 93, 71, 66, 18, 21, 23, 65, 67, 90, 14, 23, 67, 66, 85, 27, 20, 65, 87, 70, 86, 91, 67, 3, 23, 79, 19, 105, 22, 13, 22, 116, 88, 67, 81, 31, 88, 91, 64, 30, 25, 68, 74, 29, 10, 22, 73, 12, 22, 71, 80, 89, 80, 94, 65, 26, 68, 83, 68, 109, 94, 89, 84, 89, 65, 67, 22, 13, 25, 64, 93, 95, 82, 91, 64, 24, 67, 92, 67, 125, 95, 66, 81, 69, 64, 81, 85, 23, 9, 17, 80, 125, 89, 66, 11, 25, 64, 93, 95, 82, 91, 64, 24, 83, 85, 82, 85, 67, 98, 93, 90, 83, 95, 76, 67, 20, 12, 22, 67, 94, 88, 84, 86, 64, 26, 82, 90, 81, 86, 68, 121, 87, 67, 81, 67, 64, 85, 91, 22, 13, 25, 81, 98, 94, 95, 80, 12, 22, 71, 80, 89, 80, 94, 65, 26, 84, 89, 94, 74, 88, 88, 84, 22, 9, 23, 77, 77, 2, 23, 67, 88, 88, 80, 88, 65, 30, 105, 91, 85, 72, 83, 70, 93, 69, 16, 4, 23, 100, 93, 87, 77, 82, 68, 90, 74, 12, 20, 21, 24, 82, 89, 24, 89, 87, 94, 64, 17, 11, 20, 81, 67, 94, 90, 67, 93, 94, 88, 28, 68, 26, 16, 90, 27, 20, 67, 31, 79, 23, 85, 16, 4, 23, 87, 17, 74, 72, 23, 82, 95, 90, 66, 89, 84, 88, 64, 12, 22, 66, 92, 67, 65, 67, 88, 20, 89, 83, 71, 25, 85, 85, 90, 7, 6, 4, 24, 86, 87, 104, 93, 95, 95, 64, 31, 69, 28, 25, 84, 24, 17, 68, 29, 12, 22, 77, 2, 23, 16, 31, 80, 90, 25, 68, 85, 88, 83, 77, 17, 11, 20, 81, 67, 94, 90, 67, 93, 94, 88, 28, 95, 31, 75, 25, 69, 81, 69, 67, 70, 89, 22, 88, 25, 17, 18, 17, 94, 28, 30, 13, 16, 68, 12, 20, 70, 95, 90, 83, 89, 71, 23, 103, 120, 112, 111, 113, 101, 105, 100, 96, 103, 113, 17, 11, 20, 103, 122, 113, 96, 114, 102, 110, 98, 109, 103, 115, 11, 25, 64, 93, 95, 82, 91, 64, 24, 118, 112, 123, 113, 110, 98, 109, 103, 115, 16, 4, 23, 114, 120, 122, 113, 104, 98, 105, 105, 114, 15, 17, 95, 82, 23, 30, 67, 90, 69, 93, 65, 66, 5, 30, 22, 24, 9, 27, 20, 84, 64, 85, 91, 31, 24, 74, 84, 70, 88, 70, 64, 6, 31, 11, 25, 94, 82, 17, 30, 71, 84, 68, 89, 73, 67, 6, 24, 22, 28, 7, 26, 16, 92, 65, 85, 93, 31, 28, 68, 85, 66, 80, 71, 64, 3, 31, 15, 23, 83, 70, 88, 91, 28, 66, 66, 70, 30, 13, 16, 68, 23, 82, 88, 88, 85, 91, 90, 73, 25, 76, 20, 21, 24, 85, 93, 87, 72, 106, 82, 64, 68, 70, 20, 10, 22, 82, 88, 92, 5, 3, 5, 26, 86, 92, 81, 65, 100, 81, 69, 67, 68, 12, 22, 20, 23, 84, 91, 94, 93, 93, 82, 22, 13, 25, 85, 85, 90, 7, 6, 4, 24, 83, 86, 88, 95, 88, 83, 15, 23, 18, 30, 88, 93, 85, 73, 22, 9, 23, 84, 81, 82, 6, 6, 2, 24, 85, 93, 87, 72, 2, 23, 16, 31, 81, 81, 67, 22, 13, 25, 85, 85, 90, 7, 6, 4, 24, 87, 92, 67, 15, 17, 18, 26, 71, 89, 67, 77, 23, 9, 17, 84, 85, 92, 7, 2, 10, 25, 68, 94, 69, 64, 12, 22, 20, 23, 80, 81, 69, 101, 87, 69, 95, 64, 77, 23, 9, 17, 84, 85, 92, 7, 2, 10, 25, 83, 84, 66, 103, 84, 68, 89, 73, 67, 15, 17, 65, 93, 89, 82, 95, 78, 25, 71, 84, 66, 96, 94, 91, 85, 86, 66, 64, 17, 11, 20, 85, 87, 91, 8, 5, 7, 31, 69, 81, 67, 98, 89, 84, 82, 91, 68, 66, 15, 23, 65, 89, 87, 83, 91, 70, 24, 87, 91, 83, 81, 75, 99, 93, 92, 83, 91, 66, 66, 16, 4, 23, 86, 80, 93, 5, 5, 5, 30, 90, 91, 81, 80, 68, 96, 94, 91, 85, 86, 66, 64, 10, 22, 67, 94, 88, 84, 86, 64, 26, 66, 83, 64, 126, 88, 68, 92, 69, 66, 80, 90, 20, 10, 22, 82, 88, 92, 5, 3, 5, 26, 68, 83, 68, 112, 89, 64, 84, 68, 66, 86, 90, 11, 25, 64, 93, 95, 82, 91, 64, 24, 83, 85, 82, 85, 67, 127, 90, 67, 83, 66, 79, 86, 88, 17, 11, 20, 85, 87, 91, 8, 5, 7, 31, 85, 88, 82, 87, 66, 112, 89, 64, 84, 68, 66, 86, 90, 11, 25, 64, 93, 95, 82, 91, 64, 24, 83, 86, 89, 71, 94, 90, 81, 23, 11, 16, 91, 86, 95, 0, 4, 7, 25, 85, 95, 87, 68, 91, 93, 83, 15, 23, 65, 89, 87, 83, 91, 70, 24, 100, 91, 87, 73, 92, 69, 94, 66, 22, 9, 23, 84, 81, 82, 6, 6, 2, 24, 100, 91, 87, 73, 92, 69, 94, 66, 13, 20, 19, 24, 86, 87, 25, 93, 95, 95, 64, 23, 11, 16, 91, 86, 95, 0, 4, 7, 25, 80, 94, 102, 94, 90, 88, 66, 15, 23, 18, 30, 95, 89, 26, 67, 83, 85, 83, 79, 16, 4, 23, 86, 80, 93, 5, 5, 5, 30, 75, 82, 85, 85, 79, 15, 23, 75, 16, 68, 23, 87, 80, 66, 87, 95, 22, 24, 92, 30, 79, 17, 75, 20, 65, 87, 66, 25, 71, 85, 67, 87, 89, 68, 22, 13, 25, 76, 73, 10, 22, 70, 82, 69, 30, 95, 88, 70, 116, 87, 87, 95, 30, 86, 76, 89, 87, 69, 95, 91, 89, 22, 24, 73, 30, 79, 17, 95, 82, 23, 30, 24, 22, 107, 27, 68, 69, 81, 69, 105, 84, 88, 67, 85, 30, 31, 26, 67, 83, 67, 77, 31, 68, 31, 67, 70, 91, 31, 25, 25, 71, 85, 67, 87, 89, 68, 24, 69, 74, 82, 70, 17, 11, 20, 71, 13, 16, 80, 81, 20, 25, 30, 27, 107, 25, 107, 103, 107, 27, 108, 28, 104, 24, 106, 84, 18, 24, 29, 31, 66, 81, 68, 66, 24, 73, 25, 65, 67, 90, 29, 30, 22, 64, 88, 69, 85, 92, 69, 26, 65, 89, 84, 25, 10, 20, 65, 13, 20, 74, 31, 11, 25, 71, 85, 67, 87, 89, 68, 24, 64, 85, 86, 77, 84, 68, 20, 10, 22, 64, 85, 86, 77, 84, 68, 15, 23, 68, 85, 77, 66, 70, 95, 22, 68, 86, 68, 81, 84, 68, 15, 17, 75, 29, 25, 85, 81, 85, 91, 28, 74, 75, 24]);
 
@@ -2583,9 +2581,9 @@
             } else component.emptyForQuery(select_title);
           } else if (str.indexOf('/recaptcha/api.js') !== -1 || str.indexOf('form action="/check?') !== -1) {
             if (prox) {
-              component.empty(Lampa.Lang.translate('online_mod_captcha_proxy'));
+              component.empty(Lampa.Lang.translate('ua_mod_captcha_proxy'));
             } else {
-              component.empty(Lampa.Lang.translate('online_mod_captcha_address') + embed);
+              component.empty(Lampa.Lang.translate('ua_mod_captcha_address') + embed);
             }
           } else component.emptyForQuery(select_title);
         }, function (a, c) {
@@ -2895,11 +2893,11 @@
                   } catch (e) {}
 
                   if (data.allow_watch != null && !data.allow_watch) {
-                    Lampa.Noty.show(Lampa.Lang.translate('online_mod_blockedlink') + (data.client_country ? ': ' + data.client_country : ''));
+                    Lampa.Noty.show(Lampa.Lang.translate('ua_mod_blockedlink') + (data.client_country ? ': ' + data.client_country : ''));
                     component.emptyForQuery(select_title);
                     return;
                   } else if (!_params.vod) {
-                    Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+                    Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
                     component.emptyForQuery(select_title);
                     return;
                   }
@@ -2936,9 +2934,9 @@
                   });
                 } else if (data && data.error) {
                   if (prox) {
-                    component.empty(Lampa.Lang.translate('online_mod_captcha_proxy'));
+                    component.empty(Lampa.Lang.translate('ua_mod_captcha_proxy'));
                   } else {
-                    component.empty(Lampa.Lang.translate('online_mod_captcha_address') + embed);
+                    component.empty(Lampa.Lang.translate('ua_mod_captcha_address') + embed);
                   }
                 } else component.emptyForQuery(select_title);
               }, function (a, c) {
@@ -3052,7 +3050,7 @@
 
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, element.title, 'kinobase'].join('') : object.movie.original_title + element.quality + 'kinobase');
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -3100,7 +3098,7 @@
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+            } else Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
           });
           component.append(item);
           component.contextmenu({
@@ -3123,7 +3121,7 @@
       var extract = {};
       var object = _object;
       var select_title = '';
-      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true; //let prefer_dash  = Lampa.Storage.field('online_mod_prefer_dash') === true
+      var prefer_http = Lampa.Storage.field('ua_mod_prefer_http') === true; //let prefer_dash  = Lampa.Storage.field('ua_mod_prefer_dash') === true
 
       var prox = component.proxy('collaps');
       var base = 'api.embess.ws';
@@ -3409,7 +3407,7 @@
         items.forEach(function (element) {
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, element.title].join('') : object.movie.original_title + 'collaps');
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -3453,7 +3451,7 @@
               }
 
               if (playlist.length > 1) first.playlist = playlist;
-              if (options && options.runas) Lampa.Player.runas(options.runas);else if (Lampa.Storage.field('online_mod_collaps_lampa_player') === true) Lampa.Player.runas('lampa');
+              if (options && options.runas) Lampa.Player.runas(options.runas);else if (Lampa.Storage.field('ua_mod_collaps_lampa_player') === true) Lampa.Player.runas('lampa');
               Lampa.Player.play(first);
               Lampa.Player.playlist(playlist);
 
@@ -3462,7 +3460,7 @@
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+            } else Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
           });
           component.append(item);
           component.contextmenu({
@@ -3486,8 +3484,8 @@
       var extract = [];
       var object = _object;
       var select_title = '';
-      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
-      var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
+      var prefer_http = Lampa.Storage.field('ua_mod_prefer_http') === true;
+      var prefer_mp4 = Lampa.Storage.field('ua_mod_prefer_mp4') === true;
       var prox = component.proxy('cdnmovies');
       var host = Utils.decodeSecret([95, 64, 69, 70, 71, 13, 25, 31, 79, 94, 80, 84, 89, 92, 83, 24, 95, 87, 91, 93, 95, 83]);
       var ref = host + '/';
@@ -3915,7 +3913,7 @@
 
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, filter_items.voice[choice.voice]].join('') : object.movie.original_title + element.title);
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -3976,7 +3974,7 @@
               }
             }, function () {
               element.loading = false;
-              Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+              Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
             });
           });
           component.append(item);
@@ -3993,7 +3991,7 @@
                   quality: element.qualitys
                 });
               }, function () {
-                Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+                Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
               });
             }
           });
@@ -4022,7 +4020,7 @@
       var embed = 'http://filmixapp.cyou/api/v2/';
       var site = 'https://filmix.quest/';
       var select_title = '';
-      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
+      var prefer_http = Lampa.Storage.field('ua_mod_prefer_http') === true;
       var filter_items = {};
       var choice = {
         season: 0,
@@ -4574,7 +4572,7 @@
 
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, filter_items.voice[choice.voice]].join('') : object.movie.original_title + element.title);
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -4620,7 +4618,7 @@
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+            } else Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
           });
           component.append(item);
           component.contextmenu({
@@ -4644,7 +4642,7 @@
       var object = _object;
       var select_title = '';
       var select_id = '';
-      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
+      var prefer_http = Lampa.Storage.field('ua_mod_prefer_http') === true;
       var prox = component.proxy('zetflix');
       var embed = (prefer_http ? 'http:' : 'https:') + '//hidxlglk.deploy.cx/lite/zetflix';
       var filter_items = {};
@@ -4946,7 +4944,7 @@
 
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, filter_items.voice[choice.voice]].join('') : object.movie.original_title + element.title);
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -4992,7 +4990,7 @@
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+            } else Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
           });
           component.append(item);
           component.contextmenu({
@@ -5015,7 +5013,7 @@
       var extract = [];
       var object = _object;
       var select_title = '';
-      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
+      var prefer_http = Lampa.Storage.field('ua_mod_prefer_http') === true;
       var prox = component.proxy('fancdn');
       var host = Utils.fanserialsHost();
       var ref = host + '/';
@@ -5051,7 +5049,7 @@
         prox_enc2 += 'param/Cookie=' + encodeURIComponent(cookie2) + '/';
       }
 
-      var cookie = Lampa.Storage.get('online_mod_fancdn_cookie', '') + '';
+      var cookie = Lampa.Storage.get('ua_mod_fancdn_cookie', '') + '';
       var authorization_required = !cookie;
       if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + Utils.randomHex(32) + (cookie ? '; ' + cookie : '');
 
@@ -5184,7 +5182,7 @@
               component.similars(items);
               component.loading(false);
             } else component.emptyForQuery(select_title);
-          } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required') + ' FanSerials');else component.emptyForQuery(select_title);
+          } else if (authorization_required) component.empty(Lampa.Lang.translate('ua_mod_authorization_required') + ' FanSerials');else component.emptyForQuery(select_title);
         };
 
         var url = embed + 'index.php?do=search';
@@ -5212,14 +5210,14 @@
           var player = str.match(/<iframe +id="iframe-player" +src=" *(https?:\/\/fancdn.net\/[^"]*)"/);
 
           if (player) {
-            if (!(Lampa.Storage.get('online_mod_fancdn_token', '') + '')) {
+            if (!(Lampa.Storage.get('ua_mod_fancdn_token', '') + '')) {
               var pos = player[1].indexOf('?');
 
               if (pos !== -1) {
                 var token = player[1].substring(pos + 1).split('&').filter(function (s) {
                   return startsWith(s, 'key=');
                 }).join('&');
-                Lampa.Storage.set('online_mod_fancdn_token', token);
+                Lampa.Storage.set('ua_mod_fancdn_token', token);
               }
             }
 
@@ -5233,7 +5231,7 @@
               dataType: 'text',
               headers: headers2
             });
-          } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required') + ' FanSerials');else component.emptyForQuery(select_title);
+          } else if (authorization_required) component.empty(Lampa.Lang.translate('ua_mod_authorization_required') + ' FanSerials');else component.emptyForQuery(select_title);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         }, false, {
@@ -5590,7 +5588,7 @@
 
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, filter_items.voice[choice.voice]].join('') : object.movie.original_title + element.title);
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -5651,7 +5649,7 @@
               }
             }, function () {
               element.loading = false;
-              Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+              Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
             });
           });
           component.append(item);
@@ -5668,7 +5666,7 @@
                   quality: element.qualitys
                 });
               }, function () {
-                Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+                Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
               });
             }
           });
@@ -5682,7 +5680,7 @@
       var extract = [];
       var object = _object;
       var select_title = '';
-      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
+      var prefer_http = Lampa.Storage.field('ua_mod_prefer_http') === true;
       var prox = component.proxy('fancdn2');
       var host = Utils.fancdnHost();
       var ref = host + '/';
@@ -5704,7 +5702,7 @@
       }
 
       var embed = atob('aHR0cHM6Ly9mYW5jZG4ubmV0L2lmcmFtZS8=');
-      var token = Lampa.Storage.get('online_mod_fancdn_token', '') + '';
+      var token = Lampa.Storage.get('ua_mod_fancdn_token', '') + '';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -5723,7 +5721,7 @@
         network.timeout(10000);
         network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
           if (str && str.indexOf('<title>Доступ ограничен</title>') !== -1) {
-            if (error) error(Lampa.Lang.translate('online_mod_authorization_required') + ' FanSerials');
+            if (error) error(Lampa.Lang.translate('ua_mod_authorization_required') + ' FanSerials');
             return;
           }
 
@@ -6111,7 +6109,7 @@
 
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, filter_items.voice[choice.voice]].join('') : object.movie.original_title + element.title);
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -6172,7 +6170,7 @@
               }
             }, function () {
               element.loading = false;
-              Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+              Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
             });
           });
           component.append(item);
@@ -6189,7 +6187,7 @@
                   quality: element.qualitys
                 });
               }, function () {
-                Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+                Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
               });
             }
           });
@@ -6204,7 +6202,7 @@
       var object = _object;
       var select_title = '';
       var select_id = '';
-      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
+      var prefer_http = Lampa.Storage.field('ua_mod_prefer_http') === true;
       var prox = component.proxy('fanserials');
       var host = Utils.fanserialsHost();
       var ref = host + '/';
@@ -6575,7 +6573,7 @@
 
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, filter_items.voice[choice.voice]].join('') : object.movie.original_title + element.title);
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -6636,7 +6634,7 @@
               }
             }, function () {
               element.loading = false;
-              Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+              Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
             });
           });
           component.append(item);
@@ -6653,7 +6651,7 @@
                   quality: element.qualitys
                 });
               }, function () {
-                Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+                Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
               });
             }
           });
@@ -6988,7 +6986,7 @@
         items.forEach(function (element) {
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, element.title].join('') : object.movie.original_title + 'videoseed');
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -7036,7 +7034,7 @@
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+            } else Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
           });
           component.append(item);
           component.contextmenu({
@@ -7397,7 +7395,7 @@
         items.forEach(function (element) {
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, filter_items.voice[choice.voice]].join('') : object.movie.original_title + element.title);
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -7445,7 +7443,7 @@
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+            } else Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
           });
           component.append(item);
           component.contextmenu({
@@ -7467,7 +7465,7 @@
       var extract = {};
       var object = _object;
       var select_title = '';
-      var av1_support = Lampa.Storage.field('online_mod_av1_support') === true;
+      var av1_support = Lampa.Storage.field('ua_mod_av1_support') === true;
       var prox = component.proxy('alloha');
       var prox2 = component.proxy('allohacdn');
       var user_agent = Utils.decodeSecret([122, 91, 75, 95, 88, 91, 87, 31, 12, 25, 4, 17, 30, 99, 94, 88, 84, 86, 64, 71, 17, 120, 96, 23, 7, 0, 23, 7, 15, 17, 97, 93, 89, 0, 4, 2, 23, 76, 7, 2, 29, 23, 119, 64, 73, 91, 81, 102, 83, 86, 124, 95, 68, 22, 2, 7, 6, 24, 7, 1, 22, 24, 114, 127, 96, 124, 122, 24, 23, 90, 89, 82, 82, 20, 118, 83, 87, 92, 89, 25, 25, 116, 92, 67, 89, 89, 82, 25, 1, 10, 3, 26, 1, 24, 4, 25, 6, 16, 106, 86, 82, 80, 68, 93, 24, 3, 3, 14, 25, 7, 7]);
@@ -7823,7 +7821,7 @@
 
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, filter_items.voice[choice.voice]].join('') : object.movie.original_title + element.title);
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -7884,7 +7882,7 @@
               }
             }, function () {
               element.loading = false;
-              Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+              Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
             });
           });
           component.append(item);
@@ -7901,7 +7899,7 @@
                   quality: element.qualitys
                 });
               }, function () {
-                Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+                Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
               });
             }
           });
@@ -8229,7 +8227,7 @@
         items.forEach(function (element) {
           var hash = Lampa.Utils.hash(object.movie.original_title + page_title + element.title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(object.movie.original_title + page_title + element.title);
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -8277,7 +8275,7 @@
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+            } else Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
           });
           component.append(item);
           component.contextmenu({
@@ -8299,7 +8297,7 @@
       var extract = {};
       var object = _object;
       var select_title = '';
-      Lampa.Storage.field('online_mod_prefer_http') === true;
+      Lampa.Storage.field('ua_mod_prefer_http') === true;
       var prox = component.proxy('cdnvideohub');
       var host = 'https://player.cdnvideohub.com';
       var ref = host + '/';
@@ -8524,7 +8522,7 @@
         items.forEach(function (element) {
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title].join('') : object.movie.original_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, element.data_id].join('') : object.movie.original_title + element.data_id);
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -8566,7 +8564,7 @@
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+            } else Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
           });
           component.append(item);
           component.contextmenu({
@@ -8762,7 +8760,7 @@
           success(json);
         } else {
           component.emptyForQuery(select_title);
-          Lampa.Noty.show(Lampa.Lang.translate('online_mod_blockedlink_copyright'));
+          Lampa.Noty.show(Lampa.Lang.translate('ua_mod_blockedlink_copyright'));
         }
       }
 
@@ -8904,7 +8902,7 @@
         items.forEach(function (element) {
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, element.orig_title].join('') : object.movie.original_title + element.orig_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, element.orig_title].join('') : object.movie.original_title + element.orig_title + element.title);
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -8950,7 +8948,7 @@
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+            } else Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
           });
           component.append(item);
           component.contextmenu({
@@ -9148,7 +9146,7 @@
             success(json);
           } else component.emptyForQuery(select_title);
 
-          if (json && json.is_blocked_by_copyrights) Lampa.Noty.show(Lampa.Lang.translate('online_mod_blockedlink_copyright'));else if (json && json.is_blocked_by_geo) Lampa.Noty.show(Lampa.Lang.translate('online_mod_blockedlink'));
+          if (json && json.is_blocked_by_copyrights) Lampa.Noty.show(Lampa.Lang.translate('ua_mod_blockedlink_copyright'));else if (json && json.is_blocked_by_geo) Lampa.Noty.show(Lampa.Lang.translate('ua_mod_blockedlink'));
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         });
@@ -9284,7 +9282,7 @@
         items.forEach(function (element) {
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, element.orig_title].join('') : object.movie.original_title + element.orig_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, element.orig_title].join('') : object.movie.original_title + element.orig_title + element.title);
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -9330,7 +9328,7 @@
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+            } else Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
           });
           component.append(item);
           component.contextmenu({
@@ -9787,7 +9785,7 @@
             var dst = element.template && element.template.find('.online__quality');
 
             if (dst && dst.length) {
-              var src = Lampa.Template.get('online_mod', element).find('.online__quality');
+              var src = Lampa.Template.get('ua_mod', element).find('.online__quality');
 
               if (src && src.length) {
                 if (Lampa.Timeline.details) {
@@ -9824,7 +9822,7 @@
 
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, element.orig_title].join('') : object.movie.original_title + element.orig_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, element.orig_title, filter_items.voice[choice.voice]].join('') : object.movie.original_title + element.orig_title + element.title);
           element.timeline = view;
           element.template = item;
@@ -9886,7 +9884,7 @@
               }
             }, function () {
               element.loading = false;
-              Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+              Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
             });
           });
           component.append(item);
@@ -9903,7 +9901,7 @@
                   quality: element.qualitys
                 });
               }, function () {
-                Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+                Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
               });
             }
           });
@@ -9917,7 +9915,7 @@
       var extract = {};
       var object = _object;
       var select_title = '';
-      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
+      var prefer_http = Lampa.Storage.field('ua_mod_prefer_http') === true;
       var prefer_mp4 = false;
       var prox = component.proxy('kodik');
       var embed = 'https://kodikapi.com/search';
@@ -10484,7 +10482,7 @@
 
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, element.orig_title].join('') : object.movie.original_title + element.orig_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, element.orig_title, filter_items.voice[choice.voice]].join('') : object.movie.original_title + element.orig_title + element.title);
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -10543,7 +10541,7 @@
               }
             }, function () {
               element.loading = false;
-              Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+              Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
             });
           });
           component.append(item);
@@ -10560,7 +10558,7 @@
                   quality: element.qualitys
                 });
               }, function () {
-                Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+                Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
               });
             }
           });
@@ -10574,7 +10572,7 @@
       var extract = {};
       var object = _object;
       var select_title = '';
-      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
+      var prefer_http = Lampa.Storage.field('ua_mod_prefer_http') === true;
       var prox = component.proxy('kinopub');
       var embed = 'https://api.srvkp.com/v1/';
       var token = Utils.decodeSecret([67, 95, 84, 2, 68, 91, 64, 68, 13, 80, 80, 84, 0, 12, 67, 66, 0, 14, 81, 95, 92, 70, 65, 93, 15, 92, 87, 64, 6, 70, 7, 2]);
@@ -11235,7 +11233,7 @@
         items.forEach(function (element) {
           var hash = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, element.orig_title].join('') : object.movie.original_title + element.orig_title);
           var view = Lampa.Timeline.view(hash);
-          var item = Lampa.Template.get('online_mod', element);
+          var item = Lampa.Template.get('ua_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, element.orig_title, filter_items.voice[choice.voice]].join('') : object.movie.original_title + element.orig_title + element.title);
           element.timeline = view;
           item.append(Lampa.Timeline.render(view));
@@ -11283,7 +11281,7 @@
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+            } else Lampa.Noty.show(Lampa.Lang.translate('ua_mod_nolink'));
           });
           component.append(item);
           component.contextmenu({
@@ -11313,12 +11311,12 @@
       });
       var files = new Lampa.Explorer(object);
       var filter = new Lampa.Filter(object);
-      var balanser = Lampa.Storage.get('online_mod_balanser', default_balanser) + '';
-      var last_bls = Lampa.Storage.field('online_mod_save_last_balanser') === true ? Lampa.Storage.cache('online_mod_last_balanser', 200, {}) : {};
-      var use_stream_proxy = Lampa.Storage.field('online_mod_use_stream_proxy') === true;
-      var rezka2_prx_ukr = '//' + (Lampa.Storage.field('online_mod_rezka2_prx_ukr') || 'prx.ukrtelcdn.net') + '/';
-      var rezka2_fix_stream = Lampa.Storage.field('online_mod_rezka2_fix_stream') === true;
-      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
+      var balanser = Lampa.Storage.get('ua_mod_balanser', default_balanser) + '';
+      var last_bls = Lampa.Storage.field('ua_mod_save_last_balanser') === true ? Lampa.Storage.cache('ua_mod_last_balanser', 200, {}) : {};
+      var use_stream_proxy = Lampa.Storage.field('ua_mod_use_stream_proxy') === true;
+      var rezka2_prx_ukr = '//' + (Lampa.Storage.field('ua_mod_rezka2_prx_ukr') || 'prx.ukrtelcdn.net') + '/';
+      var rezka2_fix_stream = Lampa.Storage.field('ua_mod_rezka2_fix_stream') === true;
+      var prefer_http = Lampa.Storage.field('ua_mod_prefer_http') === true;
       var forcedQuality = '';
       var qualityFilter = {
         title: Lampa.Lang.translate('settings_player_quality'),
@@ -11624,7 +11622,7 @@
           balanser = filter_sources[0];
         }
 
-        Lampa.Storage.set('online_mod_balanser', balanser);
+        Lampa.Storage.set('ua_mod_balanser', balanser);
       }
 
       scroll.body().addClass('torrent-list');
@@ -11668,7 +11666,7 @@
           }
         };
 
-        filter.render().find('.filter--sort span').text(Lampa.Lang.translate('online_mod_balanser'));
+        filter.render().find('.filter--sort span').text(Lampa.Lang.translate('ua_mod_balanser'));
         files.appendHead(filter.render());
         files.appendFiles(scroll.render());
         this.search();
@@ -11677,11 +11675,11 @@
 
       this.changeBalanser = function (balanser_name) {
         balanser = balanser_name;
-        Lampa.Storage.set('online_mod_balanser', balanser);
+        Lampa.Storage.set('ua_mod_balanser', balanser);
         last_bls[object.movie.id] = balanser;
 
-        if (Lampa.Storage.field('online_mod_save_last_balanser') === true) {
-          Lampa.Storage.set('online_mod_last_balanser', last_bls);
+        if (Lampa.Storage.field('ua_mod_save_last_balanser') === true) {
+          Lampa.Storage.set('ua_mod_last_balanser', last_bls);
         }
 
         this.search();
@@ -12061,7 +12059,7 @@
                   _this4.extendChoice();
 
                   sources[balanser].search(object, +object.movie.kinopoisk_id || object.movie.imdb_id);
-                } else if (Lampa.Storage.field('online_mod_skip_kp_search') !== true) kp_search();else display([]);
+                } else if (Lampa.Storage.field('ua_mod_skip_kp_search') !== true) kp_search();else display([]);
               };
 
               vcdn_search(fallback);
@@ -12189,7 +12187,7 @@
 
       this.formatEpisodeTitle = function (s_num, e_num, name) {
         var title = '';
-        var full = Lampa.Storage.field('online_mod_full_episode_title') === true;
+        var full = Lampa.Storage.field('ua_mod_full_episode_title') === true;
 
         if (s_num != null && s_num !== '') {
           title = (full ? Lampa.Lang.translate('torrent_serial_season') + ' ' : 'S') + s_num + ' / ';
@@ -12309,16 +12307,16 @@
       };
 
       this.extendChoice = function () {
-        var data = Lampa.Storage.cache('online_mod_choice_' + balanser, 500, {});
+        var data = Lampa.Storage.cache('ua_mod_choice_' + balanser, 500, {});
         var save = data[selected_id || object.movie.id] || {};
         extended = true;
         sources[balanser].extendChoice(save);
       };
 
       this.saveChoice = function (choice) {
-        var data = Lampa.Storage.cache('online_mod_choice_' + balanser, 500, {});
+        var data = Lampa.Storage.cache('ua_mod_choice_' + balanser, 500, {});
         data[selected_id || object.movie.id] = choice;
-        Lampa.Storage.set('online_mod_choice_' + balanser, data);
+        Lampa.Storage.set('ua_mod_choice_' + balanser, data);
       };
       /**
        * Есть похожие карточки
@@ -12335,12 +12333,12 @@
           var year = elem.start_date || elem.year || '';
           var info = [];
           if (orig_title && orig_title != elem.title) info.push(orig_title);
-          if (elem.seasons_count) info.push(Lampa.Lang.translate('online_mod_seasons_count') + ': ' + elem.seasons_count);
-          if (elem.episodes_count) info.push(Lampa.Lang.translate('online_mod_episodes_count') + ': ' + elem.episodes_count);
+          if (elem.seasons_count) info.push(Lampa.Lang.translate('ua_mod_seasons_count') + ': ' + elem.seasons_count);
+          if (elem.episodes_count) info.push(Lampa.Lang.translate('ua_mod_episodes_count') + ': ' + elem.episodes_count);
           elem.title = title;
           elem.quality = year ? (year + '').slice(0, 4) : '----';
           elem.info = info.length ? ' / ' + info.join(' / ') : '';
-          var item = Lampa.Template.get('online_mod_folder', elem);
+          var item = Lampa.Template.get('ua_mod_folder', elem);
           item.on('hover:enter', function () {
             _this5.activity.loader(true);
 
@@ -12360,11 +12358,11 @@
 
         if (search_more) {
           var elem = {
-            title: Lampa.Lang.translate('online_mod_show_more'),
+            title: Lampa.Lang.translate('ua_mod_show_more'),
             quality: '...',
             info: ''
           };
-          var item = Lampa.Template.get('online_mod_folder', elem);
+          var item = Lampa.Template.get('ua_mod_folder', elem);
           item.on('hover:enter', function () {
             _this5.activity.loader(true);
 
@@ -12469,7 +12467,7 @@
         var select = [];
 
         var add = function add(type, title) {
-          var need = Lampa.Storage.get('online_mod_filter', '{}');
+          var need = Lampa.Storage.get('ua_mod_filter', '{}');
           var items = filter_items[type];
           var subitems = [];
           var value = need[type];
@@ -12489,7 +12487,7 @@
         };
 
         choice.source = filter_sources.indexOf(balanser);
-        Lampa.Storage.set('online_mod_filter', choice);
+        Lampa.Storage.set('ua_mod_filter', choice);
         select.push({
           title: Lampa.Lang.translate('torrent_parser_reset'),
           reset: true
@@ -12497,10 +12495,10 @@
         filter_items.source = obj_filter_sources.map(function (s) {
           return s.title;
         });
-        add('source', Lampa.Lang.translate('online_mod_balanser'));
+        add('source', Lampa.Lang.translate('ua_mod_balanser'));
         if (filter_items.voice && filter_items.voice.length) add('voice', Lampa.Lang.translate('torrent_parser_voice'));
         if (filter_items.season && filter_items.season.length) add('season', Lampa.Lang.translate('torrent_serial_season'));
-        if (filter_items.server && filter_items.server.length) add('server', Lampa.Lang.translate('online_mod_server'));
+        if (filter_items.server && filter_items.server.length) add('server', Lampa.Lang.translate('ua_mod_server'));
         this.updateQualityFilter();
         select.push(qualityFilter);
         filter.set('filter', select);
@@ -12527,7 +12525,7 @@
 
 
       this.selected = function (filter_items) {
-        var need = Lampa.Storage.get('online_mod_filter', '{}'),
+        var need = Lampa.Storage.get('ua_mod_filter', '{}'),
             select = [];
 
         for (var i in need) {
@@ -12594,13 +12592,13 @@
             title: Lampa.Lang.translate('torrent_parser_label_cancel_title'),
             clearmark: true
           }, {
-            title: Lampa.Lang.translate('online_mod_clearmark_all'),
+            title: Lampa.Lang.translate('ua_mod_clearmark_all'),
             clearmark_all: true
           }, {
             title: Lampa.Lang.translate('time_reset'),
             timeclear: true
           }, {
-            title: Lampa.Lang.translate('online_mod_timeclear_all'),
+            title: Lampa.Lang.translate('ua_mod_timeclear_all'),
             timeclear_all: true
           }];
 
@@ -12632,7 +12630,7 @@
 
           if (Lampa.Account.working() && params.element && typeof params.element.season !== 'undefined' && Lampa.Account.subscribeToTranslation) {
             menu.push({
-              title: Lampa.Lang.translate('online_mod_voice_subscribe'),
+              title: Lampa.Lang.translate('ua_mod_voice_subscribe'),
               subscribe: true
             });
           }
@@ -12708,15 +12706,15 @@
                   episode: params.element.translate_episode_end,
                   voice: params.element.translate_voice
                 }, function () {
-                  Lampa.Noty.show(Lampa.Lang.translate('online_mod_voice_success'));
+                  Lampa.Noty.show(Lampa.Lang.translate('ua_mod_voice_success'));
                 }, function () {
-                  Lampa.Noty.show(Lampa.Lang.translate('online_mod_voice_error'));
+                  Lampa.Noty.show(Lampa.Lang.translate('ua_mod_voice_error'));
                 });
               }
             }
           });
         }).on('hover:focus', function () {
-          if (Lampa.Helper) Lampa.Helper.show('online_file', Lampa.Lang.translate('online_mod_file_helper'), params.item);
+          if (Lampa.Helper) Lampa.Helper.show('online_file', Lampa.Lang.translate('ua_mod_file_helper'), params.item);
         });
       };
       /**
@@ -12736,7 +12734,7 @@
 
 
       this.emptyForQuery = function (query) {
-        this.empty(Lampa.Lang.translate('online_mod_query_start') + ' (' + query + ') ' + Lampa.Lang.translate('online_mod_query_end'));
+        this.empty(Lampa.Lang.translate('ua_mod_query_start') + ' (' + query + ') ' + Lampa.Lang.translate('ua_mod_query_end'));
       };
 
       this.getLastEpisode = function (items) {
@@ -12821,101 +12819,101 @@
     console.log('App', 'supports headers:', androidHeaders);
 
     if (!Utils.isDebug()) {
-      Lampa.Storage.set('online_mod_proxy_rezka2', 'false');
-      Lampa.Storage.set('online_mod_proxy_kinobase', 'false');
-      Lampa.Storage.set('online_mod_proxy_collaps', 'false');
-      Lampa.Storage.set('online_mod_proxy_cdnmovies', 'false');
-      Lampa.Storage.set('online_mod_proxy_fancdn', 'false');
-      Lampa.Storage.set('online_mod_proxy_fancdn2', 'false');
-      Lampa.Storage.set('online_mod_proxy_fanserials', 'false');
-      Lampa.Storage.set('online_mod_proxy_animelib', 'false');
+      Lampa.Storage.set('ua_mod_proxy_rezka2', 'false');
+      Lampa.Storage.set('ua_mod_proxy_kinobase', 'false');
+      Lampa.Storage.set('ua_mod_proxy_collaps', 'false');
+      Lampa.Storage.set('ua_mod_proxy_cdnmovies', 'false');
+      Lampa.Storage.set('ua_mod_proxy_fancdn', 'false');
+      Lampa.Storage.set('ua_mod_proxy_fancdn2', 'false');
+      Lampa.Storage.set('ua_mod_proxy_fanserials', 'false');
+      Lampa.Storage.set('ua_mod_proxy_animelib', 'false');
     } else if (!Lampa.Platform.is('android')) {
-      Lampa.Storage.set('online_mod_proxy_cdnmovies', 'true');
-      Lampa.Storage.set('online_mod_proxy_fancdn', 'true');
-      Lampa.Storage.set('online_mod_proxy_fancdn2', 'true');
-      Lampa.Storage.set('online_mod_proxy_fanserials', 'true');
+      Lampa.Storage.set('ua_mod_proxy_cdnmovies', 'true');
+      Lampa.Storage.set('ua_mod_proxy_fancdn', 'true');
+      Lampa.Storage.set('ua_mod_proxy_fancdn2', 'true');
+      Lampa.Storage.set('ua_mod_proxy_fanserials', 'true');
     }
 
-    Lampa.Storage.set('online_mod_proxy_lumex', Lampa.Platform.is('android') ? 'false' : 'true');
-    Lampa.Storage.set('online_mod_proxy_filmix', Lampa.Platform.is('android') ? 'false' : 'true');
-    Lampa.Storage.set('online_mod_proxy_videoseed', Lampa.Platform.is('android') ? 'false' : 'true');
-    Lampa.Storage.set('online_mod_proxy_vibix', Lampa.Platform.is('android') ? 'false' : 'true');
-    Lampa.Storage.set('online_mod_proxy_redheadsound', Lampa.Platform.is('android') ? 'false' : 'true');
-    Lampa.Storage.set('online_mod_proxy_videodb', 'false');
-    Lampa.Storage.set('online_mod_proxy_zetflix', 'false');
-    Lampa.Storage.set('online_mod_proxy_kinopub', 'true');
-    Lampa.Storage.set('online_mod_proxy_alloha', 'false');
-    Lampa.Storage.set('online_mod_proxy_hdvb', 'false');
-    Lampa.Storage.set('online_mod_proxy_kp', 'false');
-    Lampa.Params.trigger('online_mod_iframe_proxy', !isTizen || isLocal);
-    Lampa.Params.trigger('online_mod_proxy_iframe', false);
-    Lampa.Params.trigger('online_mod_use_stream_proxy', false);
-    Lampa.Params.trigger('online_mod_proxy_find_ip', false);
-    Lampa.Params.trigger('online_mod_proxy_other', false);
-    Lampa.Params.trigger('online_mod_proxy_lumex', false);
-    Lampa.Params.trigger('online_mod_proxy_rezka', false);
-    Lampa.Params.trigger('online_mod_proxy_rezka2', false);
-    Lampa.Params.trigger('online_mod_proxy_rezka2_mirror', false);
-    Lampa.Params.trigger('online_mod_proxy_kinobase', false);
-    Lampa.Params.trigger('online_mod_proxy_collaps', false);
-    Lampa.Params.trigger('online_mod_proxy_cdnmovies', false);
-    Lampa.Params.trigger('online_mod_proxy_filmix', false);
-    Lampa.Params.trigger('online_mod_proxy_videodb', false);
-    Lampa.Params.trigger('online_mod_proxy_zetflix', false);
-    Lampa.Params.trigger('online_mod_proxy_fancdn', false);
-    Lampa.Params.trigger('online_mod_proxy_fancdn2', false);
-    Lampa.Params.trigger('online_mod_proxy_fanserials', false);
-    Lampa.Params.trigger('online_mod_proxy_videoseed', false);
-    Lampa.Params.trigger('online_mod_proxy_vibix', false);
-    Lampa.Params.trigger('online_mod_proxy_redheadsound', false);
-    Lampa.Params.trigger('online_mod_proxy_cdnvideohub', false);
-    Lampa.Params.trigger('online_mod_proxy_anilibria', false);
-    Lampa.Params.trigger('online_mod_proxy_anilibria2', false);
-    Lampa.Params.trigger('online_mod_proxy_animelib', false);
-    Lampa.Params.trigger('online_mod_proxy_kodik', false);
-    Lampa.Params.trigger('online_mod_proxy_kinopub', false);
-    Lampa.Params.trigger('online_mod_proxy_alloha', false);
-    Lampa.Params.trigger('online_mod_proxy_hdvb', false);
-    Lampa.Params.trigger('online_mod_proxy_kp', false);
-    Lampa.Params.trigger('online_mod_skip_kp_search', false);
-    Lampa.Params.trigger('online_mod_prefer_http', window.location.protocol !== 'https:');
-    Lampa.Params.trigger('online_mod_prefer_mp4', true);
-    Lampa.Params.trigger('online_mod_prefer_dash', false);
-    Lampa.Params.trigger('online_mod_collaps_lampa_player', false);
-    Lampa.Params.trigger('online_mod_full_episode_title', false);
-    Lampa.Params.trigger('online_mod_av1_support', true);
-    Lampa.Params.trigger('online_mod_save_last_balanser', false);
-    Lampa.Params.trigger('online_mod_rezka2_fix_stream', false);
-    Lampa.Params.select('online_mod_kinobase_mirror', '', '');
-    Lampa.Params.select('online_mod_kinobase_cookie', '', '');
-    Lampa.Params.select('online_mod_rezka2_mirror', '', '');
-    Lampa.Params.select('online_mod_rezka2_name', '', '');
-    Lampa.Params.select('online_mod_rezka2_password', '', '');
-    Lampa.Params.select('online_mod_rezka2_cookie', '', '');
-    Lampa.Params.select('online_mod_rezka2_prx_ukr', {
+    Lampa.Storage.set('ua_mod_proxy_lumex', Lampa.Platform.is('android') ? 'false' : 'true');
+    Lampa.Storage.set('ua_mod_proxy_filmix', Lampa.Platform.is('android') ? 'false' : 'true');
+    Lampa.Storage.set('ua_mod_proxy_videoseed', Lampa.Platform.is('android') ? 'false' : 'true');
+    Lampa.Storage.set('ua_mod_proxy_vibix', Lampa.Platform.is('android') ? 'false' : 'true');
+    Lampa.Storage.set('ua_mod_proxy_redheadsound', Lampa.Platform.is('android') ? 'false' : 'true');
+    Lampa.Storage.set('ua_mod_proxy_videodb', 'false');
+    Lampa.Storage.set('ua_mod_proxy_zetflix', 'false');
+    Lampa.Storage.set('ua_mod_proxy_kinopub', 'true');
+    Lampa.Storage.set('ua_mod_proxy_alloha', 'false');
+    Lampa.Storage.set('ua_mod_proxy_hdvb', 'false');
+    Lampa.Storage.set('ua_mod_proxy_kp', 'false');
+    Lampa.Params.trigger('ua_mod_iframe_proxy', !isTizen || isLocal);
+    Lampa.Params.trigger('ua_mod_proxy_iframe', false);
+    Lampa.Params.trigger('ua_mod_use_stream_proxy', false);
+    Lampa.Params.trigger('ua_mod_proxy_find_ip', false);
+    Lampa.Params.trigger('ua_mod_proxy_other', false);
+    Lampa.Params.trigger('ua_mod_proxy_lumex', false);
+    Lampa.Params.trigger('ua_mod_proxy_rezka', false);
+    Lampa.Params.trigger('ua_mod_proxy_rezka2', false);
+    Lampa.Params.trigger('ua_mod_proxy_rezka2_mirror', false);
+    Lampa.Params.trigger('ua_mod_proxy_kinobase', false);
+    Lampa.Params.trigger('ua_mod_proxy_collaps', false);
+    Lampa.Params.trigger('ua_mod_proxy_cdnmovies', false);
+    Lampa.Params.trigger('ua_mod_proxy_filmix', false);
+    Lampa.Params.trigger('ua_mod_proxy_videodb', false);
+    Lampa.Params.trigger('ua_mod_proxy_zetflix', false);
+    Lampa.Params.trigger('ua_mod_proxy_fancdn', false);
+    Lampa.Params.trigger('ua_mod_proxy_fancdn2', false);
+    Lampa.Params.trigger('ua_mod_proxy_fanserials', false);
+    Lampa.Params.trigger('ua_mod_proxy_videoseed', false);
+    Lampa.Params.trigger('ua_mod_proxy_vibix', false);
+    Lampa.Params.trigger('ua_mod_proxy_redheadsound', false);
+    Lampa.Params.trigger('ua_mod_proxy_cdnvideohub', false);
+    Lampa.Params.trigger('ua_mod_proxy_anilibria', false);
+    Lampa.Params.trigger('ua_mod_proxy_anilibria2', false);
+    Lampa.Params.trigger('ua_mod_proxy_animelib', false);
+    Lampa.Params.trigger('ua_mod_proxy_kodik', false);
+    Lampa.Params.trigger('ua_mod_proxy_kinopub', false);
+    Lampa.Params.trigger('ua_mod_proxy_alloha', false);
+    Lampa.Params.trigger('ua_mod_proxy_hdvb', false);
+    Lampa.Params.trigger('ua_mod_proxy_kp', false);
+    Lampa.Params.trigger('ua_mod_skip_kp_search', false);
+    Lampa.Params.trigger('ua_mod_prefer_http', window.location.protocol !== 'https:');
+    Lampa.Params.trigger('ua_mod_prefer_mp4', true);
+    Lampa.Params.trigger('ua_mod_prefer_dash', false);
+    Lampa.Params.trigger('ua_mod_collaps_lampa_player', false);
+    Lampa.Params.trigger('ua_mod_full_episode_title', false);
+    Lampa.Params.trigger('ua_mod_av1_support', true);
+    Lampa.Params.trigger('ua_mod_save_last_balanser', false);
+    Lampa.Params.trigger('ua_mod_rezka2_fix_stream', false);
+    Lampa.Params.select('ua_mod_kinobase_mirror', '', '');
+    Lampa.Params.select('ua_mod_kinobase_cookie', '', '');
+    Lampa.Params.select('ua_mod_rezka2_mirror', '', '');
+    Lampa.Params.select('ua_mod_rezka2_name', '', '');
+    Lampa.Params.select('ua_mod_rezka2_password', '', '');
+    Lampa.Params.select('ua_mod_rezka2_cookie', '', '');
+    Lampa.Params.select('ua_mod_rezka2_prx_ukr', {
       'prx.ukrtelcdn.net': 'prx.ukrtelcdn.net',
       'prx-cogent.ukrtelcdn.net': 'prx-cogent.ukrtelcdn.net',
       'prx2-cogent.ukrtelcdn.net': 'prx2-cogent.ukrtelcdn.net',
       'prx-ams.ukrtelcdn.net': 'prx-ams.ukrtelcdn.net',
       'prx2-ams.ukrtelcdn.net': 'prx2-ams.ukrtelcdn.net'
     }, 'prx.ukrtelcdn.net');
-    Lampa.Params.select('online_mod_fancdn_name', '', '');
-    Lampa.Params.select('online_mod_fancdn_password', '', '');
-    Lampa.Params.select('online_mod_fancdn_cookie', '', '');
-    Lampa.Params.select('online_mod_fancdn_token', '', '');
-    Lampa.Params.select('online_mod_proxy_other_url', '', '');
-    Lampa.Params.select('online_mod_secret_password', '', '');
+    Lampa.Params.select('ua_mod_fancdn_name', '', '');
+    Lampa.Params.select('ua_mod_fancdn_password', '', '');
+    Lampa.Params.select('ua_mod_fancdn_cookie', '', '');
+    Lampa.Params.select('ua_mod_fancdn_token', '', '');
+    Lampa.Params.select('ua_mod_proxy_other_url', '', '');
+    Lampa.Params.select('ua_mod_secret_password', '', '');
 
     if (window.location.protocol === 'https:') {
-      Lampa.Storage.set('online_mod_prefer_http', 'false');
+      Lampa.Storage.set('ua_mod_prefer_http', 'false');
     }
 
-    if (Lampa.Storage.get('online_mod_proxy_reset', '') != 6) {
-      if (['collaps', 'collaps-dash'].indexOf(Lampa.Storage.get('online_mod_balanser', '') + '') !== -1) {
-        Lampa.Storage.set('online_mod_balanser', '');
+    if (Lampa.Storage.get('ua_mod_proxy_reset', '') != 6) {
+      if (['collaps', 'collaps-dash'].indexOf(Lampa.Storage.get('ua_mod_balanser', '') + '') !== -1) {
+        Lampa.Storage.set('ua_mod_balanser', '');
       }
 
-      Lampa.Storage.set('online_mod_proxy_reset', '6');
+      Lampa.Storage.set('ua_mod_proxy_reset', '6');
     }
 
     if (!Lampa.Lang) {
@@ -12931,476 +12929,476 @@
     }
 
     Lampa.Lang.add({
-      online_mod_watch: {
+      ua_mod_watch: {
         ru: 'Смотреть онлайн',
         uk: 'Дивитися онлайн',
         be: 'Глядзець анлайн',
         en: 'Watch online',
         zh: '在线观看'
       },
-      online_mod_nolink: {
+      ua_mod_nolink: {
         ru: 'Не удалось извлечь ссылку',
         uk: 'Неможливо отримати посилання',
         be: 'Не ўдалося атрымаць спасылку',
         en: 'Failed to fetch link',
         zh: '获取链接失败'
       },
-      online_mod_blockedlink: {
+      ua_mod_blockedlink: {
         ru: 'К сожалению, это видео не доступно в вашем регионе',
         uk: 'На жаль, це відео не доступне у вашому регіоні',
         be: 'Нажаль, гэта відэа не даступна ў вашым рэгіёне',
         en: 'Sorry, this video is not available in your region',
         zh: '抱歉，您所在的地区无法观看该视频'
       },
-      online_mod_blockedlink_copyright: {
+      ua_mod_blockedlink_copyright: {
         ru: 'К сожалению, это видео не доступно по запросу правообладателей',
         uk: 'На жаль, це відео не доступне за запитом правовласників',
         be: 'Нажаль, гэта відэа не даступна па запыце праваўладальнікаў',
         en: 'Sorry, this video is not available due to copyright holder request',
         zh: '抱歉，由于版权所有者的要求，该视频无法播放。'
       },
-      online_mod_waitlink: {
+      ua_mod_waitlink: {
         ru: 'Работаем над извлечением ссылки, подождите...',
         uk: 'Працюємо над отриманням посилання, зачекайте...',
         be: 'Працуем над выманнем спасылкі, пачакайце...',
         en: 'Working on extracting the link, please wait...',
         zh: '正在提取链接，请稍候...'
       },
-      online_mod_captcha_address: {
+      ua_mod_captcha_address: {
         ru: 'Требуется пройти капчу по адресу: ',
         uk: 'Потрібно пройти капчу за адресою: ',
         be: 'Патрабуецца прайсці капчу па адрасе: ',
         en: 'It is required to pass the captcha at: ',
         zh: '您需要完成验证码： '
       },
-      online_mod_captcha_proxy: {
+      ua_mod_captcha_proxy: {
         ru: 'Требуется пройти капчу. Попробуйте использовать зеркало вместо прокси',
         uk: 'Потрібно пройти капчу. Спробуйте використовувати дзеркало замість проксі',
         be: 'Патрабуецца прайсці капчу. Паспрабуйце выкарыстоўваць люстэрка замест проксі',
         en: 'It is required to pass the captcha. Try to use a mirror instead of a proxy',
         zh: '您需要通过验证码。 尝试使用镜子而不是代理'
       },
-      online_mod_balanser: {
+      ua_mod_balanser: {
         ru: 'Балансер',
         uk: 'Балансер',
         be: 'Балансер',
         en: 'Balancer',
         zh: '平衡器'
       },
-      online_mod_file_helper: {
+      ua_mod_file_helper: {
         ru: 'Удерживайте клавишу "ОК" для вызова контекстного меню',
         uk: 'Утримуйте клавішу "ОК" для виклику контекстного меню',
         be: 'Утрымлівайце клавішу "ОК" для выкліку кантэкстнага меню',
         en: 'Hold the "OK" key to bring up the context menu',
         zh: '按住“确定”键调出上下文菜单'
       },
-      online_mod_clearmark_all: {
+      ua_mod_clearmark_all: {
         ru: 'Снять отметку у всех',
         uk: 'Зняти позначку у всіх',
         be: 'Зняць адзнаку ва ўсіх',
         en: 'Uncheck all',
         zh: '取消所有'
       },
-      online_mod_timeclear_all: {
+      ua_mod_timeclear_all: {
         ru: 'Сбросить тайм-код у всех',
         uk: 'Скинути тайм-код у всіх',
         be: 'Скінуць тайм-код ва ўсіх',
         en: 'Reset timecode for all',
         zh: '为所有人重置时间码'
       },
-      online_mod_query_start: {
+      ua_mod_query_start: {
         ru: 'По запросу',
         uk: 'На запит',
         be: 'Па запыце',
         en: 'On request',
         zh: '根据要求'
       },
-      online_mod_query_end: {
+      ua_mod_query_end: {
         ru: 'нет результатов',
         uk: 'немає результатів',
         be: 'няма вынікаў',
         en: 'no results',
         zh: '没有结果'
       },
-      online_mod_title: {
+      ua_mod_title: {
         ru: 'Онлайн',
         uk: 'Онлайн',
         be: 'Анлайн',
         en: 'Online',
         zh: '在线的'
       },
-      online_mod_title_full: {
+      ua_mod_title_full: {
         ru: 'Онлайн Мод',
         uk: 'Онлайн Мод',
         be: 'Анлайн Мод',
         en: 'Online Mod',
         zh: '在线的 Mod'
       },
-      online_mod_use_stream_proxy: {
+      ua_mod_use_stream_proxy: {
         ru: 'Проксировать видеопоток (Укр)',
         uk: 'Проксирувати відеопотік (Укр)',
         be: 'Праксіраваць відэаструмень (Укр)',
         en: 'Proxy video stream (Ukr)',
         zh: '代理视频流 （乌克兰）'
       },
-      online_mod_proxy_find_ip: {
+      ua_mod_proxy_find_ip: {
         ru: 'Передавать свой IP прокси',
         uk: 'Передавати свій IP проксі',
         be: 'Перадаваць свой IP проксі',
         en: 'Send your IP to proxy',
         zh: '将您的 IP 发送给代理'
       },
-      online_mod_proxy_other: {
+      ua_mod_proxy_other: {
         ru: 'Использовать альтернативный прокси',
         uk: 'Використовувати альтернативний проксі',
         be: 'Выкарыстоўваць альтэрнатыўны проксі',
         en: 'Use an alternative proxy',
         zh: '使用备用代理'
       },
-      online_mod_proxy_other_url: {
+      ua_mod_proxy_other_url: {
         ru: 'Альтернативный прокси',
         uk: 'Альтернативний проксі',
         be: 'Альтэрнатыўны проксі',
         en: 'Alternative proxy',
         zh: '备用代理'
       },
-      online_mod_proxy_balanser: {
+      ua_mod_proxy_balanser: {
         ru: 'Проксировать',
         uk: 'Проксирувати',
         be: 'Праксіраваць',
         en: 'Proxy',
         zh: '代理'
       },
-      online_mod_proxy_kp: {
+      ua_mod_proxy_kp: {
         ru: 'Проксировать КиноПоиск',
         uk: 'Проксирувати КиноПоиск',
         be: 'Праксіраваць КиноПоиск',
         en: 'Proxy KinoPoisk',
         zh: '代理 KinoPoisk'
       },
-      online_mod_skip_kp_search: {
+      ua_mod_skip_kp_search: {
         ru: 'Не искать в КиноПоиск',
         uk: 'Не шукати у КиноПоиск',
         be: 'Не шукаць у КиноПоиск',
         en: 'Skip search in KinoPoisk',
         zh: '在 KinoPoisk 中跳过搜索'
       },
-      online_mod_iframe_proxy: {
+      ua_mod_iframe_proxy: {
         ru: 'Использовать iframe-прокси',
         uk: 'Використовувати iframe-проксі',
         be: 'Выкарыстоўваць iframe-проксі',
         en: 'Use iframe proxy',
         zh: '使用 iframe 代理'
       },
-      online_mod_prefer_http: {
+      ua_mod_prefer_http: {
         ru: 'Предпочитать поток по HTTP',
         uk: 'Віддавати перевагу потіку по HTTP',
         be: 'Аддаваць перавагу патоку па HTTP',
         en: 'Prefer stream over HTTP',
         zh: '优先于 HTTP 流式传输'
       },
-      online_mod_prefer_mp4: {
+      ua_mod_prefer_mp4: {
         ru: 'Предпочитать поток MP4',
         uk: 'Віддавати перевагу потіку MP4',
         be: 'Аддаваць перавагу патоку MP4',
         en: 'Prefer MP4 stream',
         zh: '更喜欢 MP4 流'
       },
-      online_mod_prefer_dash: {
+      ua_mod_prefer_dash: {
         ru: 'Предпочитать DASH вместо HLS',
         uk: 'Віддавати перевагу DASH замість HLS',
         be: 'Аддаваць перавагу DASH замест HLS',
         en: 'Prefer DASH over HLS',
         zh: '更喜欢 DASH 而不是 HLS'
       },
-      online_mod_collaps_lampa_player: {
+      ua_mod_collaps_lampa_player: {
         ru: 'Collaps: Встроенный плеер',
         uk: 'Collaps: Вбудований плеєр',
         be: 'Collaps: Убудаваны плэер',
         en: 'Collaps: Lampa player',
         zh: 'Collaps： Lampa播放器'
       },
-      online_mod_full_episode_title: {
+      ua_mod_full_episode_title: {
         ru: 'Полный формат названия серии',
         uk: 'Повний формат назви серії',
         be: 'Поўны фармат назвы серыі',
         en: 'Full episode title format',
         zh: '完整剧集标题格式'
       },
-      online_mod_av1_support: {
+      ua_mod_av1_support: {
         ru: 'AV1 поддерживается',
         uk: 'AV1 підтримується',
         be: 'AV1 падтрымліваецца',
         en: 'AV1 supported',
         zh: 'AV1 支持'
       },
-      online_mod_save_last_balanser: {
+      ua_mod_save_last_balanser: {
         ru: 'Сохранять историю балансеров',
         uk: 'Зберігати історію балансерів',
         be: 'Захоўваць гісторыю балансараў',
         en: 'Save history of balancers',
         zh: '保存平衡器的历史记录'
       },
-      online_mod_clear_last_balanser: {
+      ua_mod_clear_last_balanser: {
         ru: 'Очистить историю балансеров',
         uk: 'Очистити історію балансерів',
         be: 'Ачысціць гісторыю балансараў',
         en: 'Clear history of balancers',
         zh: '清除平衡器的历史记录'
       },
-      online_mod_kinobase_mirror: {
+      ua_mod_kinobase_mirror: {
         ru: 'Зеркало для Kinobase',
         uk: 'Дзеркало для Kinobase',
         be: 'Люстэрка для Kinobase',
         en: 'Mirror for Kinobase',
         zh: 'Kinobase的镜子'
       },
-      online_mod_kinobase_cookie: {
+      ua_mod_kinobase_cookie: {
         ru: 'Куки для Kinobase',
         uk: 'Кукі для Kinobase',
         be: 'Кукі для Kinobase',
         en: 'Cookie for Kinobase',
         zh: 'Kinobase 的 Cookie'
       },
-      online_mod_rezka2_mirror: {
+      ua_mod_rezka2_mirror: {
         ru: 'Зеркало для HDrezka',
         uk: 'Дзеркало для HDrezka',
         be: 'Люстэрка для HDrezka',
         en: 'Mirror for HDrezka',
         zh: 'HDrezka的镜子'
       },
-      online_mod_proxy_rezka2_mirror: {
+      ua_mod_proxy_rezka2_mirror: {
         ru: 'Проксировать зеркало HDrezka',
         uk: 'Проксирувати дзеркало HDrezka',
         be: 'Праксіраваць люстэрка HDrezka',
         en: 'Proxy HDrezka mirror',
         zh: '代理HDrezka镜子'
       },
-      online_mod_rezka2_name: {
+      ua_mod_rezka2_name: {
         ru: 'Логин или email для HDrezka',
         uk: 'Логін чи email для HDrezka',
         be: 'Лагін ці email для HDrezka',
         en: 'Login or email for HDrezka',
         zh: 'HDrezka的登录名或电子邮件'
       },
-      online_mod_rezka2_password: {
+      ua_mod_rezka2_password: {
         ru: 'Пароль для HDrezka',
         uk: 'Пароль для HDrezka',
         be: 'Пароль для HDrezka',
         en: 'Password for HDrezka',
         zh: 'HDrezka的密码'
       },
-      online_mod_rezka2_login: {
+      ua_mod_rezka2_login: {
         ru: 'Войти в HDrezka',
         uk: 'Увійти до HDrezka',
         be: 'Увайсці ў HDrezka',
         en: 'Log in to HDrezka',
         zh: '登录HDrezka'
       },
-      online_mod_rezka2_logout: {
+      ua_mod_rezka2_logout: {
         ru: 'Выйти из HDrezka',
         uk: 'Вийти з HDrezka',
         be: 'Выйсці з HDrezka',
         en: 'Log out of HDrezka',
         zh: '注销HDrezka'
       },
-      online_mod_rezka2_cookie: {
+      ua_mod_rezka2_cookie: {
         ru: 'Куки для HDrezka',
         uk: 'Кукі для HDrezka',
         be: 'Кукі для HDrezka',
         en: 'Cookie for HDrezka',
         zh: 'HDrezka 的 Cookie'
       },
-      online_mod_rezka2_fill_cookie: {
+      ua_mod_rezka2_fill_cookie: {
         ru: 'Заполнить куки для HDrezka',
         uk: 'Заповнити кукі для HDrezka',
         be: 'Запоўніць кукі для HDrezka',
         en: 'Fill cookie for HDrezka',
         zh: '为HDrezka填充Cookie'
       },
-      online_mod_rezka2_fix_stream: {
+      ua_mod_rezka2_fix_stream: {
         ru: 'Фикс видеопотока для HDrezka',
         uk: 'Фікс відеопотоку для HDrezka',
         be: 'Фікс відэаструменю для HDrezka',
         en: 'Fix video stream for HDrezka',
         zh: '修复 HDrezka 的视频流'
       },
-      online_mod_rezka2_prx_ukr: {
+      ua_mod_rezka2_prx_ukr: {
         ru: 'Прокси-сервер для HDrezka (Укр)',
         uk: 'Проксі-сервер для HDrezka (Укр)',
         be: 'Проксі-сервер для HDrezka (Укр)',
         en: 'Proxy server for HDrezka (Ukr)',
         zh: 'HDrezka 的代理服务器 （乌克兰）'
       },
-      online_mod_fancdn_name: {
+      ua_mod_fancdn_name: {
         ru: 'Логин для FanSerials',
         uk: 'Логін для FanSerials',
         be: 'Лагін для FanSerials',
         en: 'Login for FanSerials',
         zh: 'FanSerials的登录名'
       },
-      online_mod_fancdn_password: {
+      ua_mod_fancdn_password: {
         ru: 'Пароль для FanSerials',
         uk: 'Пароль для FanSerials',
         be: 'Пароль для FanSerials',
         en: 'Password for FanSerials',
         zh: 'FanSerials的密码'
       },
-      online_mod_fancdn_cookie: {
+      ua_mod_fancdn_cookie: {
         ru: 'Куки для FanSerials',
         uk: 'Кукі для FanSerials',
         be: 'Кукі для FanSerials',
         en: 'Cookie for FanSerials',
         zh: 'FanSerials 的 Cookie'
       },
-      online_mod_fancdn_fill_cookie: {
+      ua_mod_fancdn_fill_cookie: {
         ru: 'Заполнить куки для FanSerials',
         uk: 'Заповнити кукі для FanSerials',
         be: 'Запоўніць кукі для FanSerials',
         en: 'Fill cookie for FanSerials',
         zh: '为FanSerials填充Cookie'
       },
-      online_mod_fancdn_token: {
+      ua_mod_fancdn_token: {
         ru: 'Токен для FanCDN',
         uk: 'Токен для FanCDN',
         be: 'Токен для FanCDN',
         en: 'Token for FanCDN',
         zh: 'FanCDN 代币'
       },
-      online_mod_authorization_required: {
+      ua_mod_authorization_required: {
         ru: 'Требуется авторизация',
         uk: 'Потрібна авторизація',
         be: 'Патрабуецца аўтарызацыя',
         en: 'Authorization required',
         zh: '需要授权'
       },
-      online_mod_unsupported_mirror: {
+      ua_mod_unsupported_mirror: {
         ru: 'Неподдерживаемое зеркало',
         uk: 'Непідтримуване дзеркало',
         be: 'Непадтрымоўванае люстэрка',
         en: 'Unsupported mirror',
         zh: '不支持的镜子'
       },
-      online_mod_secret_password: {
+      ua_mod_secret_password: {
         ru: 'Секретный пароль',
         uk: 'Секретний пароль',
         be: 'Сакрэтны пароль',
         en: 'Secret password',
         zh: '秘密密码'
       },
-      online_mod_seasons_count: {
+      ua_mod_seasons_count: {
         ru: 'Сезонов',
         uk: 'Сезонів',
         be: 'Сезонаў',
         en: 'Seasons',
         zh: '季'
       },
-      online_mod_episodes_count: {
+      ua_mod_episodes_count: {
         ru: 'Эпизодов',
         uk: 'Епізодів',
         be: 'Эпізодаў',
         en: 'Episodes',
         zh: '集'
       },
-      online_mod_show_more: {
+      ua_mod_show_more: {
         ru: 'Показать ещё',
         uk: 'Показати ще',
         be: 'Паказаць яшчэ',
         en: 'Show more',
         zh: '展示更多'
       },
-      online_mod_server: {
+      ua_mod_server: {
         ru: 'Сервер',
         uk: 'Сервер',
         be: 'Сервер',
         en: 'Server',
         zh: '服务器'
       },
-      online_mod_filmix_param_add_title: {
+      ua_mod_filmix_param_add_title: {
         ru: 'Добавить ТОКЕН от Filmix',
         uk: 'Додати ТОКЕН від Filmix',
         be: 'Дадаць ТОКЕН ад Filmix',
         en: 'Add TOKEN from Filmix',
         zh: '从 Filmix 添加 TOKEN'
       },
-      online_mod_filmix_param_add_descr: {
+      ua_mod_filmix_param_add_descr: {
         ru: 'Добавьте ТОКЕН для подключения подписки',
         uk: 'Додайте ТОКЕН для підключення передплати',
         be: 'Дадайце ТОКЕН для падлучэння падпіскі',
         en: 'Add a TOKEN to connect a subscription',
         zh: '添加 TOKEN 以连接订阅'
       },
-      online_mod_filmix_param_placeholder: {
+      ua_mod_filmix_param_placeholder: {
         ru: 'Например: nxjekeb57385b..',
         uk: 'Наприклад: nxjekeb57385b..',
         be: 'Напрыклад: nxjekeb57385b..',
         en: 'For example: nxjekeb57385b..',
         zh: '例如： nxjekeb57385b..'
       },
-      online_mod_filmix_param_add_device: {
+      ua_mod_filmix_param_add_device: {
         ru: 'Добавить устройство на Filmix',
         uk: 'Додати пристрій на Filmix',
         be: 'Дадаць прыладу на Filmix',
         en: 'Add Device to Filmix',
         zh: '将设备添加到 Filmix'
       },
-      online_mod_filmix_modal_text: {
+      ua_mod_filmix_modal_text: {
         ru: 'Введите его на странице https://filmix.quest/consoles в вашем авторизованном аккаунте!',
         uk: 'Введіть його на сторінці https://filmix.quest/consoles у вашому авторизованому обліковому записі!',
         be: 'Увядзіце яго на старонцы https://filmix.quest/consoles у вашым аўтарызаваным акаўнце!',
         en: 'Enter it at https://filmix.quest/consoles in your authorized account!',
         zh: '在您的授权帐户中的 https://filmix.quest/consoles 中输入！'
       },
-      online_mod_filmix_modal_wait: {
+      ua_mod_filmix_modal_wait: {
         ru: 'Ожидаем код',
         uk: 'Очікуємо код',
         be: 'Чакаем код',
         en: 'Waiting for the code',
         zh: '等待代码'
       },
-      online_mod_filmix_copy_secuses: {
+      ua_mod_filmix_copy_secuses: {
         ru: 'Код скопирован в буфер обмена',
         uk: 'Код скопійовано в буфер обміну',
         be: 'Код скапіяваны ў буфер абмену',
         en: 'Code copied to clipboard',
         zh: '代码复制到剪贴板'
       },
-      online_mod_filmix_copy_fail: {
+      ua_mod_filmix_copy_fail: {
         ru: 'Ошибка при копировании',
         uk: 'Помилка при копіюванні',
         be: 'Памылка пры капіяванні',
         en: 'Copy error',
         zh: '复制错误'
       },
-      online_mod_filmix_nodevice: {
+      ua_mod_filmix_nodevice: {
         ru: 'Устройство не авторизовано',
         uk: 'Пристрій не авторизований',
         be: 'Прылада не аўтарызавана',
         en: 'Device not authorized',
         zh: '设备未授权'
       },
-      online_mod_filmix_status: {
+      ua_mod_filmix_status: {
         ru: 'Статус',
         uk: 'Статус',
         be: 'Статус',
         en: 'Status',
         zh: '状态'
       },
-      online_mod_voice_subscribe: {
+      ua_mod_voice_subscribe: {
         ru: 'Подписаться на перевод',
         uk: 'Підписатися на переклад',
         be: 'Падпісацца на пераклад',
         en: 'Subscribe to translation',
         zh: '订阅翻译'
       },
-      online_mod_voice_success: {
+      ua_mod_voice_success: {
         ru: 'Вы успешно подписались',
         uk: 'Ви успішно підписалися',
         be: 'Вы паспяхова падпісаліся',
         en: 'You have successfully subscribed',
         zh: '您已成功订阅'
       },
-      online_mod_voice_error: {
+      ua_mod_voice_error: {
         ru: 'Возникла ошибка',
         uk: 'Виникла помилка',
         be: 'Узнікла памылка',
@@ -13412,19 +13410,19 @@
     var online_loading = false;
 
     function resetTemplates() {
-      Lampa.Template.add('online_mod', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 128\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <circle cx=\"64\" cy=\"64\" r=\"56\" stroke=\"white\" stroke-width=\"16\"/>\n                    <path d=\"M90.5 64.3827L50 87.7654L50 41L90.5 64.3827Z\" fill=\"white\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
-      Lampa.Template.add('online_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
+      Lampa.Template.add('ua_mod', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 128\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <circle cx=\"64\" cy=\"64\" r=\"56\" stroke=\"white\" stroke-width=\"16\"/>\n                    <path d=\"M90.5 64.3827L50 87.7654L50 41L90.5 64.3827Z\" fill=\"white\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
+      Lampa.Template.add('ua_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
     }
 
     function loadOnline(object) {
       var onComplite = function onComplite() {
         online_loading = false;
         resetTemplates();
-        Lampa.Component.add('online_mod', component);
+        Lampa.Component.add('ua_mod', component);
         Lampa.Activity.push({
           url: '',
-          title: Lampa.Lang.translate('online_mod_title_full'),
-          component: 'online_mod',
+          title: Lampa.Lang.translate('ua_mod_title_full'),
+          component: 'ua_mod',
           search: object.title,
           search_one: object.title,
           search_two: object.original_title,
@@ -13435,7 +13433,7 @@
 
       Utils.setMyIp('');
 
-      if (Lampa.Storage.field('online_mod_proxy_find_ip') === true) {
+      if (Lampa.Storage.field('ua_mod_proxy_find_ip') === true) {
         if (online_loading) return;
         online_loading = true;
         network.clear();
@@ -13450,18 +13448,18 @@
     } // нужна заглушка, а то при страте лампы говорит пусто
 
 
-    Lampa.Component.add('online_mod', component); //то же самое
+    Lampa.Component.add('ua_mod', component); //то же самое
 
     resetTemplates();
     var manifest = {
       type: 'video',
       version: mod_version,
-      name: Lampa.Lang.translate('online_mod_title_full') + ' - ' + mod_version,
-      description: Lampa.Lang.translate('online_mod_watch'),
-      component: 'online_mod',
+      name: Lampa.Lang.translate('ua_mod_title_full') + ' - ' + mod_version,
+      description: Lampa.Lang.translate('ua_mod_watch'),
+      component: 'ua_mod',
       onContextMenu: function onContextMenu(object) {
         return {
-          name: Lampa.Lang.translate('online_mod_watch'),
+          name: Lampa.Lang.translate('ua_mod_watch'),
           description: ''
         };
       },
@@ -13471,7 +13469,7 @@
       }
     };
     Lampa.Manifest.plugins = manifest;
-    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod " + mod_version + "\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>";
+    var button = "<div class=\"full-start__button selector view--ua_mod\" data-subtitle=\"ua_mod " + mod_version + "\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{ua_mod_title}</span>\n    </div>";
     Lampa.Listener.follow('full', function (e) {
       if (e.type == 'complite') {
         var btn = $(Lampa.Lang.translate(button));
@@ -13483,14 +13481,14 @@
       }
     });
 
-    if (Lampa.Storage.get('online_mod_use_stream_proxy', '') === '') {
+    if (Lampa.Storage.get('ua_mod_use_stream_proxy', '') === '') {
       $.ajax({
         url: (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'ipwho.is/?fields=ip,country_code',
         jsonp: 'callback',
         dataType: 'jsonp'
       }).done(function (json) {
         if (json && json.country_code) {
-          Lampa.Storage.set('online_mod_use_stream_proxy', '' + (json.country_code === 'UA'));
+          Lampa.Storage.set('ua_mod_use_stream_proxy', '' + (json.country_code === 'UA'));
         }
       });
     }
@@ -13509,7 +13507,7 @@
     var dev_id = Utils.randomHex(16);
     var ping_auth;
     Lampa.Params.select('filmix_token', '', '');
-    Lampa.Template.add('settings_filmix', "<div>\n    <div class=\"settings-param selector\" data-name=\"filmix_token\" data-type=\"input\" placeholder=\"#{online_mod_filmix_param_placeholder}\">\n        <div class=\"settings-param__name\">#{online_mod_filmix_param_add_title}</div>\n        <div class=\"settings-param__value\"></div>\n        <div class=\"settings-param__descr\">#{online_mod_filmix_param_add_descr}</div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"filmix_add\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_filmix_param_add_device}</div>\n    </div>\n</div>");
+    Lampa.Template.add('settings_filmix', "<div>\n    <div class=\"settings-param selector\" data-name=\"filmix_token\" data-type=\"input\" placeholder=\"#{ua_mod_filmix_param_placeholder}\">\n        <div class=\"settings-param__name\">#{ua_mod_filmix_param_add_title}</div>\n        <div class=\"settings-param__value\"></div>\n        <div class=\"settings-param__descr\">#{ua_mod_filmix_param_add_descr}</div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"filmix_add\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{ua_mod_filmix_param_add_device}</div>\n    </div>\n</div>");
     Lampa.Storage.listener.follow('change', function (e) {
       if (e.name == 'filmix_token') {
         window.mod_filmix = {
@@ -13548,7 +13546,7 @@
             filmix_prox_enc += 'param/User-Agent=' + encodeURIComponent(Utils.filmixUserAgent()) + '/';
           }
 
-          var modal = $('<div><div class="broadcast__text">' + Lampa.Lang.translate('online_mod_filmix_modal_text') + '</div><div class="broadcast__device selector" style="text-align: center">' + Lampa.Lang.translate('online_mod_filmix_modal_wait') + '...</div><br><div class="broadcast__scan"><div></div></div></div></div>');
+          var modal = $('<div><div class="broadcast__text">' + Lampa.Lang.translate('ua_mod_filmix_modal_text') + '</div><div class="broadcast__device selector" style="text-align: center">' + Lampa.Lang.translate('ua_mod_filmix_modal_wait') + '...</div><br><div class="broadcast__scan"><div></div></div></div></div>');
           Lampa.Modal.open({
             title: '',
             html: modal,
@@ -13559,9 +13557,9 @@
             },
             onSelect: function onSelect() {
               Lampa.Utils.copyTextToClipboard(user_code, function () {
-                Lampa.Noty.show(Lampa.Lang.translate('online_mod_filmix_copy_secuses'));
+                Lampa.Noty.show(Lampa.Lang.translate('ua_mod_filmix_copy_secuses'));
               }, function () {
-                Lampa.Noty.show(Lampa.Lang.translate('online_mod_filmix_copy_fail'));
+                Lampa.Noty.show(Lampa.Lang.translate('ua_mod_filmix_copy_fail'));
               });
             }
           });
@@ -13596,13 +13594,13 @@
 
     function showStatus() {
       var status = Lampa.Storage.get("filmix_status", '{}');
-      var info = Lampa.Lang.translate('online_mod_filmix_nodevice');
+      var info = Lampa.Lang.translate('ua_mod_filmix_nodevice');
 
       if (status.login) {
         if (status.is_pro) info = status.login + ' - PRO ' + Lampa.Lang.translate('filter_rating_to') + ' - ' + status.pro_date;else if (status.is_pro_plus) info = status.login + ' - PRO_PLUS ' + Lampa.Lang.translate('filter_rating_to') + ' - ' + status.pro_date;else info = status.login + ' - NO PRO';
       }
 
-      var field = $(Lampa.Lang.translate("\n        <div class=\"settings-param\" data-name=\"filmix_status\" data-static=\"true\">\n            <div class=\"settings-param__name\">#{online_mod_filmix_status}</div>\n            <div class=\"settings-param__value\">".concat(info, "</div>\n        </div>")));
+      var field = $(Lampa.Lang.translate("\n        <div class=\"settings-param\" data-name=\"filmix_status\" data-static=\"true\">\n            <div class=\"settings-param__name\">#{ua_mod_filmix_status}</div>\n            <div class=\"settings-param__value\">".concat(info, "</div>\n        </div>")));
       $('.settings [data-name="filmix_status"]').remove();
       $('.settings [data-name="filmix_add"]').after(field);
     }
@@ -13639,14 +13637,14 @@
     function rezka2Login(success, error) {
       var host = Utils.rezka2Mirror();
       var url = host + '/ajax/login/';
-      var postdata = 'login_name=' + encodeURIComponent(Lampa.Storage.get('online_mod_rezka2_name', ''));
-      postdata += '&login_password=' + encodeURIComponent(Lampa.Storage.get('online_mod_rezka2_password', ''));
+      var postdata = 'login_name=' + encodeURIComponent(Lampa.Storage.get('ua_mod_rezka2_name', ''));
+      postdata += '&login_password=' + encodeURIComponent(Lampa.Storage.get('ua_mod_rezka2_password', ''));
       postdata += '&login_not_save=0';
       network.clear();
       network.timeout(8000);
       network.silent(url, function (json) {
         if (json && (json.success || json.message == 'Уже авторизован на сайте. Необходимо обновить страницу!')) {
-          Lampa.Storage.set('online_mod_rezka2_status', 'true');
+          Lampa.Storage.set('ua_mod_rezka2_status', 'true');
           network.clear();
           network.timeout(8000);
           network.silent(host + '/', function (str) {
@@ -13662,7 +13660,7 @@
             var verify_form = str.match(/<span>MIRROR<\/span>.*<button type="submit" onclick="\$\.cookie(\([^)]*\))/);
 
             if (verify_form) {
-              Lampa.Noty.show(Lampa.Lang.translate('online_mod_unsupported_mirror') + ' HDrezka');
+              Lampa.Noty.show(Lampa.Lang.translate('ua_mod_unsupported_mirror') + ' HDrezka');
               rezka2Logout(error, error);
               return;
             }
@@ -13675,7 +13673,7 @@
             withCredentials: true
           });
         } else {
-          Lampa.Storage.set('online_mod_rezka2_status', 'false');
+          Lampa.Storage.set('ua_mod_rezka2_status', 'false');
           if (json && json.message) Lampa.Noty.show(json.message);
           if (error) error();
         }
@@ -13692,10 +13690,10 @@
       network.clear();
       network.timeout(8000);
       network.silent(url, function (str) {
-        Lampa.Storage.set('online_mod_rezka2_status', 'false');
+        Lampa.Storage.set('ua_mod_rezka2_status', 'false');
         if (success) success();
       }, function (a, c) {
-        Lampa.Storage.set('online_mod_rezka2_status', 'false');
+        Lampa.Storage.set('ua_mod_rezka2_status', 'false');
         Lampa.Noty.show(network.errorDecode(a, c));
         if (error) error();
       }, false, {
@@ -13708,7 +13706,7 @@
       var prox = Utils.proxy('rezka2');
       var prox_enc = '';
       var returnHeaders = androidHeaders;
-      var proxy_mirror = Lampa.Storage.field('online_mod_proxy_rezka2_mirror') === true;
+      var proxy_mirror = Lampa.Storage.field('ua_mod_proxy_rezka2_mirror') === true;
       var host = prox && !proxy_mirror ? 'https://rezka.ag' : Utils.rezka2Mirror();
       if (!prox && !returnHeaders) prox = Utils.proxy('cookie');
 
@@ -13729,8 +13727,8 @@
       }
 
       var url = host + '/ajax/login/';
-      var postdata = 'login_name=' + encodeURIComponent(Lampa.Storage.get('online_mod_rezka2_name', ''));
-      postdata += '&login_password=' + encodeURIComponent(Lampa.Storage.get('online_mod_rezka2_password', ''));
+      var postdata = 'login_name=' + encodeURIComponent(Lampa.Storage.get('ua_mod_rezka2_name', ''));
+      postdata += '&login_password=' + encodeURIComponent(Lampa.Storage.get('ua_mod_rezka2_password', ''));
       postdata += '&login_not_save=0';
       network.clear();
       network.timeout(8000);
@@ -13769,7 +13767,7 @@
         }
 
         if (cookie) {
-          Lampa.Storage.set('online_mod_rezka2_cookie', cookie);
+          Lampa.Storage.set('ua_mod_rezka2_cookie', cookie);
           if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + (sid || Utils.randomId(26)) + (cookie ? '; ' + cookie : '');
           var prox_enc2 = prox_enc;
 
@@ -13811,7 +13809,7 @@
               }
 
               cookie = _cookies.join('; ');
-              if (cookie) Lampa.Storage.set('online_mod_rezka2_cookie', cookie);
+              if (cookie) Lampa.Storage.set('ua_mod_rezka2_cookie', cookie);
             }
 
             var verify_form = body.match(/<span>MIRROR<\/span>.*<button type="submit" onclick="\$\.cookie(\([^)]*\))/);
@@ -13832,7 +13830,7 @@
                 }
 
                 cookie = _cookies2.join('; ');
-                if (cookie) Lampa.Storage.set('online_mod_rezka2_cookie', cookie);
+                if (cookie) Lampa.Storage.set('ua_mod_rezka2_cookie', cookie);
                 if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + (sid || Utils.randomId(26)) + (cookie ? '; ' + cookie : '');
                 var prox_enc3 = prox_enc;
 
@@ -13858,8 +13856,8 @@
                   var verify_form = body.match(/<span>MIRROR<\/span>.*<button type="submit" onclick="\$\.cookie(\([^)]*\))/);
 
                   if (verify_form) {
-                    Lampa.Storage.set('online_mod_rezka2_cookie', '');
-                    Lampa.Noty.show(Lampa.Lang.translate('online_mod_unsupported_mirror') + ' HDrezka');
+                    Lampa.Storage.set('ua_mod_rezka2_cookie', '');
+                    Lampa.Noty.show(Lampa.Lang.translate('ua_mod_unsupported_mirror') + ' HDrezka');
                     if (error) error();
                     return;
                   }
@@ -13883,7 +13881,7 @@
                     }
 
                     cookie = _cookies3.join('; ');
-                    if (cookie) Lampa.Storage.set('online_mod_rezka2_cookie', cookie);
+                    if (cookie) Lampa.Storage.set('ua_mod_rezka2_cookie', cookie);
                   }
 
                   if (success) success();
@@ -13941,8 +13939,8 @@
       }
 
       var url = host + '/';
-      var postdata = 'login_name=' + encodeURIComponent(Lampa.Storage.get('online_mod_fancdn_name', ''));
-      postdata += '&login_password=' + encodeURIComponent(Lampa.Storage.get('online_mod_fancdn_password', ''));
+      var postdata = 'login_name=' + encodeURIComponent(Lampa.Storage.get('ua_mod_fancdn_name', ''));
+      postdata += '&login_password=' + encodeURIComponent(Lampa.Storage.get('ua_mod_fancdn_password', ''));
       postdata += '&login=submit';
       network.clear();
       network.timeout(8000);
@@ -13982,7 +13980,7 @@
         }
 
         if (cookie) {
-          Lampa.Storage.set('online_mod_fancdn_cookie', cookie);
+          Lampa.Storage.set('ua_mod_fancdn_cookie', cookie);
           if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + (sid || Utils.randomHex(32)) + (cookie ? '; ' + cookie : '');
           var prox_enc2 = prox_enc;
 
@@ -14023,7 +14021,7 @@
               }
 
               cookie = _cookies4.join('; ');
-              if (cookie) Lampa.Storage.set('online_mod_fancdn_cookie', cookie);
+              if (cookie) Lampa.Storage.set('ua_mod_fancdn_cookie', cookie);
             }
 
             if (success) success();
@@ -14051,104 +14049,104 @@
     var template = "<div>";
 
     {
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_lumex\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Lumex</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_lumex\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_balanser} Lumex</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
     if (Utils.isDebug()) {
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_rezka2\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} HDrezka</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kinobase\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kinobase</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_collaps\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Collaps</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_cdnmovies\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} CDNMovies</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_filmix\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Filmix</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_rezka2\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_balanser} HDrezka</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_kinobase\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_balanser} Kinobase</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_collaps\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_balanser} Collaps</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_cdnmovies\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_balanser} CDNMovies</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_filmix\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_balanser} Filmix</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
     if (Utils.isDebug()) {
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_fancdn\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} FanCDN</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_fancdn2\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} FanCDN (ID)</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_fanserials\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} FanSerials</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_videoseed\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} VideoSeed</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_vibix\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Vibix</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_redheadsound\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} RedHeadSound</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_fancdn\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_balanser} FanCDN</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_fancdn2\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_balanser} FanCDN (ID)</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_fanserials\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_balanser} FanSerials</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_videoseed\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_balanser} VideoSeed</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_vibix\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_balanser} Vibix</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_redheadsound\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_balanser} RedHeadSound</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} AniLibria</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria2\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} AniLibria.top</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_anilibria\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_balanser} AniLibria</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_anilibria2\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_balanser} AniLibria.top</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
     if (Utils.isDebug()) {
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_animelib\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} AnimeLib</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_animelib\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_balanser} AnimeLib</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kodik\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kodik</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_skip_kp_search\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_skip_kp_search}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_iframe_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_iframe_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_iframe\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} iframe</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_http\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_http}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_mp4\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_mp4}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_kodik\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_balanser} Kodik</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_skip_kp_search\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_skip_kp_search}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_iframe_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_iframe_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_iframe\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_balanser} iframe</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_prefer_http\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_prefer_http}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_prefer_mp4\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_prefer_mp4}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
     {
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_collaps_lampa_player\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_collaps_lampa_player}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_collaps_lampa_player\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_collaps_lampa_player}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_full_episode_title\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_full_episode_title}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_save_last_balanser\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_save_last_balanser}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_clear_last_balanser\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_clear_last_balanser}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_full_episode_title\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_full_episode_title}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_save_last_balanser\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_save_last_balanser}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"ua_mod_clear_last_balanser\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{ua_mod_clear_last_balanser}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
 
     if (Utils.isDebug()) {
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_kinobase_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_kinobase_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_kinobase_cookie\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_kinobase_cookie}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_kinobase_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{ua_mod_kinobase_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_kinobase_cookie\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{ua_mod_kinobase_cookie}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_rezka2_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{ua_mod_rezka2_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
     if (Utils.isDebug()) {
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_rezka2_mirror\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_rezka2_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_rezka2_mirror\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_rezka2_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_name\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_name}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_rezka2_name\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{ua_mod_rezka2_name}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"ua_mod_rezka2_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{ua_mod_rezka2_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
     if (Lampa.Platform.is('android')) {
-      Lampa.Storage.set("online_mod_rezka2_status", 'false');
+      Lampa.Storage.set("ua_mod_rezka2_status", 'false');
     } else {
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_login\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_login}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_logout\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_logout}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_rezka2_login\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{ua_mod_rezka2_login}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"ua_mod_rezka2_logout\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{ua_mod_rezka2_logout}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
     }
 
     if (Utils.isDebug() || Lampa.Platform.is('android')) {
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_cookie\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_cookie}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_fill_cookie\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_fill_cookie}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_rezka2_cookie\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{ua_mod_rezka2_cookie}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"ua_mod_rezka2_fill_cookie\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{ua_mod_rezka2_fill_cookie}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
     }
 
     {
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_fix_stream\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_fix_stream}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_rezka2_fix_stream\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_rezka2_fix_stream}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
     if (Utils.isDebug()) {
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_name\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_name}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_fancdn_name\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{ua_mod_fancdn_name}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"ua_mod_fancdn_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{ua_mod_fancdn_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
     if (Utils.isDebug()) {
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_cookie\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_cookie}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_fancdn_cookie\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{ua_mod_fancdn_cookie}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
     if (Utils.isDebug()) {
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_fill_cookie\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_fill_cookie}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_fancdn_fill_cookie\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{ua_mod_fancdn_fill_cookie}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
     }
 
     if (Utils.isDebug()) {
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_token\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_token}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_fancdn_token\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{ua_mod_fancdn_token}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_use_stream_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_use_stream_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_prx_ukr\" data-type=\"select\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_prx_ukr}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_find_ip\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_find_ip}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_other\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_other}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_other_url\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_other_url}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_secret_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_secret_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_use_stream_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_use_stream_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_rezka2_prx_ukr\" data-type=\"select\">\n        <div class=\"settings-param__name\">#{ua_mod_rezka2_prx_ukr}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_find_ip\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_find_ip}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_other\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_other}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"ua_mod_proxy_other_url\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{ua_mod_proxy_other_url}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"ua_mod_secret_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{ua_mod_secret_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
     if (Utils.isDebug()) {
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_av1_support\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_av1_support}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"ua_mod_av1_support\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{ua_mod_av1_support}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
     template += "\n</div>";
-    Lampa.Template.add('settings_online_mod', template);
+    Lampa.Template.add('settings_ua_mod', template);
 
     function addSettingsOnlineMod() {
-      if (Lampa.Settings.main && Lampa.Settings.main() && !Lampa.Settings.main().render().find('[data-component="online_mod"]').length) {
-        var field = $(Lampa.Lang.translate("<div class=\"settings-folder selector\" data-component=\"online_mod\">\n            <div class=\"settings-folder__icon\">\n                <svg height=\"260\" viewBox=\"0 0 244 260\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"white\"/>\n                </svg>\n            </div>\n            <div class=\"settings-folder__name\">#{online_mod_title_full}</div>\n        </div>"));
+      if (Lampa.Settings.main && Lampa.Settings.main() && !Lampa.Settings.main().render().find('[data-component="ua_mod"]').length) {
+        var field = $(Lampa.Lang.translate("<div class=\"settings-folder selector\" data-component=\"ua_mod\">\n            <div class=\"settings-folder__icon\">\n                <svg height=\"260\" viewBox=\"0 0 244 260\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"white\"/>\n                </svg>\n            </div>\n            <div class=\"settings-folder__name\">#{ua_mod_title_full}</div>\n        </div>"));
         Lampa.Settings.main().render().find('[data-component="more"]').after(field);
         Lampa.Settings.main().update();
       }
@@ -14160,16 +14158,16 @@
       });
     }
     Lampa.Settings.listener.follow('open', function (e) {
-      if (e.name == 'online_mod') {
-        var clear_last_balanser = e.body.find('[data-name="online_mod_clear_last_balanser"]');
+      if (e.name == 'ua_mod') {
+        var clear_last_balanser = e.body.find('[data-name="ua_mod_clear_last_balanser"]');
         clear_last_balanser.unbind('hover:enter').on('hover:enter', function () {
           Lampa.Storage.set('online_last_balanser', {});
           Lampa.Storage.set('online_balanser', '');
-          Lampa.Storage.set('online_mod_last_balanser', {});
-          Lampa.Storage.set('online_mod_balanser', '');
+          Lampa.Storage.set('ua_mod_last_balanser', {});
+          Lampa.Storage.set('ua_mod_balanser', '');
           $('.settings-param__status', clear_last_balanser).removeClass('active error wait').addClass('active');
         });
-        var rezka2_login = e.body.find('[data-name="online_mod_rezka2_login"]');
+        var rezka2_login = e.body.find('[data-name="ua_mod_rezka2_login"]');
         rezka2_login.unbind('hover:enter').on('hover:enter', function () {
           var rezka2_login_status = $('.settings-param__status', rezka2_login).removeClass('active error wait').addClass('wait');
           rezka2Login(function () {
@@ -14178,7 +14176,7 @@
             rezka2_login_status.removeClass('active error wait').addClass('error');
           });
         });
-        var rezka2_logout = e.body.find('[data-name="online_mod_rezka2_logout"]');
+        var rezka2_logout = e.body.find('[data-name="ua_mod_rezka2_logout"]');
         rezka2_logout.unbind('hover:enter').on('hover:enter', function () {
           var rezka2_logout_status = $('.settings-param__status', rezka2_logout).removeClass('active error wait').addClass('wait');
           rezka2Logout(function () {
@@ -14187,26 +14185,26 @@
             rezka2_logout_status.removeClass('active error wait').addClass('error');
           });
         });
-        var rezka2_fill_cookie = e.body.find('[data-name="online_mod_rezka2_fill_cookie"]');
+        var rezka2_fill_cookie = e.body.find('[data-name="ua_mod_rezka2_fill_cookie"]');
         rezka2_fill_cookie.unbind('hover:enter').on('hover:enter', function () {
           var rezka2_fill_cookie_status = $('.settings-param__status', rezka2_fill_cookie).removeClass('active error wait').addClass('wait');
           rezka2FillCookie(function () {
             rezka2_fill_cookie_status.removeClass('active error wait').addClass('active');
-            Lampa.Params.update(e.body.find('[data-name="online_mod_rezka2_cookie"]'), [], e.body);
+            Lampa.Params.update(e.body.find('[data-name="ua_mod_rezka2_cookie"]'), [], e.body);
           }, function () {
             rezka2_fill_cookie_status.removeClass('active error wait').addClass('error');
-            Lampa.Params.update(e.body.find('[data-name="online_mod_rezka2_cookie"]'), [], e.body);
+            Lampa.Params.update(e.body.find('[data-name="ua_mod_rezka2_cookie"]'), [], e.body);
           });
         });
-        var fancdn_fill_cookie = e.body.find('[data-name="online_mod_fancdn_fill_cookie"]');
+        var fancdn_fill_cookie = e.body.find('[data-name="ua_mod_fancdn_fill_cookie"]');
         fancdn_fill_cookie.unbind('hover:enter').on('hover:enter', function () {
           var fancdn_fill_cookie_status = $('.settings-param__status', fancdn_fill_cookie).removeClass('active error wait').addClass('wait');
           fancdnFillCookie(function () {
             fancdn_fill_cookie_status.removeClass('active error wait').addClass('active');
-            Lampa.Params.update(e.body.find('[data-name="online_mod_fancdn_cookie"]'), [], e.body);
+            Lampa.Params.update(e.body.find('[data-name="ua_mod_fancdn_cookie"]'), [], e.body);
           }, function () {
             fancdn_fill_cookie_status.removeClass('active error wait').addClass('error');
-            Lampa.Params.update(e.body.find('[data-name="online_mod_fancdn_cookie"]'), [], e.body);
+            Lampa.Params.update(e.body.find('[data-name="ua_mod_fancdn_cookie"]'), [], e.body);
           });
         });
       }
