@@ -1,85 +1,47 @@
 (function () {
-    const button_html = `<div class="selectbox-item selectbox-item--icon selector uaonline--button">
-        <div class="selectbox-item__icon">
-            <img src="https://raw.githubusercontent.com/bennington111/uaonline/main/icon.png" />
-        </div>
-        <div class="selectbox-item__name">Онлайн UA Online</div>
-    </div>`;
+    console.log('[UAOnline] Плагін завантажено');
 
-    const component = {
-        create: function () {
-            this.component = $('<div class="uaonline-component">Завантаження джерел UA Online...</div>');
-            this.start();
-        },
-        start: function () {
-            this.component.append('<div style="padding:2em;color:white;">(Тут буде логіка підвантаження джерел з uakino / uaserials)</div>');
-        },
-        pause: function () {},
-        stop: function () {},
-        render: function () {
-            return this.component;
-        }
-    };
+    Lampa.Listener.follow('full', function(e) {
+        if (e.type === 'complite') {
+            console.log('[UAOnline] Картка повністю завантажена', e);
 
-    function addButton(e) {
-        try {
-            if (!e || !e.render || !e.movie) return;
-            if (e.render.find('.uaonline--button').length) return;
+            // Пробуємо знайти потрібний блок
+            let render = e.object.activity.render().find('.view--torrent');
+            console.log('[UAOnline] Пошук .view--torrent:', render.length);
 
-            const btn = $(Lampa.Lang.translate(button_html));
+            if (!render.length) {
+                console.warn('[UAOnline] .view--torrent не знайдено, шукаємо .full-start__buttons');
+                render = e.object.activity.render().find('.full-start__buttons');
+                console.log('[UAOnline] Пошук .full-start__buttons:', render.length);
+            }
+
+            if (!render.length) {
+                console.warn('[UAOnline] Жоден з контейнерів не знайдено — кнопка не буде додана');
+                return;
+            }
+
+            // Перевірка чи вже існує кнопка
+            if (render.find('.uaonline--button').length) {
+                console.log('[UAOnline] Кнопка вже існує, пропускаємо вставку');
+                return;
+            }
+
+            const btn = $(`
+                <div class="selectbox-item selectbox-item--icon selector uaonline--button" data-static="UAOnline">
+                    <div class="selectbox-item__icon">
+                        <svg><use xlink:href="#icon-folder"></use></svg>
+                    </div>
+                    <div class="selectbox-item__title">UA Online</div>
+                </div>
+            `);
+
             btn.on('hover:enter', function () {
-                Lampa.Component.add('uaonline', component);
-
-                const id = Lampa.Utils.hash(e.movie.number_of_seasons ? e.movie.original_name : e.movie.original_title);
-                const all = Lampa.Storage.get('clarification_search', '{}');
-
-                Lampa.Activity.push({
-                    url: '',
-                    title: 'UA Online',
-                    component: 'uaonline',
-                    search: all[id] ? all[id] : e.movie.title,
-                    search_one: e.movie.title,
-                    search_two: e.movie.original_title,
-                    movie: e.movie,
-                    page: 1,
-                    clarification: all[id] ? true : false
-                });
+                console.log('[UAOnline] Натиснуто кнопку');
+                Lampa.Noty.show('UAOnline: натиснуто кнопку');
             });
 
-            e.render.after(btn);
-        } catch (err) {
-            console.error('[UAOnline] Помилка при додаванні кнопки:', err);
-        }
-    }
-
-    Lampa.Listener.follow('full', function (e) {
-        if (e.type === 'complite') {
-            try {
-                const renderBox = e.object?.activity?.render()?.find('.view--torrent');
-                if (renderBox && renderBox.length) {
-                    addButton({
-                        render: renderBox,
-                        movie: e.data.movie
-                    });
-                }
-            } catch (err) {
-                console.error('[UAOnline] Помилка в Listener full:', err);
-            }
+            render.after(btn);
+            console.log('[UAOnline] Кнопку додано');
         }
     });
-
-    try {
-        const active = Lampa.Activity.active();
-        const renderBox = active?.activity?.render()?.find('.view--torrent');
-        if (active && active.component === 'full' && renderBox?.length && active.card) {
-            addButton({
-                render: renderBox,
-                movie: active.card
-            });
-        }
-    } catch (err) {
-        console.error('[UAOnline] Помилка при ініціалізації:', err);
-    }
-
-    console.log('[UAOnline] Плагін завантажено');
 })();
