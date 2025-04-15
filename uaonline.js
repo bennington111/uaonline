@@ -1,58 +1,57 @@
 (function () {
+    if (!window.Lampa || !Lampa.Listener) return;
+
     console.log('[UAOnline] Плагін завантажено');
 
-    function waitAndAddButton(e, attempt = 0) {
-        const container = e.object.activity.render().find('.selectbox');
-
-        console.log(`[UAOnline] Спроба ${attempt} — знайдено .selectbox:`, container.length);
-
-        if (container.length) {
-            if (container.find('.uaonline--button').length) {
-                console.log('[UAOnline] Кнопка вже існує');
-                return;
+    function observeSelectbox(callback) {
+        const observer = new MutationObserver(() => {
+            const el = document.querySelector('.selectbox');
+            if (el) {
+                observer.disconnect();
+                console.log('[UAOnline] Знайдено .selectbox');
+                callback(el);
             }
+        });
 
-            const btn = $(`
-                <div class="selectbox-item selectbox-item--icon selector uaonline--button" data-static="UAOnline">
-                    <div class="selectbox-item__icon">
-                        <svg><use xlink:href="#icon-folder"></use></svg>
-                    </div>
-                    <div class="selectbox-item__title">UA Online</div>
-                </div>
-            `);
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
 
-            btn.on('hover:enter', function () {
-                console.log('[UAOnline] Натиснуто кнопку');
-                Lampa.Noty.show('UAOnline: натиснуто кнопку');
-            });
-
-            container.append(btn);
-            console.log('[UAOnline] Кнопку додано в selectbox');
-        } else if (attempt < 20) {
-            setTimeout(() => waitAndAddButton(e, attempt + 1), 100); // Пробуємо ще
-        } else {
-            console.warn('[UAOnline] .selectbox не зʼявилась після 20 спроб');
-        }
+        // safety timeout через 10 секунд
+        setTimeout(() => observer.disconnect(), 10000);
     }
 
-    Lampa.Listener.follow('full', function (e) {
-        if (e.type === 'complite') {
-            console.log('[UAOnline] Картка повністю завантажена', e);
-            waitAndAddButton(e);
+    function addSourceButton(container) {
+        const btn = document.createElement('div');
+        btn.className = 'selectbox-item selectbox-item--icon selector';
+        btn.innerHTML = `
+            <div class="selectbox-item__icon">
+                <i class="fa fa-globe"></i>
+            </div>
+            <div class="selectbox-item__title">Онлайн UA Online</div>
+        `;
+
+        btn.addEventListener('click', () => {
+            console.log('[UAOnline] Клік по кнопці');
+            Lampa.Activity.push({
+                url: '',
+                title: 'UA Online',
+                component: 'online',
+                search: '',
+                search_one: '',
+                name: 'UA Online'
+            });
+        });
+
+        container.appendChild(btn);
+    }
+
+    Lampa.Listener.follow('activity', function (e) {
+        if (e.type === 'object' && e.object && e.object.name) {
+            console.log('[UAOnline] Отримано картку:', e.object.name);
+            observeSelectbox(addSourceButton);
         }
     });
 
-    // Якщо картка вже активна
-    try {
-        const active = Lampa.Activity.active();
-        if (active && active.component === 'full') {
-            console.log('[UAOnline] Активна картка є. Пробуємо вставити кнопку одразу.');
-            waitAndAddButton({
-                object: active.activity,
-                data: { movie: active.card }
-            });
-        }
-    } catch (err) {
-        console.error('[UAOnline] Помилка під час ранньої вставки кнопки:', err);
-    }
 })();
