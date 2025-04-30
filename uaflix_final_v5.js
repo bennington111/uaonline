@@ -1,7 +1,7 @@
 // ==UserScript==
  // @name        Uaflix
  // @namespace   uaflix
- // @version     1.3
+ // @version     1.4
  // @description Плагін для перегляду фільмів з Uaflix
  // @author      YourName
  // @match       *://*/*
@@ -11,39 +11,20 @@
 
 (function () {
     const network = Lampa.Network;
-    const storage = Lampa.Storage;
     const noty = Lampa.Noty;
     const component = 'uaflix';
 
-    function addSourceButton() {
-        Lampa.Component.add(component, {
-            name: 'Uaflix',
-            type: 'video',
-            onSearch: function (object, resolve) {
-                searchOnUAFlix(object, resolve);
+    function install() {
+        Lampa.Source.add(component, {
+            name: 'UAFlix',
+            types: ['movie'],
+            on: function (params, callback) {
+                searchOnUAFlix(params, callback);
             },
         });
-
-        if (!Lampa.Platform.sourceReady)
-            Lampa.Platform.sourceReady = () => {};
-
-        const interval = setInterval(() => {
-            const buttons = document.querySelector('.selectbox');
-            if (buttons && !buttons.querySelector(`[data-source="${component}"]`)) {
-                const btn = document.createElement('div');
-                btn.className = 'selectbox-item selectbox-item--icon selector';
-                btn.setAttribute('data-source', component);
-                btn.innerHTML = `<div><span>Uaflix</span></div>`;
-                btn.addEventListener('click', () => {
-                    Lampa.Platform.sourceSelected(component);
-                });
-                buttons.appendChild(btn);
-                clearInterval(interval);
-            }
-        }, 500);
     }
 
-    async function searchOnUAFlix(item, resolve) {
+    async function searchOnUAFlix(item, callback) {
         try {
             const title = item.title || item.original_title || '';
             const searchUrl = 'https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=' + encodeURIComponent(title);
@@ -64,27 +45,28 @@
             const video = filmDoc.querySelector('video');
             const file = video?.getAttribute('src');
 
-            if (!file || !file.includes('.m3u8')) throw 'Не вдалося знайти посилання на відео';
+            if (!file || !file.includes('.m3u8')) throw 'Не знайдено .m3u8';
 
             const source = {
                 file: file,
                 quality: 'HD',
-                title: 'Uaflix',
+                title: 'UAFlix',
                 url: file,
                 timeline: '',
                 info: '',
             };
 
-            resolve([source]);
+            callback([source]);
         } catch (e) {
             console.error('[uaflix] Error:', e);
             noty.show('Помилка при пошуку на UAFlix');
-            resolve([]);
+            callback([]);
         }
     }
 
-    if (!window.PluginUAFlixInitialized) {
-        window.PluginUAFlixInitialized = true;
-        addSourceButton();
+    if (!window.PluginUAFlixInstalled) {
+        window.PluginUAFlixInstalled = true;
+        install();
     }
 })();
+
