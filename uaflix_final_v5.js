@@ -1,7 +1,7 @@
 // ==UserScript==
  // @name        Uaflix
  // @namespace   uaflix
- // @version     1.4
+ // @version     1.5
  // @description Плагін для перегляду фільмів з Uaflix
  // @author      YourName
  // @match       *://*/*
@@ -13,6 +13,18 @@
     const network = Lampa.Network;
     const noty = Lampa.Noty;
     const component = 'uaflix';
+
+    // Ініціалізація порожнього online, щоб зʼявилась секція
+    if (!Lampa.Storage.get('plugin_uaflix_component_loaded')) {
+        Lampa.Storage.set('plugin_uaflix_component_loaded', true);
+
+        Lampa.Module.add({
+            component: 'online',
+            name: 'UAFlixInit',
+            condition: () => false,
+            on: () => {}
+        });
+    }
 
     function install() {
         Lampa.Source.add(component, {
@@ -69,4 +81,5 @@
         install();
     }
 })();
+
 
