@@ -116,4 +116,40 @@
         }
 
         normalizeUrl(url) {
-            return url.startsWith('http') ? url : `${mod_url}${url.startsWith('/')
+            return url.startsWith('http') ? url : `${mod_url}${url.startsWith('/') ? '' : '/'}${url}`;
+        }
+    }
+
+    // Функція додавання кнопки (ваш оригінальний код)
+    function addButton() {
+        const button = `
+        <div class="full-start__button selector view--ua_flix" data-subtitle="UAFlix ${mod_version}">
+            <svg width="24" height="24" viewBox="0 0 24 24"><path d="M3 3h18v2H3V3zm0 4h18v2H3V7zm0 4h12v2H3v-2zm0 4h12v2H3v-2zm0 4h12v2H3v-2z"/></svg>
+            <span>${mod_title}</span>
+        </div>`;
+
+        const container = document.querySelector('.full-start__buttons');
+        if(container && !container.querySelector('.view--ua_flix')) {
+            container.insertAdjacentHTML('beforeend', button);
+            
+            const btn = container.querySelector('.view--ua_flix');
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const card = lampa.getCurrentCard();
+                if(card) {
+                    lampa.plugins.fullStartHide();
+                    lampa.plugins.exec('Uaflix', card);
+                }
+            });
+        } else {
+            setTimeout(addButton, 300);
+        }
+    }
+
+    // Запуск
+    if(document.readyState === 'complete') {
+        initPlugin();
+    } else {
+        window.addEventListener('load', initPlugin);
+    }
+})();
