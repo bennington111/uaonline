@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Uaflix for Lampa
-// @namespace    https://github.com/bennington111/
-// @version      4.4
+// @namespace    uaflix
+// @version      1.1
 // @description  Uaflix plugin for Lampa
 // @author       Bennington
 // @match        *://*/*
@@ -13,122 +13,85 @@
 (function() {
     'use strict';
     
+    // Чекаємо готовності Lampa
     function waitForLampa() {
-        if (window.lampa && lampa.plugin) {
+        if (window.lampa && lampa.plugin && lampa.menu) {
             initPlugin();
         } else {
-            setTimeout(waitForLampa, 200);
+            setTimeout(waitForLampa, 300);
         }
     }
 
     function initPlugin() {
         lampa.plugin.add({
-            name: "uaflix",
+            name: "uaflix_plugin",
             init: function() {
-                this.addButton();
-            },
-            addButton: function() {
+                // Створюємо кнопку
                 lampa.menu.add({
                     name: "Uaflix",
-                    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M18 3H6a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3zm-1.5 13.5h-9v-9h9v9z"/></svg>',
+                    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="#ff5722" d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.5L20 9v6l-8 4-8-4V9l8-4.5z"/></svg>',
                     color: "#ff5722",
                     action: () => {
-                        this.loadUAFixContent();
+                        lampa.notice.show("Завантаження фільмів...");
+                        loadFilms();
                     }
-                });
-            },
-            loadUAFixContent: function() {
-                lampa.loader.show();
-                
-                let url = 'https://uafix.net/film/';
-                
-                lampa.request.get(url, (data) => {
-                    if (!data) {
-                        lampa.notice.show('Помилка завантаження Uaflix');
-                        lampa.loader.hide();
-                        return;
-                    }
-                    
-                    const films = this.parseUAFix(data);
-                    
-                    if (films.length === 0) {
-                        lampa.notice.show('Фільми не знайдені');
-                        lampa.loader.hide();
-                        return;
-                    }
-                    
-                    this.showResults(films);
-                    lampa.loader.hide();
-                });
-            },
-            parseUAFix: function(data) {
-                const films = [];
-                
-                const items = data.match(/<div class="video-item with-mask new-item">.*?<\/div><\/div>/gs);
-                
-                if (items) {
-                    items.forEach(item => {
-                        const titleMatch = item.match(/<div class="vi-title">(.*?)<\/div>/);
-                        const title = titleMatch ? titleMatch[1].trim() : 'Невідома назва';
-                        
-                        const linkMatch = item.match(/<a class="vi-img img-resp-h" href="(.*?)"/);
-                        const link = linkMatch ? 'https://uafix.net' + linkMatch[1] : '';
-                        
-                        const posterMatch = item.match(/<img src="(.*?)"/);
-                        const poster = posterMatch ? 'https://uafix.net' + posterMatch[1] : '';
-                        
-                        if (title && link && poster) {
-                            films.push({
-                                title: title,
-                                link: link,
-                                poster: poster,
-                                year: this.extractYear(title),
-                                description: '',
-                                genre: ''
-                            });
-                        }
-                    });
-                }
-                
-                return films;
-            },
-            extractYear: function(title) {
-                const yearMatch = title.match(/(\d{4})/);
-                return yearMatch ? yearMatch[0] : '';
-            },
-            showResults: function(films) {
-                const result = {
-                    title: "Uaflix",
-                    items: films.map(film => ({
-                        title: film.title,
-                        link: film.link,
-                        poster: film.poster,
-                        info: [
-                            film.year ? `Рік: ${film.year}` : '',
-                            film.genre ? `Жанр: ${film.genre}` : ''
-                        ].filter(Boolean).join(' • '),
-                        description: film.description || '',
-                        action: {
-                            type: "open",
-                            value: film.link
-                        }
-                    }))
-                };
-                
-                lampa.pages.open('result', {
-                    source: 'plugin',
-                    title: 'Uaflix',
-                    result: result
                 });
             }
         });
     }
 
-    // Додаткова перевірка для старих версій Lampa
-    if (window.lampa && lampa.plugin) {
-        initPlugin();
-    } else {
-        document.addEventListener('lampa-loaded', initPlugin);
+    function loadFilms() {
+        fetch('https://uafix.net/film/')
+            .then(r => r.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const films = [];
+                
+                // Парсимо фільми
+                doc.querySelectorAll('.video-item').forEach(item => {
+                    const title = item.querySelector('.vi-title')?.textContent.trim() || 'Без назви';
+                    const link = 'https://uafix.net' + item.querySelector('a.vi-img')?.getAttribute('href');
+                    const poster = 'https://uafix.net' + item.querySelector('img')?.getAttribute('src');
+                    
+                    if (title && link && poster) {
+                        films.push({
+                            title: title,
+                            link: link,
+                            poster: poster,
+                            info: '',
+                            description: ''
+                        });
+                    }
+                });
+
+                if (films.length > 0) {
+                    showFilms(films);
+                } else {
+                    lampa.notice.show("Фільми не знайдені");
+                }
+            })
+            .catch(e => {
+                lampa.notice.show("Помилка завантаження");
+                console.error("Uaflix error:", e);
+            });
+    }
+
+    function showFilms(films) {
+        lampa.pages.open('result', {
+            source: 'plugin',
+            title: 'Uaflix',
+            result: {
+                title: 'Uaflix',
+                items: films
+            }
+        });
+    }
+
+    // Запускаємо
+    if (document.readyState === 'complete') {
         waitForLampa();
+    } else {
+        window.addEventListener('load', waitForLampa);
     }
 })();
