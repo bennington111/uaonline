@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Uaflix Player Button
 // @namespace    https://github.com/bennington111/
-// @version      4.8
+// @version      4.9
 // @description  Adds UAFlix button to Lampa player
 // @author       Bennington
 // @match        *://lampa.mx/*
@@ -13,14 +13,16 @@
 (function() {
     'use strict';
     
-    const mod_version = '4.8';
-    let buttonAdded = false;
+    const mod_version = '4.9';
+    let attempts = 0;
+    const maxAttempts = 10;
 
     // Стилізована кнопка UAFlix
     const button_html = `
-    <div class="selector view--uaflix" 
-         style="display: flex; align-items: center; padding: 0 12px; margin-right: 10px; cursor: pointer;
-                background: rgba(255, 87, 34, 0.12); border-radius: 20px; height: 36px;">
+    <div class="view--uaflix" 
+         style="display: flex; align-items: center; padding: 0 15px; margin: 0 10px; cursor: pointer;
+                background: rgba(255, 87, 34, 0.12); border-radius: 20px; height: 36px;
+                position: relative; z-index: 1000;">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="20" height="20" fill="#ff5722">
             <path d="M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z
             M228.9,2l8,37.7l0,0L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z
@@ -31,46 +33,55 @@
 
     // Функція додавання кнопки
     function addUaflixButton() {
-        if (buttonAdded) return;
+        attempts++;
         
-        // Знаходимо контейнер кнопок плеєра (новий селектор для Lampa.mx)
-        const playerControls = document.querySelector('.player-controls__right');
-        const existingButton = document.querySelector('.view--uaflix');
+        // Скасування якщо перевищено ліміт спроб
+        if (attempts > maxAttempts) return;
         
-        if (playerControls && !existingButton) {
+        // Пошук будь-якого контейнера кнопок у плеєрі
+        const containers = [
+            '.player__bottom', 
+            '.player-controls',
+            '.player-panel',
+            '.player-actions'
+        ];
+        
+        let targetContainer = null;
+        
+        containers.forEach(selector => {
+            const container = document.querySelector(selector);
+            if (container && !container.querySelector('.view--uaflix')) {
+                targetContainer = container;
+            }
+        });
+        
+        if (targetContainer) {
             const button = document.createElement('div');
             button.innerHTML = button_html;
             button.onclick = function() {
-                const cardData = lampa.player.card();
-                if (cardData) {
-                    const title = encodeURIComponent(cardData.title || '');
-                    const year = cardData.year || '';
-                    window.open(`https://uafix.net/index.php?do=search&subaction=search&story=${title}+${year}`);
-                }
+                const title = document.querySelector('.card__title')?.textContent || '';
+                const year = document.querySelector('.card__year')?.textContent || '';
+                window.open(`https://uafix.net/index.php?do=search&subaction=search&story=${encodeURIComponent(title + ' ' + year)}`);
             };
-            playerControls.prepend(button);
-            buttonAdded = true;
+            
+            // Додаємо кнопку в кінець контейнера
+            targetContainer.appendChild(button);
+        } else {
+            // Повторна спроба через 500 мс
+            setTimeout(addUaflixButton, 500);
         }
     }
 
-    // Спостерігач за змінами DOM
-    const observer = new MutationObserver(function() {
-        addUaflixButton();
-    });
-
-    // Починаємо спостереження
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
-
-    // Додатковий спосіб через події Lampa
-    if (window.lampa) {
-        lampa.events.subscribe('player_open', function() {
-            setTimeout(addUaflixButton, 500);
+    // Запускаємо процес
+    if (document.readyState === 'complete') {
+        setTimeout(addUaflixButton, 1000);
+    } else {
+        window.addEventListener('load', () => {
+            setTimeout(addUaflixButton, 1000);
         });
     }
 
-    // Перша спроба додати кнопку
-    setTimeout(addUaflixButton, 3000);
+    // Додатковий спостерігач для динамічних змін
+    new MutationObserver(addUaflixButton)
+        .observe(document.body, {childList: true, subtree: true});
 })();
