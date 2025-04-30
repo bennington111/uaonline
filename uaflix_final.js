@@ -1,5 +1,5 @@
 (function(){
-    var mod_version = 'v0.2';
+    var mod_version = 'v0.3';
     var mod_title = 'UAFlix';
 
     var button = `
@@ -13,9 +13,10 @@
     }
 
     async function searchMovie(title){
-        const searchUrl = `https://uafix.net/search?q=${encodeURIComponent(title)}`;
+        const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&story=${encodeURIComponent(title)}`;
+        console.log('🔍 UAFlix search URL:', searchUrl);
+
         const searchHtml = await proxyFetch(searchUrl).then(r => r.text());
-        
         const dom = new DOMParser().parseFromString(searchHtml, 'text/html');
         const linkEl = dom.querySelector('.ml-mask a');
 
@@ -26,12 +27,15 @@
     }
 
     async function extractIframeUrl(pageUrl){
+        console.log('🔍 UAFlix film page URL:', pageUrl);
+
         const html = await proxyFetch(pageUrl).then(r => r.text());
         const dom = new DOMParser().parseFromString(html, 'text/html');
         const iframe = dom.querySelector('iframe');
 
         if (!iframe) throw new Error('Плеєр не знайдено');
 
+        console.log('🎬 UAFlix iframe URL:', iframe.src);
         return iframe.src;
     }
 
@@ -80,5 +84,5 @@
         }
     });
 
-    console.log('✅ UAFlix plugin with search loaded');
+    console.log('✅ UAFlix plugin v0.3 loaded');
 })();
