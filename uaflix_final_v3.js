@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Uaflix for Lampa
 // @namespace    https://github.com/bennington111/
-// @version      4.5
+// @version      4.6
 // @description  Uaflix plugin for Lampa
 // @author       Bennington
 // @match        *://*/*
@@ -13,123 +13,102 @@
 (function() {
     'use strict';
     
-    // Чекаємо повного завантаження Lampa
-    function waitForLampa() {
-        if (typeof window.lampa !== 'undefined' && 
-            typeof lampa.plugin !== 'undefined' &&
-            typeof lampa.menu !== 'undefined') {
-            initPlugin();
-        } else {
-            setTimeout(waitForLampa, 300);
+    const mod_version = '4.6';
+    
+    // Чекаємо завантаження DOM
+    function init() {
+        // Ваш робочий варіант кнопки
+        const button_html = `
+        <div class="full-start__button selector view--uaflix" data-subtitle="uaflix ${mod_version}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24" fill="currentColor">
+                <path d="M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z
+                M228.9,2l8,37.7l0,0L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z
+                M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88L2,50.2L47.8,80L10,88z"/>
+            </svg>
+            <span>UAFlix</span>
+        </div>`;
+        
+        // Додаємо кнопку до інтерфейсу Lampa
+        function addButton() {
+            const menu = document.querySelector('.full-start__scroll');
+            if (menu) {
+                const button = document.createElement('div');
+                button.innerHTML = button_html;
+                button.querySelector('.view--uaflix').addEventListener('click', loadFilms);
+                menu.appendChild(button);
+            }
         }
-    }
-
-    function initPlugin() {
-        lampa.plugin.add({
-            name: "uaflix",
-            init: function() {
-                // Створюємо кнопку (точно таку ж як у вашому робочому прикладі)
-                lampa.menu.add({
-                    name: "Uaflix",
-                    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M18 3H6a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3zm-1.5 13.5h-9v-9h9v9z"/></svg>',
-                    color: "#ff5722",
-                    action: () => {
-                        this.loadUAFixContent();
-                    }
-                });
-            },
-            loadUAFixContent: function() {
-                lampa.loader.show();
-                
-                let url = 'https://uafix.net/film/';
-                
-                lampa.request.get(url, (data) => {
-                    if (!data) {
-                        lampa.notice.show('Помилка завантаження Uaflix');
-                        lampa.loader.hide();
-                        return;
-                    }
+        
+        // Завантаження фільмів
+        function loadFilms() {
+            fetch('https://uafix.net/film/')
+                .then(r => r.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const films = [];
                     
-                    const films = this.parseUAFix(data);
-                    
-                    if (films.length === 0) {
-                        lampa.notice.show('Фільми не знайдені');
-                        lampa.loader.hide();
-                        return;
-                    }
-                    
-                    this.showResults(films);
-                    lampa.loader.hide();
-                });
-            },
-            parseUAFix: function(data) {
-                const films = [];
-                
-                const items = data.match(/<div class="video-item with-mask new-item">.*?<\/div><\/div>/gs);
-                
-                if (items) {
-                    items.forEach(item => {
-                        const titleMatch = item.match(/<div class="vi-title">(.*?)<\/div>/);
-                        const title = titleMatch ? titleMatch[1].trim() : 'Невідома назва';
-                        
-                        const linkMatch = item.match(/<a class="vi-img img-resp-h" href="(.*?)"/);
-                        const link = linkMatch ? 'https://uafix.net' + linkMatch[1] : '';
-                        
-                        const posterMatch = item.match(/<img src="(.*?)"/);
-                        const poster = posterMatch ? 'https://uafix.net' + posterMatch[1] : '';
+                    doc.querySelectorAll('.video-item').forEach(item => {
+                        const title = item.querySelector('.vi-title')?.textContent.trim() || 'Без назви';
+                        const link = 'https://uafix.net' + item.querySelector('a.vi-img')?.getAttribute('href');
+                        const poster = 'https://uafix.net' + item.querySelector('img')?.getAttribute('src');
                         
                         if (title && link && poster) {
                             films.push({
                                 title: title,
                                 link: link,
                                 poster: poster,
-                                year: this.extractYear(title),
-                                description: '',
-                                genre: ''
+                                year: (title.match(/(\d{4})/) || [])[0] || '',
+                                description: ''
                             });
                         }
                     });
-                }
-                
-                return films;
-            },
-            extractYear: function(title) {
-                const yearMatch = title.match(/(\d{4})/);
-                return yearMatch ? yearMatch[0] : '';
-            },
-            showResults: function(films) {
-                const result = {
-                    title: "Uaflix",
-                    items: films.map(film => ({
-                        title: film.title,
-                        link: film.link,
-                        poster: film.poster,
-                        info: [
-                            film.year ? `Рік: ${film.year}` : '',
-                            film.genre ? `Жанр: ${film.genre}` : ''
-                        ].filter(Boolean).join(' • '),
-                        description: film.description || '',
-                        action: {
-                            type: "open",
-                            value: film.link
-                        }
-                    }))
-                };
-                
+                    
+                    if (films.length > 0) {
+                        showFilms(films);
+                    } else {
+                        alert('Фільми не знайдені');
+                    }
+                })
+                .catch(e => {
+                    alert('Помилка завантаження');
+                    console.error("Uaflix error:", e);
+                });
+        }
+        
+        // Відображення результатів
+        function showFilms(films) {
+            if (window.lampa && lampa.pages) {
                 lampa.pages.open('result', {
                     source: 'plugin',
                     title: 'Uaflix',
-                    result: result
+                    result: {
+                        title: 'Uaflix',
+                        items: films
+                    }
                 });
+            } else {
+                // Простий вивід, якщо Lampa не завантажена
+                let result = "Знайдені фільми:\n";
+                films.forEach(film => result += `\n${film.title} (${film.year})\n${film.link}\n`);
+                alert(result);
             }
-        });
+        }
+        
+        // Спробуємо додати кнопку одразу
+        addButton();
+        
+        // Якщо меню ще не завантажилося, чекаємо
+        if (!document.querySelector('.full-start__scroll')) {
+            const observer = new MutationObserver(() => addButton());
+            observer.observe(document.body, {childList: true, subtree: true});
+        }
     }
-
-    // Додаткова перевірка для різних версій Lampa
-    if (window.lampa && lampa.plugin) {
-        initPlugin();
+    
+    // Запускаємо після повного завантаження сторінки
+    if (document.readyState === 'complete') {
+        setTimeout(init, 1000);
     } else {
-        document.addEventListener('lampa-loaded', initPlugin);
-        waitForLampa();
+        window.addEventListener('load', () => setTimeout(init, 1000));
     }
 })();
