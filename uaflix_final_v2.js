@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix for Lampa
 // @namespace   uaflix
-// @version     2.3
+// @version     2.4
 // @description Плагін для перегляду фільмів з Uaflix
 // @author      YourName
 // @match       *://*/*
@@ -14,10 +14,26 @@
     // Конфігурація
     const CONFIG = {
         name: 'Uaflix',
-        version: '2.3',
+        version: '2.4',
         host: 'https://uafix.net',
         icon: 'https://uafix.net/favicon.ico'
     };
+
+    // Очікування завантаження Lampa
+    function waitForLampa() {
+        return new Promise(resolve => {
+            if (window.Lampa && window.Lampa.Plugin) {
+                return resolve();
+            }
+
+            const checkInterval = setInterval(() => {
+                if (window.Lampa && window.Lampa.Plugin) {
+                    clearInterval(checkInterval);
+                    resolve();
+                }
+            }, 200);
+        });
+    }
 
     // Головний клас плагіна
     class UaflixPlugin {
@@ -137,31 +153,35 @@
     }
 
     // Ініціалізація плагіна
-    function initPlugin() {
-        if (!window.Lampa) return setTimeout(initPlugin, 500);
-        
-        // Реєстрація плагіна
-        Lampa.Plugin.register(CONFIG.name, new UaflixPlugin());
-        
-        // Додавання кнопки через API Lampa
-        Lampa.MenuManager.addProvider({
-            name: CONFIG.name,
-            icon: CONFIG.icon,
-            component: (item) => {
-                return {
-                    template: `
-                        <div class="online-plugin">
-                            <div class="online-plugin__content"></div>
-                        </div>
-                    `,
-                    created() {
-                        Lampa.Plugin.exec(CONFIG.name, item, this.$el.querySelector('.online-plugin__content'));
-                    }
-                };
-            }
-        });
-        
-        console.log(`${CONFIG.name} v${CONFIG.version} ініціалізовано`);
+    async function initPlugin() {
+        try {
+            await waitForLampa();
+            
+            // Реєстрація плагіна
+            Lampa.Plugin.register(CONFIG.name, new UaflixPlugin());
+            
+            // Додавання кнопки через API Lampa
+            Lampa.MenuManager.addProvider({
+                name: CONFIG.name,
+                icon: CONFIG.icon,
+                component: (item) => {
+                    return {
+                        template: `
+                            <div class="online-plugin">
+                                <div class="online-plugin__content"></div>
+                            </div>
+                        `,
+                        created() {
+                            Lampa.Plugin.exec(CONFIG.name, item, this.$el.querySelector('.online-plugin__content'));
+                        }
+                    };
+                }
+            });
+            
+            console.log(`${CONFIG.name} v${CONFIG.version} успішно ініціалізовано`);
+        } catch (error) {
+            console.error(`Помилка ініціалізації ${CONFIG.name}:`, error);
+        }
     }
 
     // Запуск
