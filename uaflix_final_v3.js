@@ -1,52 +1,61 @@
-(function() {
-    // Використовуємо corsproxy.io для обхід CORS
-    const corsProxyUrl = 'https://corsproxy.io/?';
+// ==UserScript==
+// @name        Uaflix
+// @namespace   uaflix
+// @version     3.8
+// @description Плагін для перегляду фільмів з Uaflix
+// @author      YourName
+// @match       *://*/*
+// @grant       none
+// @icon        https://uafix.net/favicon.ico
+// ==/UserScript==
 
-    // Функція для пошуку фільму
-    function searchMovieOnUafix(query) {
-        // Формуємо URL для пошуку фільму на uafix.net
-        const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${encodeURIComponent(query)}`;
+(function () {
+    if (!window.Lampa || !Lampa.Listener || !Lampa.Storage) return;
 
-        const fullUrl = corsProxyUrl + encodeURIComponent(searchUrl); // Додаємо до URL проксі-сервер
+    const plugin_name = 'uaflix';
 
-        fetch(fullUrl)
-            .then(response => response.text()) // Отримуємо HTML контент
-            .then(html => {
-                console.log('Отримано HTML сторінки з результатами пошуку:', html);
-
-                // Парсинг HTML сторінки
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-
-                // Шукаємо всі посилання на результати пошуку
-                const movieLinks = doc.querySelectorAll('.news-title a');
-                if (movieLinks.length > 0) {
-                    movieLinks.forEach(link => {
-                        console.log('Знайдено фільм:', link.textContent);
-                        console.log('Посилання на фільм:', link.href);
-                    });
-                } else {
-                    console.log('Не вдалося знайти фільм на сторінці');
-                }
-            })
-            .catch(error => {
-                console.error('Помилка при завантаженні сторінки:', error);
-            });
+    function loadOnline(movie) {
+        // 🔁 ТУТ МОЖНА ВСТАВИТИ ЛОГІКУ ПІДГРУЗКИ СТРІМІВ (поки просто alert)
+        Lampa.Noty.show(`Завантаження стрімів для: ${movie.title}`);
     }
 
-    // Ініціалізація плагіна або виклик функції
-    document.addEventListener('DOMContentLoaded', function() {
-        // Створення кнопки для запуску пошуку
-        const button = document.createElement('button');
-        button.innerHTML = 'Пошук фільму на Uaflix';
-        button.addEventListener('click', function() {
-            const searchQuery = prompt('Введіть назву фільму:');
-            if (searchQuery) {
-                searchMovieOnUafix(searchQuery); // Викликаємо функцію для пошуку фільму
-            }
-        });
+    function addButton() {
+        Lampa.Listener.follow('full', function (e) {
+            if (e.type !== 'complite' || !e.data || !e.data.movie) return;
 
-        // Додаємо кнопку на сторінку
-        document.body.appendChild(button);
-    });
+            // Перевірка, чи кнопка вже додана
+            if (e.object.activity.render().find('.view--ua_flix').length) return;
+
+            const button = $(`
+                <div class="full-start__button selector view--ua_flix" data-subtitle="UAFlix">
+                    <svg width="24" height="24" viewBox="0 0 24 24">
+                        <path d="M3 3h18v2H3V3zm0 4h18v2H3V7zm0 4h12v2H3v-2zm0 4h12v2H3v-2zm0 4h12v2H3v-2z"/>
+                    </svg>
+                    <span>UAFlix</span>
+                </div>
+            `);
+
+            button.on('hover:enter', function () {
+                loadOnline(e.data.movie);
+            });
+
+            // Вставляємо кнопку після блоку "Торренти"
+            const target = e.object.activity.render().find('.view--torrent');
+            if (target.length) target.after(button);
+        });
+    }
+
+    function init() {
+        if (window.Plugin && typeof window.Plugin.register === 'function') {
+            window.Plugin.register(plugin_name, {
+                init: () => {},
+                run: () => {},
+                stop: () => {}
+            });
+        }
+
+        addButton();
+    }
+
+    init();
 })();
