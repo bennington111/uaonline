@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix for Lampa
 // @namespace   uaflix
-// @version     2.1
+// @version     2.2
 // @description Плагін для перегляду фільмів з Uaflix
 // @author      YourName
 // @match       *://*/*
@@ -12,143 +12,154 @@
     'use strict';
 
     // Конфігурація
-    const config = {
+    const CONFIG = {
         name: 'Uaflix',
-        version: '2.1',
-        url: 'https://uafix.net',
+        version: '2.2',
+        host: 'https://uafix.net',
         icon: 'https://uafix.net/favicon.ico',
-        proxy: 'https://corsproxy.io/?',
-        buttonClass: 'view--uaflix-plugin' // Унікальний клас для кнопки
+        buttonClass: 'uaflix-button', // Унікальний клас для кнопки
+        selectors: {
+            container: '.full-start__buttons, .selector__buttons', // Основні контейнери Lampa
+            items: '.short', // Елементи фільмів на uafix.net
+            title: '.short-title',
+            link: '.short-link a',
+            poster: '.short-img img',
+            quality: '.short-quality'
+        }
     };
 
-    // Основний клас плагіна
+    // Головний клас плагіна
     class UaflixPlugin {
         constructor() {
-            this.name = config.name;
+            this.name = CONFIG.name;
             this.type = 'online';
-            this.icon = config.icon;
+            this.icon = CONFIG.icon;
         }
 
-        exec(item, element) {
-            this.renderLoading(element);
-            this.search(item.title)
-                .then(films => this.renderResults(films, element))
-                .catch(error => this.renderError(error, element));
+        exec(item, container) {
+            this.showLoader(container);
+            this.searchMovies(item.title)
+                .then(movies => this.showMovies(movies, container))
+                .catch(error => this.showError(error, container));
         }
 
-        async search(query) {
+        async searchMovies(query) {
             try {
-                const searchUrl = `${config.url}/search?q=${encodeURIComponent(query)}`;
-                const response = await fetch(`${config.proxy}${encodeURIComponent(searchUrl)}`);
+                const url = `${CONFIG.host}/search?q=${encodeURIComponent(query)}`;
+                const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
                 
-                if (!response.ok) throw new Error('Помилка завантаження');
-                return this.parseResults(await response.text());
+                if (!response.ok) throw new Error('Не вдалося завантажити дані');
+                
+                const html = await response.text();
+                return this.parseMovies(html);
             } catch (error) {
-                console.error('Uaflix error:', error);
+                console.error('Помилка пошуку:', error);
                 throw error;
             }
         }
 
-        parseResults(html) {
+        parseMovies(html) {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
-            return Array.from(doc.querySelectorAll('.short')).map(item => ({
-                title: item.querySelector('.short-title')?.textContent.trim() || 'Без назви',
-                url: this.normalizeUrl(item.querySelector('.short-link a')?.href),
-                poster: item.querySelector('.short-img img')?.src,
-                quality: item.querySelector('.short-quality')?.textContent.trim() || ''
-            })).filter(item => item.url);
+            const items = doc.querySelectorAll(CONFIG.selectors.items);
+
+            return Array.from(items).map(item => ({
+                title: item.querySelector(CONFIG.selectors.title)?.textContent.trim() || 'Без назви',
+                url: this.normalizeUrl(item.querySelector(CONFIG.selectors.link)?.href),
+                poster: item.querySelector(CONFIG.selectors.poster)?.src,
+                quality: item.querySelector(CONFIG.selectors.quality)?.textContent.trim() || ''
+            })).filter(movie => movie.url);
         }
 
         normalizeUrl(url) {
             if (!url) return '';
-            return url.startsWith('http') ? url : `${config.url}${url.startsWith('/') ? '' : '/'}${url}`;
+            return url.startsWith('http') ? url : `${CONFIG.host}${url.startsWith('/') ? '' : '/'}${url}`;
         }
 
-        renderLoading(element) {
-            element.innerHTML = `
-                <div class="online-plugin__loading">
-                    <div class="online-plugin__loading-progress"></div>
-                    <div class="online-plugin__loading-text">Шукаємо на ${config.name}...</div>
+        showLoader(container) {
+            container.innerHTML = `
+                <div class="uaflix-loading">
+                    <div class="loader"></div>
+                    <div>Пошук на ${CONFIG.name}...</div>
                 </div>
             `;
         }
 
-        renderResults(films, element) {
-            element.innerHTML = films.length ? `
-                <div class="online-plugin__items">
-                    ${films.map(film => `
-                        <div class="online-plugin__item" data-url="${film.url}">
-                            <img src="${film.poster || 'https://via.placeholder.com/150x225'}" 
-                                 alt="${film.title}" 
+        showMovies(movies, container) {
+            container.innerHTML = movies.length ? `
+                <div class="uaflix-results">
+                    ${movies.map(movie => `
+                        <div class="movie-card" data-url="${movie.url}">
+                            <img src="${movie.poster || 'https://via.placeholder.com/150x225'}" 
+                                 alt="${movie.title}" 
                                  onerror="this.src='https://via.placeholder.com/150x225'">
-                            <div class="online-plugin__item-title">${film.title}</div>
-                            ${film.quality ? `<div class="online-plugin__item-quality">${film.quality}</div>` : ''}
+                            <div class="movie-info">
+                                <div class="title">${movie.title}</div>
+                                ${movie.quality ? `<div class="quality">${movie.quality}</div>` : ''}
+                            </div>
                         </div>
                     `).join('')}
                 </div>
-            ` : this.renderEmpty();
+            ` : this.showEmpty();
             
-            this.addItemListeners(element);
+            this.addMovieListeners(container);
         }
 
-        renderError(error, element) {
-            element.innerHTML = `
-                <div class="online-plugin__error">
-                    <svg width="50" height="50" viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                    </svg>
-                    <div>Помилка: ${error.message || 'Невідома помилка'}</div>
+        showError(error, container) {
+            container.innerHTML = `
+                <div class="uaflix-error">
+                    <div class="error-icon">!</div>
+                    <div>${error.message || 'Сталася помилка'}</div>
                 </div>
             `;
         }
 
-        renderEmpty() {
+        showEmpty() {
             return `
-                <div class="online-plugin__empty">
-                    <svg width="50" height="50" viewBox="0 0 24 24">
-                        <path d="M12 5.99L19.53 19H4.47L12 5.99M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z"/>
-                    </svg>
+                <div class="uaflix-empty">
+                    <div class="empty-icon">∅</div>
                     <div>Нічого не знайдено</div>
                 </div>
             `;
         }
 
-        addItemListeners(element) {
-            element.querySelectorAll('.online-plugin__item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const url = item.dataset.url;
-                    if (url) Lampa.Player.play({
-                        title: config.name,
-                        url: url,
-                        external: true
-                    });
+        addMovieListeners(container) {
+            container.querySelectorAll('.movie-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const url = card.dataset.url;
+                    if (url) {
+                        Lampa.Player.play({
+                            title: card.querySelector('.title')?.textContent || CONFIG.name,
+                            url: url,
+                            external: true
+                        });
+                    }
                 });
             });
         }
     }
 
-    // Додавання кнопки в UI Lampa
-    function addButton() {
+    // Додавання кнопки в інтерфейс
+    function addUaflixButton() {
         const buttonHtml = `
-            <div class="full-start__button selector ${config.buttonClass}" 
-                 data-subtitle="${config.name} ${config.version}">
+            <div class="full-start__button selector ${CONFIG.buttonClass}" 
+                 data-subtitle="${CONFIG.name} ${CONFIG.version}">
                 <svg width="24" height="24" viewBox="0 0 24 24">
                     <path d="M3 3h18v2H3V3zm0 4h18v2H3V7zm0 4h12v2H3v-2zm0 4h12v2H3v-2zm0 4h12v2H3v-2z"/>
                 </svg>
-                <span>${config.name}</span>
+                <span>${CONFIG.name}</span>
             </div>
         `;
 
         const tryAddButton = () => {
-            const container = document.querySelector('.full-start__buttons, .selector__buttons');
-            if (container && !container.querySelector(`.${config.buttonClass}`)) {
+            const container = document.querySelector(CONFIG.selectors.container);
+            if (container && !container.querySelector(`.${CONFIG.buttonClass}`)) {
                 container.insertAdjacentHTML('beforeend', buttonHtml);
                 
-                container.querySelector(`.${config.buttonClass}`).addEventListener('click', (e) => {
+                container.querySelector(`.${CONFIG.buttonClass}`).addEventListener('click', (e) => {
                     e.preventDefault();
                     const card = Lampa.Storage.get('card');
-                    if (card) Lampa.Plugin.exec(config.name, card);
+                    if (card) Lampa.Plugin.exec(CONFIG.name, card);
                 });
             }
         };
@@ -165,16 +176,20 @@
         }
     }
 
-    // Ініціалізація
-    function init() {
-        if (!window.Lampa) return setTimeout(init, 500);
+    // Ініціалізація плагіна
+    function initPlugin() {
+        if (!window.Lampa) return setTimeout(initPlugin, 500);
         
-        Lampa.Plugin.register(config.name, new UaflixPlugin());
-        addButton();
-        console.log(`${config.name} v${config.version} ready`);
+        Lampa.Plugin.register(CONFIG.name, new UaflixPlugin());
+        addUaflixButton();
+        
+        console.log(`${CONFIG.name} v${CONFIG.version} ініціалізовано`);
     }
 
     // Запуск
-    if (document.readyState === 'complete') init();
-    else window.addEventListener('load', init);
+    if (document.readyState === 'complete') {
+        initPlugin();
+    } else {
+        window.addEventListener('load', initPlugin);
+    }
 })();
