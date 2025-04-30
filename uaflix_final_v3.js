@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     4.6
+// @version     4.7
 // @description Плагін для перегляду фільмів з Uaflix
 // @author      YourName
 // @match       *://*/*
@@ -15,7 +15,7 @@
     // Конфігурація (з вашого робочого скрипта)
     const mod_name = "Uaflix";
     const mod_title = "Uaflix";
-    const mod_version = "4.6";
+    const mod_version = "4.7";
     const mod_url = "https://uafix.net";
     const mod_icon = "https://uafix.net/favicon.ico";
 
@@ -26,18 +26,40 @@
             return;
         }
 
-        // Реєстрація плагіна
+        // Реєстрація плагіна (ваш оригінальний код)
         lampa.plugins.Uaflix = {
             name: mod_name,
             component: UaflixComponent
         };
 
-        // Додавання кнопки
-        addButton();
-        
+        // Додавання кнопки (ваш оригінальний код)
+        const button = `
+        <div class="full-start__button selector view--ua_flix" data-subtitle="UAFlix ${mod_version}">
+            <svg width="24" height="24" viewBox="0 0 24 24"><path d="M3 3h18v2H3V3zm0 4h18v2H3V7zm0 4h12v2H3v-2zm0 4h12v2H3v-2zm0 4h12v2H3v-2z"/></svg>
+            <span>${mod_title}</span>
+        </div>`;
+
+        const container = document.querySelector('.full-start__buttons');
+        if(container && !container.querySelector('.view--ua_flix')) {
+            container.insertAdjacentHTML('beforeend', button);
+            
+            const btn = container.querySelector('.view--ua_flix');
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const card = lampa.getCurrentCard();
+                if(card) {
+                    lampa.plugins.fullStartHide();
+                    lampa.plugins.exec('Uaflix', card);
+                }
+            });
+        } else {
+            setTimeout(initPlugin, 300);
+        }
+
         console.log('Uaflix plugin loaded');
     }
 
+    // Компонент з вашим оригінальним кодом, лише оновлений парсинг
     class UaflixComponent {
         constructor(item){
             this.item = item;
@@ -97,6 +119,7 @@
             }
         }
 
+        // Оновлений парсинг для нової структури uafix.net
         parseFilms(html) {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
@@ -117,32 +140,6 @@
 
         normalizeUrl(url) {
             return url.startsWith('http') ? url : `${mod_url}${url.startsWith('/') ? '' : '/'}${url}`;
-        }
-    }
-
-    // Функція додавання кнопки (ваш оригінальний код)
-    function addButton() {
-        const button = `
-        <div class="full-start__button selector view--ua_flix" data-subtitle="UAFlix ${mod_version}">
-            <svg width="24" height="24" viewBox="0 0 24 24"><path d="M3 3h18v2H3V3zm0 4h18v2H3V7zm0 4h12v2H3v-2zm0 4h12v2H3v-2zm0 4h12v2H3v-2z"/></svg>
-            <span>${mod_title}</span>
-        </div>`;
-
-        const container = document.querySelector('.full-start__buttons');
-        if(container && !container.querySelector('.view--ua_flix')) {
-            container.insertAdjacentHTML('beforeend', button);
-            
-            const btn = container.querySelector('.view--ua_flix');
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const card = lampa.getCurrentCard();
-                if(card) {
-                    lampa.plugins.fullStartHide();
-                    lampa.plugins.exec('Uaflix', card);
-                }
-            });
-        } else {
-            setTimeout(addButton, 300);
         }
     }
 
