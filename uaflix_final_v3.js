@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     3.8
+// @version     3.9
 // @description Плагін для перегляду фільмів з Uaflix
 // @author      YourName
 // @match       *://*/*
@@ -14,16 +14,51 @@
 
     const plugin_name = 'uaflix';
 
-    function loadOnline(movie) {
-        // 🔁 ТУТ МОЖНА ВСТАВИТИ ЛОГІКУ ПІДГРУЗКИ СТРІМІВ (поки просто alert)
-        Lampa.Noty.show(`Завантаження стрімів для: ${movie.title}`);
+    function log(msg) {
+        console.log(`[${plugin_name}]`, msg);
+    }
+
+    async function loadOnline(movie) {
+        const title = movie.title || movie.name;
+        if (!title) {
+            Lampa.Noty.show('Не вдалось отримати назву фільму');
+            return;
+        }
+
+        Lampa.Noty.show(`Пошук UAFlix: ${title}`);
+
+        const query = encodeURIComponent(title);
+        const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
+
+        try {
+            const response = await fetch(searchUrl);
+            const html = await response.text();
+
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            const resultLink = doc.querySelector('.short-title a');
+
+            if (resultLink) {
+                const href = resultLink.href;
+                log('Знайдено фільм: ' + href);
+
+                // 🟡 Тут ти можеш парсити сторінку href далі і витягнути стріми
+                // Але для прикладу — просто відкриваємо сторінку в браузері
+                Lampa.Platform.open(href);
+            } else {
+                Lampa.Noty.show('Нічого не знайдено на UAFlix');
+            }
+        } catch (e) {
+            console.error(e);
+            Lampa.Noty.show('Помилка при пошуку на UAFlix');
+        }
     }
 
     function addButton() {
         Lampa.Listener.follow('full', function (e) {
             if (e.type !== 'complite' || !e.data || !e.data.movie) return;
 
-            // Перевірка, чи кнопка вже додана
             if (e.object.activity.render().find('.view--ua_flix').length) return;
 
             const button = $(`
@@ -39,7 +74,6 @@
                 loadOnline(e.data.movie);
             });
 
-            // Вставляємо кнопку після блоку "Торренти"
             const target = e.object.activity.render().find('.view--torrent');
             if (target.length) target.after(button);
         });
