@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix for Lampa
 // @namespace   uaflix
-// @version     2.2
+// @version     2.3
 // @description Плагін для перегляду фільмів з Uaflix
 // @author      YourName
 // @match       *://*/*
@@ -14,18 +14,9 @@
     // Конфігурація
     const CONFIG = {
         name: 'Uaflix',
-        version: '2.2',
+        version: '2.3',
         host: 'https://uafix.net',
-        icon: 'https://uafix.net/favicon.ico',
-        buttonClass: 'uaflix-button', // Унікальний клас для кнопки
-        selectors: {
-            container: '.full-start__buttons, .selector__buttons', // Основні контейнери Lampa
-            items: '.short', // Елементи фільмів на uafix.net
-            title: '.short-title',
-            link: '.short-link a',
-            poster: '.short-img img',
-            quality: '.short-quality'
-        }
+        icon: 'https://uafix.net/favicon.ico'
     };
 
     // Головний клас плагіна
@@ -61,13 +52,13 @@
         parseMovies(html) {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
-            const items = doc.querySelectorAll(CONFIG.selectors.items);
+            const items = doc.querySelectorAll('.short');
 
             return Array.from(items).map(item => ({
-                title: item.querySelector(CONFIG.selectors.title)?.textContent.trim() || 'Без назви',
-                url: this.normalizeUrl(item.querySelector(CONFIG.selectors.link)?.href),
-                poster: item.querySelector(CONFIG.selectors.poster)?.src,
-                quality: item.querySelector(CONFIG.selectors.quality)?.textContent.trim() || ''
+                title: item.querySelector('.short-title')?.textContent.trim() || 'Без назви',
+                url: this.normalizeUrl(item.querySelector('.short-link a')?.href),
+                poster: item.querySelector('.short-img img')?.src,
+                quality: item.querySelector('.short-quality')?.textContent.trim() || ''
             })).filter(movie => movie.url);
         }
 
@@ -78,25 +69,23 @@
 
         showLoader(container) {
             container.innerHTML = `
-                <div class="uaflix-loading">
-                    <div class="loader"></div>
-                    <div>Пошук на ${CONFIG.name}...</div>
+                <div class="online-plugin__loading">
+                    <div class="online-plugin__loading-progress"></div>
+                    <div class="online-plugin__loading-text">Пошук на ${CONFIG.name}...</div>
                 </div>
             `;
         }
 
         showMovies(movies, container) {
             container.innerHTML = movies.length ? `
-                <div class="uaflix-results">
+                <div class="online-plugin__items">
                     ${movies.map(movie => `
-                        <div class="movie-card" data-url="${movie.url}">
+                        <div class="online-plugin__item" data-url="${movie.url}">
                             <img src="${movie.poster || 'https://via.placeholder.com/150x225'}" 
                                  alt="${movie.title}" 
                                  onerror="this.src='https://via.placeholder.com/150x225'">
-                            <div class="movie-info">
-                                <div class="title">${movie.title}</div>
-                                ${movie.quality ? `<div class="quality">${movie.quality}</div>` : ''}
-                            </div>
+                            <div class="online-plugin__item-title">${movie.title}</div>
+                            ${movie.quality ? `<div class="online-plugin__item-quality">${movie.quality}</div>` : ''}
                         </div>
                     `).join('')}
                 </div>
@@ -107,29 +96,37 @@
 
         showError(error, container) {
             container.innerHTML = `
-                <div class="uaflix-error">
-                    <div class="error-icon">!</div>
-                    <div>${error.message || 'Сталася помилка'}</div>
+                <div class="online-plugin__empty">
+                    <div class="online-plugin__empty-icon">
+                        <svg width="60" height="60" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                        </svg>
+                    </div>
+                    <div class="online-plugin__empty-title">Помилка: ${error.message || 'Невідома помилка'}</div>
                 </div>
             `;
         }
 
         showEmpty() {
             return `
-                <div class="uaflix-empty">
-                    <div class="empty-icon">∅</div>
-                    <div>Нічого не знайдено</div>
+                <div class="online-plugin__empty">
+                    <div class="online-plugin__empty-icon">
+                        <svg width="60" height="60" viewBox="0 0 24 24">
+                            <path d="M12 5.99L19.53 19H4.47L12 5.99M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z"/>
+                        </svg>
+                    </div>
+                    <div class="online-plugin__empty-title">Нічого не знайдено</div>
                 </div>
             `;
         }
 
         addMovieListeners(container) {
-            container.querySelectorAll('.movie-card').forEach(card => {
-                card.addEventListener('click', () => {
-                    const url = card.dataset.url;
+            container.querySelectorAll('.online-plugin__item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const url = item.dataset.url;
                     if (url) {
                         Lampa.Player.play({
-                            title: card.querySelector('.title')?.textContent || CONFIG.name,
+                            title: item.querySelector('.online-plugin__item-title')?.textContent || CONFIG.name,
                             url: url,
                             external: true
                         });
@@ -139,49 +136,30 @@
         }
     }
 
-    // Додавання кнопки в інтерфейс
-    function addUaflixButton() {
-        const buttonHtml = `
-            <div class="full-start__button selector ${CONFIG.buttonClass}" 
-                 data-subtitle="${CONFIG.name} ${CONFIG.version}">
-                <svg width="24" height="24" viewBox="0 0 24 24">
-                    <path d="M3 3h18v2H3V3zm0 4h18v2H3V7zm0 4h12v2H3v-2zm0 4h12v2H3v-2zm0 4h12v2H3v-2z"/>
-                </svg>
-                <span>${CONFIG.name}</span>
-            </div>
-        `;
-
-        const tryAddButton = () => {
-            const container = document.querySelector(CONFIG.selectors.container);
-            if (container && !container.querySelector(`.${CONFIG.buttonClass}`)) {
-                container.insertAdjacentHTML('beforeend', buttonHtml);
-                
-                container.querySelector(`.${CONFIG.buttonClass}`).addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const card = Lampa.Storage.get('card');
-                    if (card) Lampa.Plugin.exec(CONFIG.name, card);
-                });
-            }
-        };
-
-        if (window.Lampa) {
-            tryAddButton();
-        } else {
-            const waitForLampa = setInterval(() => {
-                if (window.Lampa) {
-                    clearInterval(waitForLampa);
-                    tryAddButton();
-                }
-            }, 300);
-        }
-    }
-
     // Ініціалізація плагіна
     function initPlugin() {
         if (!window.Lampa) return setTimeout(initPlugin, 500);
         
+        // Реєстрація плагіна
         Lampa.Plugin.register(CONFIG.name, new UaflixPlugin());
-        addUaflixButton();
+        
+        // Додавання кнопки через API Lampa
+        Lampa.MenuManager.addProvider({
+            name: CONFIG.name,
+            icon: CONFIG.icon,
+            component: (item) => {
+                return {
+                    template: `
+                        <div class="online-plugin">
+                            <div class="online-plugin__content"></div>
+                        </div>
+                    `,
+                    created() {
+                        Lampa.Plugin.exec(CONFIG.name, item, this.$el.querySelector('.online-plugin__content'));
+                    }
+                };
+            }
+        });
         
         console.log(`${CONFIG.name} v${CONFIG.version} ініціалізовано`);
     }
