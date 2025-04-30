@@ -68,7 +68,7 @@
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
 
-            const resultLink = doc.querySelector('.short-title a');
+            const resultLink = doc.querySelector('.sres-wrap');
 
             if (resultLink) {
                 const href = resultLink.href;
