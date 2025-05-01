@@ -1,7 +1,7 @@
 // ==UserScript==
  // @name        Uaflix
  // @namespace   uaflix
- // @version     2.9
+ // @version     3.0
  // @description Плагін для перегляду фільмів з Uaflix
  // @author      YourName
  // @match       *://*/*
@@ -10,23 +10,43 @@
  // ==/UserScript==
 
 (function () {
-    const plugin = 'uaflix';
-    const version = '1.0.0';
+    const button_html = `
+    <div class="full-start__button selector view--uaflix" data-subtitle="UAFlix">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24" fill="currentColor">
+            <path d="M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z
+            M228.9,2l8,37.7l0,0L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z
+            M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88L2,50.2L47.8,80L10,88z"/>
+        </svg>
+        <span>UAFlix</span>
+    </div>`;
 
-    Lampa.Listener.follow('full', function (e) {
-        if (e.type !== 'complite') return;
+    let button;
 
-        let btn = $(`<div class="full-start__button selector view--${plugin}" data-subtitle="Uaflix">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24" fill="currentColor">
-                <path d="M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z
-                M228.9,2l8,37.7l0,0L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z
-                M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88L2,50.2L47.8,80L10,88z"/>
-            </svg>
-            <span>UAFlix</span>
-        </div>`);
+    function waitForElement(selector, callback) {
+        const interval = setInterval(() => {
+            const el = document.querySelector(selector);
+            if (el) {
+                clearInterval(interval);
+                callback(el);
+            }
+        }, 500);
+    }
 
-        btn.on('hover:enter', function () {
-            let title = e.data.title || e.data.name || '';
+    function addButton() {
+        waitForElement('.full-start__buttons', (container) => {
+            if (!container.querySelector('.view--uaflix')) {
+                container.insertAdjacentHTML('beforeend', button_html);
+                button = container.querySelector('.view--uaflix');
+                bindButtonClick(button);
+            }
+        });
+    }
+
+    function bindButtonClick(btn) {
+        btn.addEventListener('click', () => {
+            const activity = Lampa.Activity.active();
+            const data = activity?.data || {};
+            const title = data.title || data.name;
             if (!title) {
                 Lampa.Noty.show('Назва не знайдена');
                 return;
@@ -49,35 +69,45 @@
                 });
             });
         });
-
-        const container = e.object.activity.render().find('.view--torrent');
-        if (container.length) container.after(btn);
-    });
+    }
 
     async function searchUAFlix(query) {
-        const res = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://uafix.net/index.php?do=search'), {
+        const url = 'https://corsproxy.io/?' + encodeURIComponent('https://uafix.net/index.php?do=search');
+        const formData = new URLSearchParams();
+        formData.append('do', 'search');
+        formData.append('subaction', 'search');
+        formData.append('story', query);
+
+        const res = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams({
-                do: 'search',
-                subaction: 'search',
-                story: query
-            })
+            body: formData
         });
 
-        const html = await res.text();
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-        const link = doc.querySelector('.sres-wrap a');
-        return link ? 'https://uafix.net' + link.getAttribute('href') : null;
+        const text = await res.text();
+        const html = document.createElement('div');
+        html.innerHTML = text;
+
+        const result = html.querySelector('.sres-wrap a');
+        if (!result) return null;
+
+        const href = result.getAttribute('href');
+        return href.startsWith('http') ? href : 'https://uafix.net' + href;
     }
 
-    async function getStream(url) {
-        const res = await fetch('https://corsproxy.io/?' + encodeURIComponent(url));
-        const html = await res.text();
-        const match = html.match(/<source\s+src="([^"]+\.m3u8)"/);
-        return match ? match[1] : null;
+    async function getStream(filmUrl) {
+        const corsUrl = 'https://corsproxy.io/?' + encodeURIComponent(filmUrl);
+        const res = await fetch(corsUrl);
+        const text = await res.text();
+
+        const match = text.match(/<video[^>]+src="([^"]+\.m3u8)"/);
+        if (match) return match[1];
+
+        return null;
     }
+
+    Lampa.Listener.follow('full', (e) => {
+        if (e.type === 'complite') {
+            addButton();
+        }
+    });
 })();
-
