@@ -1,7 +1,7 @@
 // ==UserScript==
  // @name        Uaflix
  // @namespace   uaflix
- // @version     1.9
+ // @version     2.0
  // @description Плагін для перегляду фільмів з Uaflix
  // @author      YourName
  // @match       *://*/*
@@ -10,73 +10,57 @@
  // ==/UserScript==
 
 (function () {
-    const SOURCE_NAME = 'UAFlix';
-
-    function log(...args) {
-        console.log('[UAFlix]', ...args);
-    }
+    const SOURCE_TITLE = 'UAFlix';
 
     function search(title, callback) {
-        const url = 'https://corsproxy.io/?' + encodeURIComponent('https://uafix.net/index.php?do=search&subaction=search&story=' + title);
-        fetch(url).then(r => r.text()).then(html => {
+        const proxy = 'https://corsproxy.io/?';
+        const searchUrl = proxy + encodeURIComponent('https://uafix.net/index.php?do=search&subaction=search&story=' + title);
+
+        fetch(searchUrl).then(r => r.text()).then(html => {
             const doc = new DOMParser().parseFromString(html, 'text/html');
             const a = doc.querySelector('a.sres-wrap');
             if (!a) return callback();
 
             const href = a.getAttribute('href');
-            const fullUrl = href.startsWith('http') ? href : 'https://uafix.net' + href;
+            const filmUrl = href.startsWith('http') ? href : 'https://uafix.net' + href;
 
-            fetch('https://corsproxy.io/?' + encodeURIComponent(fullUrl)).then(r => r.text()).then(filmHtml => {
+            fetch(proxy + encodeURIComponent(filmUrl)).then(r => r.text()).then(filmHtml => {
                 const filmDoc = new DOMParser().parseFromString(filmHtml, 'text/html');
                 const video = filmDoc.querySelector('video');
                 const src = video ? video.getAttribute('src') : null;
-                if (src && src.includes('.m3u8')) {
-                    callback(src);
-                } else {
-                    callback();
-                }
-            }).catch(e => {
-                log('Error loading film page:', e);
-                callback();
-            });
-        }).catch(e => {
-            log('Error searching:', e);
-            callback();
-        });
+                callback(src || null);
+            }).catch(() => callback());
+        }).catch(() => callback());
     }
 
-    function addUAFlixButton(e, movie) {
+    function addButton(movie, render) {
         const button = $('<div class="selectbox-item selector"><div class="selectbox-item__icon"><i class="fab fa-uaf"></i></div><div class="selectbox-item__name">UAFlix</div></div>');
         button.on('click', function () {
-            Lampa.Noty.show('Пошук на UAFlix...');
-            search(movie.title, (videoUrl) => {
-                if (videoUrl) {
-                    Lampa.Player.play(videoUrl, SOURCE_NAME);
-                    Lampa.Player.playlist([{ title: movie.title, file: videoUrl }]);
+            Lampa.Noty.show('Шукаємо на UAFlix...');
+            search(movie.title, function (url) {
+                if (url) {
+                    Lampa.Player.play(url, SOURCE_TITLE);
+                    Lampa.Player.playlist([{ title: movie.title, file: url }]);
                 } else {
-                    Lampa.Noty.show('Не знайдено відео');
+                    Lampa.Noty.show('Нічого не знайдено');
                 }
             });
         });
-
-        e.render().find('.selectbox').append(button);
+        render().find('.selectbox').append(button);
     }
 
-    function init() {
-        if (!window.Lampa || !Lampa.Component || !Lampa.Activity) {
-            setTimeout(init, 500);
-            return;
-        }
-
-        Lampa.Component.add('online', {
-            name: 'uaflix',
-            onCreate: function (e, movie) {
-                addUAFlixButton(e, movie);
+    function waitForRender() {
+        const original = Lampa.Activity.listener.follow;
+        Lampa.Activity.listener.follow = function (e) {
+            if (e.component === 'activity' && e.type === 'active') {
+                const data = Lampa.Activity.active().data;
+                const render = Lampa.Activity.active().render;
+                setTimeout(() => addButton(data, render), 500);
             }
-        });
-
-        log('Плагін UAFlix завантажено');
+            original.call(this, e);
+        };
     }
 
-    init();
+    waitForRender();
+    console.log('[UAFlix] Плагін ініціалізовано');
 })();
