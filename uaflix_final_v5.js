@@ -1,7 +1,7 @@
 // ==UserScript==
  // @name        Uaflix
  // @namespace   uaflix
- // @version     1.7
+ // @version     1.8
  // @description Плагін для перегляду фільмів з Uaflix
  // @author      YourName
  // @match       *://*/*
@@ -10,59 +10,102 @@
  // ==/UserScript==
 
 (function () {
-    const source_id = 'ua_flix';
+    const UAFLIX_SOURCE_NAME = 'UAFlix';
+    const UAFLIX_SEARCH_URL = 'https://corsproxy.io/?' + encodeURIComponent('https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=');
 
     function log(...args) {
-        console.log('[UAFlix]', ...args);
+        console.log('[uaflix]', ...args);
     }
 
-    function searchOnUAFlix(title, callback) {
-        const url = 'https://corsproxy.io/?' + encodeURIComponent('https://uafix.net/index.php?do=search&subaction=search&story=' + title);
-        fetch(url).then(r => r.text()).then(html => {
-            const doc = new DOMParser().parseFromString(html, 'text/html');
-            const result = doc.querySelector('.sres-wrap');
-            if (result && result.href) {
-                let href = result.href;
-                if (!href.startsWith('http')) href = 'https://uafix.net' + href;
-                log('Знайдено:', href);
-                callback(href);
-            } else {
-                log('Нічого не знайдено');
-                callback(null);
-            }
-        }).catch(e => {
-            log('Помилка:', e);
-            callback(null);
-        });
-    }
+    function addButton() {
+        if (!window.Lampa || !Lampa.Lang || !Lampa.Source) {
+            setTimeout(addButton, 500);
+            return;
+        }
 
-    function add() {
-        Lampa.Component.add('online', {
-            name: 'Онлайн UAFlix',
-            component: 'online',
+        Lampa.Source.add(UAFLIX_SOURCE_NAME, {
+            name: UAFLIX_SOURCE_NAME,
             type: 'video',
-            onSelect: function (object, resolve) {
-                const title = object.title || object.name;
-                Lampa.Noty.show('Пошук на UAFlix...');
-                searchOnUAFlix(title, link => {
-                    if (link) {
-                        Lampa.Utils.openPage(link);
-                    } else {
-                        Lampa.Noty.show('Нічого не знайдено на UAFlix');
-                    }
-                    resolve(); // Завершуємо обробку
-                });
-            },
-            onContextMenu: function () {},
-            onBack: function () {},
-            render: function (data) {
-                const item = $('<div class="selectbox-item selectbox-item--icon selector"><div class="selectbox-item__icon"><img src="https://cdn-icons-png.flaticon.com/512/711/711769.png" style="width:24px;height:24px;"></div><div class="selectbox-item__text">UAFlix</div></div>');
-                item.on('hover:enter', () => this.onSelect(data, () => {}));
-                return item[0];
+            on: function (item, circle) {
+                log('Запуск пошуку для:', item.title);
+                searchOnUAFlix(item, circle);
             }
         });
+
+        // Додаємо кнопку вручну через DOM, бо Source.add не завжди виводить
+        let interval = setInterval(() => {
+            let buttons = document.querySelectorAll('.selectbox-item--icon.selector');
+            let exists = Array.from(buttons).some(btn => btn.textContent.includes(UAFLIX_SOURCE_NAME));
+            if (!exists) {
+                let uaButton = document.createElement('div');
+                uaButton.className = 'selectbox-item selectbox-item--icon selector';
+                uaButton.innerHTML = `<div class="selectbox-item__icon"><i class="fab fa-uaf"></i></div><div class="selectbox-item__name">${UAFLIX_SOURCE_NAME}</div>`;
+                uaButton.addEventListener('click', () => {
+                    let active = Lampa.Activity.active();
+                    if (active && active.source) {
+                        Lampa.Source.show(UAFLIX_SOURCE_NAME);
+                    }
+                });
+
+                let target = document.querySelector('.selectbox');
+                if (target) {
+                    target.appendChild(uaButton);
+                    clearInterval(interval);
+                }
+            }
+        }, 1000);
     }
 
-    // Додаємо компонент з затримкою, щоб усі джерела ініціалізувались
-    setTimeout(add, 1000);
+    async function searchOnUAFlix(item, circle) {
+        try {
+            const query = encodeURIComponent(item.title);
+            const url = UAFLIX_SEARCH_URL + query;
+
+            log('Пошук за URL:', url);
+
+            const response = await fetch(url);
+            const html = await response.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+
+            const result = doc.querySelector('a.sres-wrap');
+            if (!result) {
+                Lampa.Noty.show('Нічого не знайдено на UAFlix');
+                circle && circle.finish();
+                return;
+            }
+
+            const href = result.getAttribute('href');
+            const fullLink = href.startsWith('http') ? href : 'https://uafix.net' + href;
+            log('Знайдено фільм:', fullLink);
+
+            const filmRes = await fetch('https://corsproxy.io/?' + encodeURIComponent(fullLink));
+            const filmHtml = await filmRes.text();
+            const filmDoc = new DOMParser().parseFromString(filmHtml, 'text/html');
+
+            const video = filmDoc.querySelector('video');
+            const videoUrl = video ? video.getAttribute('src') : null;
+
+            if (!videoUrl || !videoUrl.includes('.m3u8')) {
+                Lampa.Noty.show('Не знайдено відео UAFlix');
+                circle && circle.finish();
+                return;
+            }
+
+            log('Знайдено відео:', videoUrl);
+
+            Lampa.Player.play(videoUrl, UAFLIX_SOURCE_NAME);
+            Lampa.Player.playlist([{
+                title: item.title,
+                file: videoUrl
+            }]);
+
+            circle && circle.finish();
+        } catch (e) {
+            log('Помилка:', e);
+            Lampa.Noty.show('Помилка при пошуку на UAFlix');
+            circle && circle.finish();
+        }
+    }
+
+    addButton();
 })();
