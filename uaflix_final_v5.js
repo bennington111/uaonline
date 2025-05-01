@@ -1,7 +1,7 @@
 // ==UserScript==
  // @name        Uaflix
  // @namespace   uaflix
- // @version     3.0
+ // @version     3.1
  // @description Плагін для перегляду фільмів з Uaflix
  // @author      YourName
  // @match       *://*/*
@@ -10,68 +10,73 @@
  // ==/UserScript==
 
 (function () {
-    const button_html = `
-    <div class="full-start__button selector view--uaflix" data-subtitle="UAFlix">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24" fill="currentColor">
-            <path d="M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z
-            M228.9,2l8,37.7l0,0L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z
-            M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88L2,50.2L47.8,80L10,88z"/>
-        </svg>
-        <span>UAFlix</span>
-    </div>`;
+    const mod_version = '1.0.0';
+    const mod_id = 'uaflix';
 
-    let button;
+    const manifest = {
+        version: mod_version,
+        id: mod_id,
+        name: 'UAFlix',
+        description: 'Перегляд з сайту UAFlix (uafix.net)',
+        type: 'video',
+        component: 'online',
+        proxy: true
+    };
 
-    function waitForElement(selector, callback) {
-        const interval = setInterval(() => {
-            const el = document.querySelector(selector);
-            if (el) {
-                clearInterval(interval);
-                callback(el);
-            }
-        }, 500);
-    }
+    Lampa.Manifest.plugins = Lampa.Manifest.plugins || [];
+    Lampa.Manifest.plugins.push(manifest);
 
-    function addButton() {
-        waitForElement('.full-start__buttons', (container) => {
-            if (!container.querySelector('.view--uaflix')) {
-                container.insertAdjacentHTML('beforeend', button_html);
-                button = container.querySelector('.view--uaflix');
-                bindButtonClick(button);
-            }
-        });
-    }
+    function addSourceButton() {
+        Lampa.Listener.follow('full', function (e) {
+            if (e.type === 'complite') {
+                const button_html = `
+                <div class="full-start__button selector view--uaflix" data-subtitle="uaflix ${mod_version}">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24" fill="currentColor">
+                        <path d="M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z
+                        M228.9,2l8,37.7l0,0L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z
+                        M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88L2,50.2L47.8,80L10,88z"/>
+                    </svg>
+                    <span>UAFlix</span>
+                </div>`;
 
-    function bindButtonClick(btn) {
-        btn.addEventListener('click', () => {
-            const activity = Lampa.Activity.active();
-            const data = activity?.data || {};
-            const title = data.title || data.name;
-            if (!title) {
-                Lampa.Noty.show('Назва не знайдена');
-                return;
-            }
+                const btn = $(button_html);
 
-            Lampa.Noty.show('Пошук на UAFlix...');
+                btn.on('hover:enter', function () {
+                    let title = e.data.title || e.data.name;
+                    if (!title) return;
 
-            searchUAFlix(title).then(url => {
-                if (!url) {
-                    Lampa.Noty.show('Не знайдено');
-                    return;
-                }
+                    Lampa.Noty.show('Пошук на UAFlix...');
 
-                getStream(url).then(link => {
-                    if (link) {
-                        Lampa.Player.play(link, title);
-                    } else {
-                        Lampa.Noty.show('Не вдалося отримати відео');
-                    }
+                    searchOnUAFlix(title).then(url => {
+                        if (!url) {
+                            Lampa.Noty.show('Не знайдено на UAFlix');
+                            return;
+                        }
+
+                        getPlayerLink(url).then(m3u8 => {
+                            if (m3u8) {
+                                Lampa.Player.play(m3u8, title);
+                            } else {
+                                Lampa.Noty.show('Не вдалося отримати відео');
+                            }
+                        });
+                    }).catch(err => {
+                        console.error('[uaflix] Error:', err);
+                        Lampa.Noty.show('Помилка при пошуку на UAFlix');
+                    });
                 });
-            });
+
+                const container = e.object.activity.render().find('.view--torrent');
+                if (container.length) {
+                    container.after(btn);
+                } else {
+                    $('.full-start__buttons').append(btn);
+                }
+            }
         });
     }
 
-    async function searchUAFlix(query) {
+    async function searchOnUAFlix(query) {
         const url = 'https://corsproxy.io/?' + encodeURIComponent('https://uafix.net/index.php?do=search');
         const formData = new URLSearchParams();
         formData.append('do', 'search');
@@ -94,7 +99,7 @@
         return href.startsWith('http') ? href : 'https://uafix.net' + href;
     }
 
-    async function getStream(filmUrl) {
+    async function getPlayerLink(filmUrl) {
         const corsUrl = 'https://corsproxy.io/?' + encodeURIComponent(filmUrl);
         const res = await fetch(corsUrl);
         const text = await res.text();
@@ -105,9 +110,5 @@
         return null;
     }
 
-    Lampa.Listener.follow('full', (e) => {
-        if (e.type === 'complite') {
-            addButton();
-        }
-    });
+    addSourceButton();
 })();
