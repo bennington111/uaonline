@@ -1,24 +1,20 @@
 // ==UserScript==
 // @name         Uaflix Plugin
 // @namespace    https://github.com/bennington111/
-// @version      1.6
+// @version      1.1
 // @description  Uaflix plugin for Lampa
 // ==/UserScript==
 
+// Просто копіюємо робочий шаблон з bwa.to/rc
 (() => {
-  // Унікальне ім'я з часовою міткою
-  const pluginName = `uaflix_${Date.now()}`; 
-  
-  // Перевірка наявності Lampa
   if (!window.Lampa?.Storage) return;
-
-  // Реєстрація джерела (як у робочих плагінах)
+  
   Lampa.Storage.add('online', {
-    name: pluginName,
+    name: `uaflix_${Date.now()}`,
     component: {
       template: `
         <div class="online-source">
-          <div class="online-source__title">🇺🇦 UAFIX</div>
+          <div class="online-source__title">🇺🇦 UAFIX TEST</div>
           <div class="online-source__item" @click="play">
             Дивитись
           </div>
@@ -26,7 +22,7 @@
       `,
       methods: {
         play() {
-          alert('UAFIX працює!');
+          alert('UAFIX TEST працює!');
         }
       }
     }
