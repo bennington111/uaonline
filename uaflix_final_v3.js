@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Uaflix Button
+// @name         Uaflix Button for Lampa
 // @namespace    https://github.com/bennington111/
-// @version      1.0
-// @description  Add UAFlix button to Lampa
+// @version      5.1
+// @description  Adds UAFlix button after "Watch" button
 // @author       Bennington
 // @match        *://lampa.mx/*
 // @icon         https://uafix.net/favicon.ico
@@ -13,13 +13,12 @@
 (function() {
     'use strict';
     
-    // Ваша кнопка з робочого прикладу
     const button_html = `
-    <div class="selector view--uaflix" style="
+    <div class="view--uaflix" style="
         display: flex;
         align-items: center;
         padding: 0 15px;
-        margin: 0 10px;
+        margin-left: 10px;
         height: 36px;
         background: rgba(255, 87, 34, 0.12);
         border-radius: 20px;
@@ -33,55 +32,41 @@
         <span style="margin-left: 6px; color: #ff5722; font-size: 14px;">UAFlix</span>
     </div>`;
 
-    // Функція для додавання кнопки
-    function addButton() {
-        // Знаходимо будь-який контейнер біля кнопки "Дивитись"
+    function addUaflixButton() {
+        // Знаходимо контейнер з кнопкою "Дивитись"
         const watchBtn = document.querySelector('.card__watch, .watch-button, .button-watch');
-        if (watchBtn && watchBtn.parentElement) {
-            const container = watchBtn.parentElement;
+        if (watchBtn && watchBtn.parentNode) {
+            const container = watchBtn.parentNode;
             
             // Перевіряємо чи кнопка вже існує
             if (!container.querySelector('.view--uaflix')) {
                 const button = document.createElement('div');
                 button.innerHTML = button_html;
                 button.onclick = function() {
-                    const title = document.querySelector('.card__title, .title')?.textContent || '';
-                    const year = document.querySelector('.card__year, .year')?.textContent || '';
+                    const title = document.querySelector('.card__title')?.textContent || '';
+                    const year = document.querySelector('.card__year')?.textContent || '';
                     window.open(`https://uafix.net/index.php?do=search&subaction=search&story=${encodeURIComponent(title + ' ' + year)}`);
                 };
-                container.appendChild(button);
+                
+                // Додаємо кнопку після кнопки "Дивитись"
+                watchBtn.insertAdjacentElement('afterend', button);
                 return true;
             }
         }
         return false;
     }
 
-    // Основна функція
-    function init() {
-        // Спроба додати кнопку
-        if (!addButton()) {
-            // Якщо не вийшло - чекаємо зміни DOM
-            const observer = new MutationObserver(function() {
-                if (addButton()) {
-                    observer.disconnect();
-                }
-            });
-            
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true,
-                attributes: true
-            });
-            
-            // Зупинити через 15 секунд
-            setTimeout(() => observer.disconnect(), 15000);
-        }
-    }
+    // Спостерігач за змінами DOM
+    const observer = new MutationObserver(function(mutations) {
+        addUaflixButton();
+    });
 
-    // Запускаємо
-    if (document.readyState === 'complete') {
-        setTimeout(init, 1000);
-    } else {
-        window.addEventListener('load', () => setTimeout(init, 1000));
-    }
+    // Починаємо спостереження
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+
+    // Перша спроба додати кнопку
+    setTimeout(addUaflixButton, 1000);
 })();
