@@ -1,41 +1,37 @@
 (function () {
-    const mod_id = 'uaflix_test';
-
-    const manifest = {
-        version: '0.0.1',
-        id: mod_id,
-        name: 'UAFlix Test',
-        description: 'Тестова кнопка для перевірки роботи плагіна',
+    // Додаємо плагін до Lampa
+    Lampa.Plugin.register('uaflix', {
+        title: 'Uaflix',
+        version: '1.0',
+        description: 'Плагін для перегляду фільмів з uafix.net',
+        author: {
+            name: 'Bennington111',
+            site: 'https://bennington111.github.io/'
+        },
         type: 'video',
-        component: 'online',
-        proxy: false
-    };
-
-    Lampa.Manifest.plugins = Lampa.Manifest.plugins || [];
-    Lampa.Manifest.plugins.push(manifest);
-
-    Lampa.Listener.follow('full', function (e) {
-        if (e.type === 'complite') {
-            const button = $(`<div class="full-start__button selector view--uaflix" data-subtitle="test">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24" fill="currentColor">
-                    <path d="M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z
-                    M228.9,2l8,37.7l0,0L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z
-                    M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88L2,50.2L47.8,80L10,88z"/>
-                </svg>
-                <span>UAFlix</span>
-            </div>`);
-
-            button.on('hover:enter', function () {
-                Lampa.Noty.show('Натиснуто UAFlix');
+        init: function () {
+            // Слухаємо подію відкриття повної інформації про фільм
+            Lampa.Listener.follow('full', function (e) {
+                // Додаємо джерело "Uaflix" до списку джерел
+                e.object.appendSource({
+                    title: 'Uaflix',
+                    component: 'uaflix',
+                    url: e.movie.url // або інший спосіб отримання URL
+                });
             });
 
-            const interval = setInterval(() => {
-                const container = $('.full-start__buttons');
-                if (container.length && container.find('.view--uaflix').length === 0) {
-                    clearInterval(interval);
-                    container.append(button);
+            // Реєструємо компонент "uaflix"
+            Lampa.Component.add('uaflix', {
+                create: function () {
+                    // Тут реалізується логіка отримання та відображення відео
+                    // Наприклад, можна використати Lampa.Player для відтворення відео
+                    Lampa.Player.play({
+                        url: 'https://example.com/video.m3u8', // замінити на реальний URL
+                        title: 'Uaflix Video',
+                        poster: 'https://example.com/poster.jpg' // замінити на реальний постер
+                    });
                 }
-            }, 500);
+            });
         }
     });
 })();
