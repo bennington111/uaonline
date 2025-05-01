@@ -1,7 +1,7 @@
 // ==UserScript==
  // @name        Uaflix
  // @namespace   uaflix
- // @version     2.4
+ // @version     2.5
  // @description Плагін для перегляду фільмів з Uaflix
  // @author      YourName
  // @match       *://*/*
@@ -93,10 +93,10 @@
         const html = document.createElement('div');
         html.innerHTML = text;
 
-        const result = html.querySelector('.sres-wrap');
-        if (!result) return null;
+        const link = html.querySelector('.sres-wrap a');
+        if (!link) return null;
 
-        const href = result.getAttribute('href');
+        const href = link.getAttribute('href');
         return href.startsWith('http') ? href : 'https://uafix.net' + href;
     }
 
@@ -113,4 +113,3 @@
 
     addButton();
 })();
-
