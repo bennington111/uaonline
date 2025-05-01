@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Uaflix Official Plugin
 // @namespace    https://github.com/bennington111/
-// @version      4.6
+// @version      1.0
 // @description  Official Uaflix plugin for Lampa
 // @author       Bennington
 // @match        *://lampa.mx/*
@@ -10,47 +10,140 @@
 // @run-at       document-end
 // ==/UserScript==
 
-(function() {
-    'use strict';
-
-    // Очікуємо завантаження Lampa
-    function waitForLampa() {
-        if (window.lampa && lampa.plugin) {
-            registerPlugin();
-        } else {
-            setTimeout(waitForLampa, 100);
-        }
-    }
-
-    function registerPlugin() {
-        // Реєстрація плагіна (офіційний метод)
-        lampa.plugin.add({
-            name: "uaflix",
-            init: function() {
-                this.addButton();
-            },
-            addButton: function() {
-                // Додаємо кнопку в меню джерел
-                lampa.menu.add({
-                    name: "Uaflix",
-                    group: "source",
-                    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24"><path fill="currentColor" d="M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88L2,50.2L47.8,80L10,88z"/></svg>',
-                    color: "#ff5722",
-                    action: () => {
-                        const card = lampa.player.card();
-                        const title = card?.title || '';
-                        const year = card?.year || '';
-                        window.open(`https://uafix.net/index.php?do=search&subaction=search&story=${encodeURIComponent(title + ' ' + year)}`);
+// Плагін для uafix.net (оптимізований під пряме HLS-посилання у <video>)
+Lampa.Plugin.register('uaflix_online', function () {
+    Lampa.Storage.add('online', {
+        name: 'uaflix',
+        component: {
+            template: `
+                <div class="online-source">
+                    <div class="online-source__title">🇺🇦 UAFIX</div>
+                    <div 
+                        class="online-source__item" 
+                        @click="play"
+                        :class="{ 'online-source__item--loading': loading }"
+                    >
+                        <div class="online-source__item__title">Дивитись на UAFIX</div>
+                        <div class="online-source__item__loader" v-if="loading">
+                            <div class="loader"></div>
+                        </div>
+                    </div>
+                    <div class="online-source__error" v-if="error">{{ error }}</div>
+                </div>
+            `,
+            data: () => ({
+                loading: false,
+                error: ''
+            }),
+            methods: {
+                async play() {
+                    this.loading = true;
+                    this.error = '';
+                    
+                    try {
+                        // 1. Отримуємо дані фільму
+                        const card = Lampa.Storage.get('card');
+                        const title = card.title;
+                        const year = card.year;
+                        
+                        // 2. Шукаємо фільм на uafix.net через пошук
+                        const searchQuery = encodeURIComponent(`${title} ${year}`);
+                        const searchUrl = `https://corsproxy.io/?${encodeURIComponent(`https://uafix.net/search?q=${searchQuery}`)}`;
+                        
+                        const searchHtml = await fetch(searchUrl).then(r => r.text());
+                        const filmPath = this.extractFilmPath(searchHtml);
+                        
+                        if (!filmPath) throw new Error('Фільм не знайдено');
+                        
+                        // 3. Парсимо сторінку фільму для HLS
+                        const filmUrl = `https://corsproxy.io/?${encodeURIComponent(`https://uafix.net${filmPath}`)}`;
+                        const filmHtml = await fetch(filmUrl).then(r => r.text());
+                        const videoUrl = this.extractHlsUrl(filmHtml);
+                        
+                        if (!videoUrl) throw new Error('Посилання на відео відсутнє');
+                        
+                        // 4. Запускаємо плеєр
+                        Lampa.Player.play({
+                            url: videoUrl,
+                            title: `UAFIX: ${title}`,
+                            type: 'hls' // Формат HLS
+                        });
+                        
+                    } catch (e) {
+                        this.error = e.message;
+                        console.error('UAFIX Помилка:', e);
+                    } finally {
+                        this.loading = false;
                     }
-                });
+                },
+                
+                // Шукаємо посилання на фільм у результатах пошуку
+                extractFilmPath(html) {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const firstResult = doc.querySelector('.film-list .film-item a');
+                    return firstResult ? firstResult.getAttribute('href') : null;
+                },
+                
+                // Витягуємо HLS-посилання з <video>
+                extractHlsUrl(html) {
+                    const videoMatch = html.match(/<video[^>]+src="([^"]+\.m3u8)"/i);
+                    return videoMatch ? videoMatch[1] : null;
+                }
             }
-        });
-    }
+        }
+    });
+});
 
-    // Запускаємо
-    if (document.readyState === 'complete') {
-        waitForLampa();
-    } else {
-        window.addEventListener('load', waitForLampa);
-    }
-})();
+// Стилі для кращого відображення
+Lampa.Template.add(`
+    <style>
+        .online-source {
+            padding: 15px;
+            color: #fff;
+        }
+        .online-source__title {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #ffdd00; /* Жовтий для акценту */
+        }
+        .online-source__item {
+            padding: 12px;
+            background: rgba(0, 75, 150, 0.5); /* Блакитний фон */
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+            position: relative;
+        }
+        .online-source__item:hover {
+            background: rgba(0, 100, 200, 0.7);
+        }
+        .online-source__item--loading {
+            opacity: 0.7;
+        }
+        .online-source__item__title {
+            font-weight: bold;
+        }
+        .online-source__item__loader {
+            margin-top: 8px;
+        }
+        .loader {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .online-source__error {
+            color: #ff5555;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+    </style>
+`);
