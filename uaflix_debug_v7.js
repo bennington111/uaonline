@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.0
+// @version     1.1
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      YourName
 // @match       *://*/*
@@ -12,7 +12,7 @@
 (function () {
     console.log('Uaflix plugin loaded');
 
-    function waitForStartButton() {
+    function waitForButtonContainer() {
         const container = document.querySelector('.full-start__buttons');
 
         if (container && !container.querySelector('.view--uaflix')) {
@@ -24,37 +24,39 @@
                 </svg>
                 <span>Онлайн UAflix</span>
             `;
-            button.addEventListener('click', handleClick);
+            button.addEventListener('click', onClick);
             container.appendChild(button);
 
             console.log('Uaflix: кнопка додана');
         } else {
-            setTimeout(waitForStartButton, 500);
+            setTimeout(waitForButtonContainer, 500);
         }
     }
 
-    function handleClick() {
-        console.log('Uaflix: кнопка натиснута');
+    function onClick() {
+        try {
+            const activity = Lampa.Activity.active();
+            const card = activity.data || {};
+            const title = card.name || card.original_title || card.original_name || '';
+            const type = card.original_title ? 'movie' : 'tv';
 
-        const card = Lampa.Activity.active().data;
-        const title = card.name || card.original_title || card.original_name || '';
-        const type = card.original_title ? 'movie' : 'tv';
+            console.log(`Uaflix: натискання кнопки — title: "${title}", type: ${type}`);
 
-        console.log(`Uaflix: обрано ${type} - "${title}"`);
+            if (!title) {
+                Lampa.Noty.show('Не вдалося отримати назву');
+                return;
+            }
 
-        if (!title) {
-            Lampa.Noty.show('Назва не знайдена');
-            return;
+            // Тут відкриється модальне вікно для демонстрації
+            Lampa.Modal.open({
+                title: 'Uaflix',
+                html: `<div class="about"><div class="selector">Пошук для: <b>${title}</b></div></div>`,
+                size: 'small',
+            });
+        } catch (e) {
+            console.error('Uaflix: помилка при обробці кліку', e);
         }
-
-        Lampa.Modal.open({
-            title: 'Uaflix',
-            html: `<div class="about"><div class="selector">Пошук для: <b>${title}</b></div></div>`,
-            size: 'small',
-        });
-
-        // Тут пізніше буде парсинг uafix.net
     }
 
-    waitForStartButton();
+    waitForButtonContainer();
 })();
