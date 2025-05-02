@@ -1,7 +1,7 @@
 // ==UserScript==
  // @name        Uaflix
  // @namespace   uaflix
- // @version     3.1
+ // @version     3.0
  // @description Плагін для перегляду фільмів з Uaflix
  // @author      YourName
  // @match       *://*/*
