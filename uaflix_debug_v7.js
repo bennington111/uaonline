@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.1
-// @description Плагін для перегляду фільмів з Ua джерел
+// @version     1.2
+// @description Плагін для перегляду фільмів з Ua джерел (DOM-кнопка)
 // @author      YourName
 // @match       *://*/*
 // @grant       none
@@ -12,69 +12,48 @@
 (function () {
     console.log('Uaflix plugin loaded');
 
-    function createButton(data) {
-        console.log('Uaflix: createButton for', data.title);
+    function waitForActivity() {
+        if (Lampa.Activity && Lampa.Activity.active && Lampa.Activity.active().component === 'full') {
+            const data = Lampa.Activity.active().data;
 
-        const button = $(`<div class="selectbox-item selectbox-item--icon selector">
-            <div class="selectbox-item__icon"><i class="icon icon--film"></i></div>
-            <div class="selectbox-item__name">Онлайн Uaflix</div>
-        </div>`);
+            if (!$('.view--uaflix').length) {
+                const button = $('<div class="full-start__button selector view--uaflix"><span>Онлайн Uaflix</span></div>');
+                
+                button.on('hover:enter', function () {
+                    console.log('Uaflix: кнопка натиснута для', data.title);
 
-        button.on('hover:enter', function () {
-            console.log('Uaflix: button clicked for', data.title);
+                    Lampa.Activity.push({
+                        url: '',
+                        title: 'Uaflix',
+                        component: 'online',
+                        search: data.title,
+                        search_one: data.original_title,
+                        movie: data,
+                        page: 1,
+                        source: {
+                            get: function (json, callback) {
+                                const url = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${encodeURIComponent(json.search || json.title || '')}`;
+                                console.log('Uaflix: запит →', url);
+                                fetch(url).then(r => r.text()).then(html => {
+                                    console.log('Uaflix: HTML отримано', html.length);
+                                    // Парсинг пізніше
+                                    callback([]);
+                                }).catch(err => {
+                                    console.error('Uaflix помилка запиту:', err);
+                                    callback([]);
+                                });
+                            }
+                        }
+                    });
+                });
 
-            Lampa.Activity.push({
-                url: '',
-                title: 'Uaflix',
-                component: 'online',
-                search: data.title,
-                search_one: data.original_title,
-                movie: data,
-                page: 1,
-                source: {
-                    get: function (json, callback) {
-                        console.log('Uaflix: get()', json);
-
-                        const url = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${encodeURIComponent(json.search || json.title || '')}`;
-                        console.log('Uaflix: fetching', url);
-
-                        fetch(url).then(r => r.text()).then(html => {
-                            console.log('Uaflix: fetched HTML length', html.length);
-                            // Парсинг пізніше
-                            callback([]);
-                        }).catch(err => {
-                            console.error('Uaflix fetch error:', err);
-                            callback([]);
-                        });
-                    }
-                }
-            });
-        });
-
-        return button;
-    }
-
-    function patchOnlineComponent() {
-        const online = Lampa.Component.get('online');
-
-        if (!online || typeof online.render !== 'function') {
-            console.warn('Uaflix: online component not ready, retrying...');
-            setTimeout(patchOnlineComponent, 500);
-            return;
+                $('.full-start__buttons').append(button);
+                console.log('Uaflix: кнопка додана');
+            }
         }
 
-        const originalRender = online.render;
-
-        online.render = function (data) {
-            const view = originalRender.call(this, data);
-            const button = createButton(data);
-            view.find('.selectbox').append(button);
-            console.log('Uaflix: button appended');
-            return view;
-        };
-
-        console.log('Uaflix: online.render patched');
+        setTimeout(waitForActivity, 500);
     }
 
-    setTimeout(patchOnlineComponent, 1000);
+    waitForActivity();
 })();
