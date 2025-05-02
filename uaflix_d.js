@@ -1,67 +1,153 @@
 // ==UserScript==
- // @name        Uaflix
- // @namespace   uaflix
- // @version     1.4
- // @description Плагін для перегляду фільмів з Uaflix
- // @author      YourName
- // @match       *://*/*
- // @grant       none
- // @icon        https://uafix.net/favicon.ico
- // ==/UserScript==
+// @name UAFIX Online
+// @version 1.0.5
+// @author YourName
+// @description Плагін для перегляду контенту з uafix.net
+// @icon https://uafix.net/favicon.ico
+// ==/UserScript==
 
-// Без змін: весь ваш оригінальний код з uaflix_work.js (включаючи кнопку)
-(function() {
-    var mod_version = "1.0";
-    var interval = setInterval(function() {
-        if (typeof Lampa === 'undefined') return;
-        clearInterval(interval);
-
-        // Залишаю ваш оригінальний код реєстрації плагіна без змін
-        Lampa.Plugin.add("uaflix", {
-            name: "UAFlix",
-            version: mod_version,
-            icon: "https://raw.githubusercontent.com/bennington111/uaonline/main/uaflix.png"
-        });
-
-        // Залишаю ваш оригінальний код кнопки без змін
-        Lampa.Listener.follow('full', function(e) {
-            if (e.type === 'complite') {
-                const button_html = `
-                <div class="full-start__button selector view--uaflix" data-subtitle="uaflix ${mod_version}">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24" fill="currentColor">
-                        <path d="M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z
-                        M228.9,2l8,37.7l0,0L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z
-                        M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88L2,50.2L47.8,80L10,88z"/>
-                    </svg>
-                    <span>UAFlix</span>
-                </div>`;
-
-                const btn = $(button_html);
-                btn.on('click', function() {
-                    if (Lampa.Storage.get('current_video')) {
-                        Lampa.Player.play({
-                            url: 'plugin://uaflix/parse?url=' + encodeURIComponent(Lampa.Storage.get('current_video').url),
-                            title: Lampa.Storage.get('current_video').title
+Lampa.Plugin.add('uaflix', {
+    name: 'UAFIX Online',
+    icon: 'https://uafix.net/favicon.ico',
+    group: 'online',
+    version: '1.0.5',
+    component: {
+        template: `
+            <div class="plugin-uaflix">
+                <button @click="openSearch" class="plugin-uaflix__button">UAFIX</button>
+                <div v-if="showSearch" class="plugin-uaflix__search">
+                    <input v-model="searchQuery" placeholder="Пошук на UAFIX">
+                    <button @click="doSearch">Шукати</button>
+                    <div class="plugin-uaflix__results">
+                        <div v-for="item in searchResults" @click="playItem(item)" class="plugin-uaflix__item">
+                            {{ item.title }} ({{ item.year }})
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `,
+        data: () => ({
+            showSearch: false,
+            searchQuery: '',
+            searchResults: []
+        }),
+        methods: {
+            openSearch() {
+                this.showSearch = !this.showSearch;
+                if (!this.showSearch) this.searchResults = [];
+            },
+            async doSearch() {
+                if (!this.searchQuery.trim()) return;
+                
+                try {
+                    const results = await this.searchOnUAFIX(this.searchQuery);
+                    this.searchResults = results;
+                } catch (e) {
+                    console.error('Search error:', e);
+                    Lampa.Noty.show('Помилка пошуку');
+                }
+            },
+            async searchOnUAFIX(query) {
+                const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&story=${encodeURIComponent(query)}`;
+                const response = await fetch(`https://cors-anywhere.herokuapp.com/${searchUrl}`);
+                const html = await response.text();
+                
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const results = [];
+                const items = doc.querySelectorAll('.short');
+                
+                items.forEach(item => {
+                    const titleEl = item.querySelector('.short-title a');
+                    const yearEl = item.querySelector('.short-year');
+                    
+                    if (titleEl) {
+                        results.push({
+                            title: titleEl.textContent.trim(),
+                            url: titleEl.href,
+                            year: yearEl ? yearEl.textContent.trim() : ''
                         });
                     }
                 });
-
-                $('.full-start__buttons').append(btn);
+                
+                return results;
+            },
+            async playItem(item) {
+                try {
+                    const videoData = await this.getVideoFromUAFIX(item.url);
+                    if (!videoData) throw new Error('Відео не знайдено');
+                    
+                    Lampa.Player.play({
+                        title: item.title,
+                        url: videoData.url,
+                        type: videoData.type
+                    });
+                } catch (e) {
+                    console.error('Play error:', e);
+                    Lampa.Noty.show('Помилка відтворення');
+                }
+            },
+            async getVideoFromUAFIX(url) {
+                const response = await fetch(`https://cors-anywhere.herokuapp.com/${url}`);
+                const html = await response.text();
+                
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const videoTag = doc.querySelector('video');
+                if (!videoTag) throw new Error('Тег video не знайдено');
+                
+                const videoUrl = videoTag.getAttribute('src');
+                if (!videoUrl) throw new Error('Посилання на відео відсутнє');
+                
+                return {
+                    url: videoUrl,
+                    type: videoUrl.includes('.m3u8') ? 'hls' : 'video'
+                };
             }
-        });
+        }
+    }
+});
 
-        // Змінюю ТІЛЬКИ парсинг для uafix.net (решта коду без змін)
-        Lampa.Plugin.get("uaflix").parse = function(url) {
-            return new Promise(function(resolve) {
-                // Тут буде парсинг uafix.net
-                // Приклад для тесту (замініть на реальний парсинг):
-                resolve([{
-                    url: "https://example.com/video.mp4",
-                    quality: "HD",
-                    type: "direct"
-                }]);
-            });
-        };
-
-    }, 100);
-})();
+// Стилі для плагіна
+Lampa.Template.add(`
+    <style>
+        .plugin-uaflix {
+            position: relative;
+            display: inline-block;
+            margin-left: 15px;
+        }
+        .plugin-uaflix__button {
+            background: #3f51b5;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .plugin-uaflix__search {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 4px;
+            z-index: 1000;
+            width: 300px;
+        }
+        .plugin-uaflix__results {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .plugin-uaflix__item {
+            padding: 8px;
+            cursor: pointer;
+            border-bottom: 1px solid #444;
+        }
+        .plugin-uaflix__item:hover {
+            background: #3f51b5;
+        }
+    </style>
+`);
