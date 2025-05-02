@@ -1,7 +1,7 @@
 // ==UserScript==
  // @name        Uaflix
  // @namespace   uaflix
- // @version     1.1
+ // @version     1.2
  // @description Плагін для перегляду фільмів з Uaflix
  // @author      YourName
  // @match       *://*/*
@@ -12,28 +12,21 @@
 (function() {
     var interval = setInterval(function() {
         if (typeof lampa == 'undefined') return;
-
         clearInterval(interval);
 
-        // ТОЧНА копія реєстрації з uaflix_work.js
+        // Реєстрація плагіна
         lampa.plugins.add({
             name: 'UAFix',
             group: 'online',
             version: '1.0',
             icon: 'https://uafix.net/favicon.ico',
-            search: function(query) {
-                return []; // Ваш пошук тут
-            },
-            parse: function(url) {
-                return []; // Ваш парсинг тут
-            }
+            search: function(query) { return []; },
+            parse: function(url) { return []; }
         });
 
-        // ТОЧНА копія додавання кнопки з uaflix_work.js
-        function addButton() {
-            var container = document.querySelector('.full-start__buttons');
-            if (!container || container.querySelector('.view--uaflix')) return;
-
+        // Створення кнопки без MutationObserver
+        var container = document.querySelector('.full-start__buttons');
+        if (container && !container.querySelector('.view--uaflix')) {
             var button = document.createElement('div');
             button.className = 'full-start__button selector selector--light view--uaflix';
             button.innerHTML = `
@@ -55,10 +48,5 @@
             };
             container.prepend(button);
         }
-
-        new MutationObserver(addButton).observe(document.body, {
-            childList: true,
-            subtree: true
-        });
     }, 100);
 })();
