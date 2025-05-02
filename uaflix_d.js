@@ -9,35 +9,32 @@
  // @icon        https://uafix.net/favicon.ico
  // ==/UserScript==
 
-// Плагін для Lampa (uafix.net) — точний спосіб додавання кнопки
 (function() {
-    // Чекаємо готовності Lampa
-    const interval = setInterval(() => {
-        if (typeof lampa === 'undefined') return;
+    var interval = setInterval(function() {
+        if (typeof lampa == 'undefined') return;
 
         clearInterval(interval);
-        
-        // Реєстрація плагіна (як у uaflix_work.js)
-        lampa.plugins.register('uaflix_mod', {
+
+        // ТОЧНА копія реєстрації з uaflix_work.js
+        lampa.plugins.add({
             name: 'UAFix',
+            group: 'online',
             version: '1.0',
             icon: 'https://uafix.net/favicon.ico',
-            online: {
-                search: async (query) => {
-                    /* ...ваша реалізація пошуку... */
-                },
-                parse: async (url) => {
-                    /* ...ваша реалізація парсингу... */
-                }
+            search: function(query) {
+                return []; // Ваш пошук тут
+            },
+            parse: function(url) {
+                return []; // Ваш парсинг тут
             }
         });
 
-        // Додавання кнопки через DOM (як у nb557/bwa)
-        const addButton = () => {
-            const container = document.querySelector('.full-start__buttons');
+        // ТОЧНА копія додавання кнопки з uaflix_work.js
+        function addButton() {
+            var container = document.querySelector('.full-start__buttons');
             if (!container || container.querySelector('.view--uaflix')) return;
 
-            const button = document.createElement('div');
+            var button = document.createElement('div');
             button.className = 'full-start__button selector selector--light view--uaflix';
             button.innerHTML = `
                 <div class="selector__ico">
@@ -47,19 +44,18 @@
                 </div>
                 <div class="selector__name">UAFix</div>
             `;
-            button.onclick = (e) => {
+            button.onclick = function(e) {
                 e.stopPropagation();
                 if (lampa.currentVideo) {
                     lampa.player.load({
-                        url: `plugin://uaflix_mod/parse?url=${encodeURIComponent(lampa.currentVideo.url)}`,
+                        url: 'plugin://UAFix/parse?url=' + encodeURIComponent(lampa.currentVideo.url),
                         title: lampa.currentVideo.title
                     });
                 }
             };
-            container.prepend(button); // prepend для пріоритету
-        };
+            container.prepend(button);
+        }
 
-        // Спостереження за змінами DOM
         new MutationObserver(addButton).observe(document.body, {
             childList: true,
             subtree: true
