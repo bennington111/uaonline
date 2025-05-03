@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.1
+// @version     1.2
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -10,58 +10,69 @@
 // ==/UserScript==
 
 (function () {
-    if (typeof Lampa === 'undefined') return;
+    const mod_version = '1.0.0';
+    const mod_id = 'uaflix';
 
-    console.log('Uaflix plugin loaded');
+    const manifest = {
+        version: mod_version,
+        id: mod_id,
+        name: 'UAFlix',
+        description: 'Перегляд з сайту UAFlix (uafix.net)',
+        type: 'video',
+        component: 'online',
+        proxy: true
+    };
 
-    Lampa.Component.add('uaflix', {
-        name: 'Uaflix',
-        render: function () {
-            return $('<div></div>');
-        },
-        start: function () {
-            let activity = Lampa.Activity.active();
-            if (!activity || !activity.data) return;
+    Lampa.Manifest.plugins = Lampa.Manifest.plugins || [];
+    Lampa.Manifest.plugins.push(manifest);
 
-            let data = activity.data;
-            let title = data.original_title || data.title;
-            let type = data.name ? 'tv' : 'movie';
+    function addSourceButton() {
+        Lampa.Listener.follow('full', function (e) {
+            if (e.type === 'complite') {
+                const button_html = `
+                <div class="full-start__button selector view--uaflix" data-subtitle="uaflix ${mod_version}">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24" fill="currentColor">
+                        <path d="M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z
+                        M228.9,2l8,37.7l0,0L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z
+                        M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88L2,50.2L47.8,80L10,88z"/>
+                    </svg>
+                    <span>UAFlix</span>
+                </div>`;
 
-            console.log(`[Uaflix] Натиснута кнопка, title: ${title}, type: ${type}`);
+                const btn = $(button_html);
+                $('.full-start__buttons').append(btn);
 
-            Lampa.Activity.push({
-                url: '',
-                title: 'Uaflix: ' + title,
-                component: 'view',
-                id: 'uaflix_view',
-                search: title,
-                results: [{
-                    name: 'Uaflix (заглушка)',
-                    url: 'https://uafix.net',
-                    quality: 'HD',
-                    info: '',
-                    time: '',
-                    season: 1,
-                    episode: 1
-                }]
-            });
-        }
-    });
+                btn.on('hover:enter', function () {
+                    const title = Lampa.Activity.active().data.title;
+                    const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${encodeURIComponent(title)}`;
 
-    Lampa.Listener.follow('full', function (e) {
-        if (e.type === 'start') {
-            let render = e.render();
-            let buttons = render.find('.full-start__buttons');
-
-            if (!buttons.find('.view--uaflix').length) {
-                let button = $('<div class="full-start__button selector view--uaflix"><span>Онлайн Uaflix</span></div>');
-                button.on('click', function () {
-                    Lampa.Component.activate('uaflix');
+                    fetch(searchUrl)
+                        .then(response => response.text())
+                        .then(html => {
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            const linkElement = doc.querySelector('.search-result a');
+                            if (linkElement) {
+                                const filmUrl = linkElement.href;
+                                fetch(filmUrl)
+                                    .then(response => response.text())
+                                    .then(filmHtml => {
+                                        const tsMatch = filmHtml.match(/https:\/\/[^"]+\/hls\/\d+\/segment\d+\.ts/);
+                                        if (tsMatch) {
+                                            const m3u8Url = tsMatch[0].replace(/segment\d+\.ts$/, 'master.m3u8');
+                                            Lampa.Player.play(m3u8Url, 'HLS');
+                                        } else {
+                                            Lampa.Noty.show('Не вдалося знайти відео');
+                                        }
+                                    });
+                            } else {
+                                Lampa.Noty.show('Фільм не знайдено');
+                            }
+                        });
                 });
-
-                buttons.append(button);
-                console.log('[Uaflix] Кнопка додана');
             }
-        }
-    });
+        });
+    }
+
+    addSourceButton();
 })();
