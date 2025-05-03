@@ -118,6 +118,7 @@ function playVideo(videos) {
 function addSourceButton() {
     Lampa.Listener.follow('full', function (e) {
         if (e.type === 'complite') {
+            console.log('UAFlix: Сторінка завантажена, додаємо кнопку'); // Логування, коли сторінка завантажена
             const button_html = `
             <div class="full-start__button selector view--uaflix" data-subtitle="uaflix ${mod_version}">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24" fill="currentColor">
@@ -130,6 +131,9 @@ function addSourceButton() {
 
             const btn = $(button_html);
             $('.full-start__button').last().after(btn);
+
+            // Перевіряємо, чи кнопка була додана
+            console.log('UAFlix: Кнопка додана:', btn);
 
             // Обробка натискання на кнопку
             btn.on('click', function() {
