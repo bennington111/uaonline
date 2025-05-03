@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.5
+// @version     2.6
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -17,7 +17,7 @@
         version: mod_version,
         id: mod_id,
         name: 'UAFlix',
-        description: 'Перегляд з сайту UAFlix (uafix.net)',
+        description: 'Перегляд з сайту APN Watch',
         type: 'video',
         component: 'online',
         proxy: true
@@ -59,65 +59,57 @@
             return;
         }
 
-        Lampa.Noty.show(`Пошук UAFlix: ${title}`);
+        Lampa.Noty.show(`Пошук на APN: ${title}`);
 
         const query = encodeURIComponent(title);
-        const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
-        const proxyUrl = 'https://api.allorigins.win/get?url='; // Новий проксі
+        const searchUrl = `https://apn.watch/${query}`;
 
         try {
-            const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));
-            const data = await response.json();
-            const html = data.contents;
+            const response = await fetch(searchUrl);
+            const html = await response.text();
 
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
 
-            // Шукаємо посилання на сторінку фільму
-            const resultLink = doc.querySelector('.sres-wrap');
+            // Шукаємо посилання на відео
+            const videoLink = doc.querySelector('a[href*="mp4"], a[href*="m3u8"], a[href*="ts"]'); // Шукаємо відеофайл
 
-            if (resultLink) {
-                const href = resultLink.href;
-                console.log('[uaflix] Знайдено:', href);
+            if (videoLink) {
+                const videoSrc = videoLink.href;
+                console.log('[apn.watch] Знайдено відео:', videoSrc);
 
-                // Завантажуємо сторінку фільму для пошуку m3u8
-                const moviePageResponse = await fetch(href);
-                const moviePageHtml = await moviePageResponse.text();
-
-                const moviePageDoc = new DOMParser().parseFromString(moviePageHtml, 'text/html');
-
-                // Шукаємо тег video і беремо посилання на m3u8
-                const m3u8Link = moviePageDoc.querySelector('video')?.getAttribute('src');
-
-                if (m3u8Link) {
-                    console.log('[uaflix] Знайдено m3u8 плейлист:', m3u8Link);
-
-                    // Відтворення відео через HLS.js
+                // Відтворення відео через HLS.js, якщо це m3u8
+                if (videoSrc.includes('.m3u8')) {
                     if (Hls.isSupported()) {
                         const video = document.createElement('video');
                         document.body.appendChild(video); // Додаємо відео на сторінку
                         const hls = new Hls();
-                        hls.loadSource(m3u8Link);
+                        hls.loadSource(videoSrc);
                         hls.attachMedia(video);
                         hls.on(Hls.Events.MANIFEST_PARSED, function () {
                             video.play(); // Відтворюємо відео після завантаження
                         });
                     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                         // Для Safari
-                        video.src = m3u8Link;
+                        video.src = videoSrc;
                         video.addEventListener('canplay', function () {
                             video.play();
                         });
                     }
                 } else {
-                    Lampa.Noty.show('Не вдалося знайти відео на UAFlix');
+                    // Для інших форматів (наприклад, mp4)
+                    const video = document.createElement('video');
+                    video.src = videoSrc;
+                    document.body.appendChild(video); // Додаємо відео на сторінку
+                    video.play();
                 }
             } else {
-                Lampa.Noty.show('Нічого не знайдено на UAFlix');
+                Lampa.Noty.show('Не вдалося знайти відео на APN');
             }
         } catch (e) {
             console.error(e);
-            Lampa.Noty.show('Помилка при пошуку на UAFlix');
+            Lampa.Noty.show('Помилка при пошуку на APN');
         }
     }
 })();
+
