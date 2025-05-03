@@ -1,5 +1,5 @@
 (function () {
-    const mod_version = '1.0.3';
+    const mod_version = '1.0.4';
     const mod_id = 'uaflix';
 
     const manifest = {
@@ -55,12 +55,10 @@
             // Обробка натискання кнопки
             btn.on('click', function(event) {
                 event.preventDefault();
-                event.stopPropagation();
+                event.stopPropagation(); // Зупиняє поширення події
 
                 console.log('UAFlix: Кнопка натиснута!');
-
-                // Додаткові дії після натискання
-                // Відкриваємо нову вкладку з фільмом
+                // Тестова дія: відкриваємо нову вкладку з фільмом
                 window.open('https://uafix.net/films/spustoshennja/', '_blank');
             });
         }
