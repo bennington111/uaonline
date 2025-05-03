@@ -1,5 +1,5 @@
 (function () {
-    const mod_version = '1.0.0';
+    const mod_version = '1.0.1';
     const mod_id = 'uaflix';
 
     const manifest = {
@@ -55,38 +55,7 @@
         });
     }
 
-    // Функція для отримання деталей фільму, включаючи відео
-    function details(item, callback) {
-        let url = proxyUrl + item.url; // Додаємо проксі до URL
-
-        console.log('UAFlix: Завантаження деталей для фільму:', url); // Логування перед запитом на сторінку фільму
-
-        network.silent(url, function(result) {
-            let videos = [];
-            let doc = Lampa.Utils.parseDOM(result);
-
-            console.log('UAFlix: HTML сторінки фільму отримано:', result); // Логування отриманого HTML
-
-            // Шукаємо тег <video> та отримуємо посилання на відео
-            let videoElement = doc.querySelector('video');
-            if (videoElement) {
-                let videoUrl = videoElement.getAttribute('src'); // Отримуємо src з відео
-                console.log('UAFlix: Відео URL:', videoUrl); // Логування відео URL
-                videos.push({
-                    file: videoUrl,
-                    quality: 'HD',
-                    title: item.title
-                });
-            } else {
-                console.log('UAFlix: Відео не знайдено на сторінці фільму');
-            }
-
-            console.log('UAFlix: Отримані відео:', videos); // Логування отриманих відео
-            callback(videos); // Повертаємо відео для відтворення
-        });
-    }
-
-    // Функція для відтворення відео в плеєрі
+    // Функція для відтворення відео
     function playVideo(videos) {
         if (videos.length > 0) {
             let videoUrl = videos[0].file;
@@ -133,22 +102,6 @@
                     console.log('UAFlix: Кнопка натиснута');
                     // Відкриваємо нову вкладку з фільмом для тесту
                     window.open('https://uafix.net/films/spustoshennja/', '_blank'); // Відкривається нова вкладка
-
-                    let item = {url: 'https://uafix.net/films/spustoshennja/'}; // Вибір фільму для тесту
-
-                    // Перевіряємо, чи є інформація про фільм
-                    console.log('UAFlix: item:', item); // Логування перед передачею в details()
-
-                    // Викликаємо функцію для отримання відео
-                    details(item, function(videos) {
-                        console.log('UAFlix: Відео знайдено:', videos);
-                        if (videos.length > 0) {
-                            playVideo(videos); // Відтворюємо відео
-                        } else {
-                            console.log('UAFlix: Відео не знайдено');
-                            alert('UAFlix: Відео не знайдено');
-                        }
-                    });
                 });
             }
         });
