@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.2
+// @version     2.3
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -51,7 +51,7 @@
         }
     });
 
-    // Функція для пошуку фільму та відкриття
+    // Функція для пошуку фільму та запуску відео
     async function loadOnline(movie) {
         const title = movie.title || movie.name;
         if (!title) {
@@ -77,7 +77,15 @@
             if (resultLink) {
                 const href = resultLink.href;
                 console.log('[uaflix] Знайдено:', href);
-                Lampa.Activity.open(href);  // Відкриваємо фільм за посиланням
+                // Відкриваємо сторінку фільму в Lampa
+                Lampa.Activity.push({
+                    url: href,
+                    title: `UAFlix: ${title}`,
+                    component: 'online_mod', // Використовуємо компонент для відтворення відео
+                    search: title,
+                    movie: movie,
+                    page: 1
+                });
             } else {
                 Lampa.Noty.show('Нічого не знайдено на UAFlix');
             }
