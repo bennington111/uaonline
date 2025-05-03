@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.3
+// @version     1.4
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -41,12 +41,14 @@ function search(query, callback) {
         let doc = Lampa.Utils.parseDOM(result);
         let elements = doc.querySelectorAll('.th-item'); // Пошук елементів фільмів
 
-        console.log('Знайдені елементи фільмів:', elements.length); // Логування кількості знайдених фільмів
+        console.log('Кількість знайдених елементів фільмів:', elements.length); // Логування кількості знайдених елементів
 
-        elements.forEach(el => {
+        elements.forEach((el, index) => {
             let title = el.querySelector('.th-title')?.textContent;
             let url = el.querySelector('a')?.href;
             let poster = el.querySelector('img')?.src;
+
+            console.log(`Елемент ${index + 1}: Заголовок: ${title}, URL: ${url}, Постер: ${poster}`);
 
             items.push({
                 title: title,
@@ -58,7 +60,7 @@ function search(query, callback) {
             });
         });
 
-        console.log('Знайдені фільми:', items); // Логування знайдених фільмів
+        console.log('Знайдені фільми:', items); // Логування всіх знайдених фільмів
         callback(items); // Повертаємо знайдені фільми
     });
 }
@@ -73,7 +75,7 @@ function details(item, callback) {
         let videos = [];
         let doc = Lampa.Utils.parseDOM(result);
 
-        console.log('HTML сторінки фільму:', result); // Логування отриманого HTML
+        console.log('HTML сторінки фільму отримано:', result); // Логування отриманого HTML
 
         // Шукаємо тег <video> та отримуємо посилання на відео
         let videoElement = doc.querySelector('video');
