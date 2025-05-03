@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.4
+// @version     2.5
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -63,11 +63,12 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
-        const proxyUrl = 'https://corsproxy.io/?';
+        const proxyUrl = 'https://api.allorigins.win/get?url='; // Новий проксі
 
         try {
             const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));
-            const html = await response.text();
+            const data = await response.json();
+            const html = data.contents;
 
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
