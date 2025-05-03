@@ -134,4 +134,25 @@ function addSourceButton() {
             // Обробка натискання на кнопку
             btn.on('click', function() {
                 console.log('UAFlix: Кнопка натиснута');
-                let item = {url: 'https://uafix.net/films/spust
+                let item = {url: 'https://uafix.net/films/spustoshennja/'}; // Вибір фільму для тесту
+
+                // Перевіряємо, чи є інформація про фільм
+                console.log('UAFlix: item:', item); // Логування перед передачею в details()
+
+                // Викликаємо функцію для отримання відео
+                details(item, function(videos) {
+                    console.log('UAFlix: Відео знайдено:', videos);
+                    if (videos.length > 0) {
+                        playVideo(videos); // Відтворюємо відео
+                    } else {
+                        console.log('UAFlix: Відео не знайдено');
+                        alert('UAFlix: Відео не знайдено');
+                    }
+                });
+            });
+        }
+    });
+}
+
+// Викликаємо функцію для додавання кнопки
+addSourceButton();
