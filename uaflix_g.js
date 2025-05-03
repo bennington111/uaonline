@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.4
+// @version     1.5
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -34,21 +34,21 @@ const targetUrlBase = 'https://uafix.net/index.php?do=search&subaction=search&se
 function search(query, callback) {
     let url = proxyUrl + targetUrlBase + encodeURIComponent(query); // Запит до проксі
 
-    console.log('Запит на пошук:', url); // Логування запиту на пошук
+    console.log('UAFlix: Запит на пошук:', url); // Логування запиту на пошук
 
     network.silent(url, function(result) {
         let items = [];
         let doc = Lampa.Utils.parseDOM(result);
         let elements = doc.querySelectorAll('.th-item'); // Пошук елементів фільмів
 
-        console.log('Кількість знайдених елементів фільмів:', elements.length); // Логування кількості знайдених елементів
+        console.log('UAFlix: Кількість знайдених елементів фільмів:', elements.length); // Логування кількості знайдених елементів
 
         elements.forEach((el, index) => {
             let title = el.querySelector('.th-title')?.textContent;
             let url = el.querySelector('a')?.href;
             let poster = el.querySelector('img')?.src;
 
-            console.log(`Елемент ${index + 1}: Заголовок: ${title}, URL: ${url}, Постер: ${poster}`);
+            console.log(`UAFlix: Елемент ${index + 1}: Заголовок: ${title}, URL: ${url}, Постер: ${poster}`);
 
             items.push({
                 title: title,
@@ -60,7 +60,7 @@ function search(query, callback) {
             });
         });
 
-        console.log('Знайдені фільми:', items); // Логування всіх знайдених фільмів
+        console.log('UAFlix: Знайдені фільми:', items); // Логування всіх знайдених фільмів
         callback(items); // Повертаємо знайдені фільми
     });
 }
@@ -69,29 +69,29 @@ function search(query, callback) {
 function details(item, callback) {
     let url = proxyUrl + item.url; // Додаємо проксі до URL
 
-    console.log('Завантаження деталей для фільму:', url); // Логування перед запитом на сторінку фільму
+    console.log('UAFlix: Завантаження деталей для фільму:', url); // Логування перед запитом на сторінку фільму
 
     network.silent(url, function(result) {
         let videos = [];
         let doc = Lampa.Utils.parseDOM(result);
 
-        console.log('HTML сторінки фільму отримано:', result); // Логування отриманого HTML
+        console.log('UAFlix: HTML сторінки фільму отримано:', result); // Логування отриманого HTML
 
         // Шукаємо тег <video> та отримуємо посилання на відео
         let videoElement = doc.querySelector('video');
         if (videoElement) {
             let videoUrl = videoElement.getAttribute('src'); // Отримуємо src з відео
-            console.log('Відео URL:', videoUrl); // Логування відео URL
+            console.log('UAFlix: Відео URL:', videoUrl); // Логування відео URL
             videos.push({
                 file: videoUrl,
                 quality: 'HD',
                 title: item.title
             });
         } else {
-            console.log('Відео не знайдено на сторінці фільму');
+            console.log('UAFlix: Відео не знайдено на сторінці фільму');
         }
 
-        console.log('Отримані відео:', videos); // Логування отриманих відео
+        console.log('UAFlix: Отримані відео:', videos); // Логування отриманих відео
         callback(videos); // Повертаємо відео для відтворення
     });
 }
@@ -100,7 +100,7 @@ function details(item, callback) {
 function playVideo(videos) {
     if (videos.length > 0) {
         let videoUrl = videos[0].file;
-        console.log('Відтворення відео за URL:', videoUrl); // Логування відео, яке буде відтворене
+        console.log('UAFlix: Відтворення відео за URL:', videoUrl); // Логування відео, яке буде відтворене
 
         let videoPlayer = document.createElement('video');
         videoPlayer.src = videoUrl;
@@ -109,7 +109,7 @@ function playVideo(videos) {
         document.body.appendChild(videoPlayer); // Додаємо плеєр на сторінку
         videoPlayer.play(); // Запускаємо відтворення
     } else {
-        alert('Відео не знайдено');
+        alert('UAFlix: Відео не знайдено');
     }
 }
 
@@ -132,19 +132,19 @@ function addSourceButton() {
 
             // Обробка натискання на кнопку
             btn.on('click', function() {
-                console.log('Кнопка UAFlix натиснута');
+                console.log('UAFlix: Кнопка натиснута');
                 let item = {}; // Логіка для отримання вибраного фільму
 
                 // Перевіряємо, чи є інформація про фільм
-                console.log('item:', item); // Логування перед передачею в details()
+                console.log('UAFlix: item:', item); // Логування перед передачею в details()
 
                 // Викликаємо функцію для отримання відео
                 details(item, function(videos) {
-                    console.log('Відео знайдено:', videos);
+                    console.log('UAFlix: Відео знайдено:', videos);
                     if (videos.length > 0) {
                         playVideo(videos); // Відтворюємо відео
                     } else {
-                        alert('Відео не знайдено');
+                        alert('UAFlix: Відео не знайдено');
                     }
                 });
             });
