@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.1
+// @version     1.2
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -22,6 +22,7 @@ const manifest = {
     proxy: true
 };
 
+// Реєстрація плагіна в Lampa
 Lampa.Manifest.plugins = Lampa.Manifest.plugins || [];
 Lampa.Manifest.plugins.push(manifest);
 
@@ -123,13 +124,13 @@ function addSourceButton() {
             const btn = $(button_html);
             $('.full-start__button').last().after(btn);
 
-            // Дія при натисканні на кнопку
+            // Обробка натискання на кнопку
             btn.on('click', function() {
                 console.log('Кнопка UAFlix натиснута');
                 let item = {}; // Логіка для отримання вибраного фільму
 
                 // Перевіряємо, чи є інформація про фільм
-                console.log('item:', item);
+                console.log('item:', item); // Логування перед передачею в details()
 
                 // Викликаємо функцію для отримання відео
                 details(item, function(videos) {
