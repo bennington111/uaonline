@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.6
+// @version     1.7
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -39,20 +39,20 @@ function search(query, callback) {
     network.silent(url, function(result) {
         let items = [];
         let doc = Lampa.Utils.parseDOM(result);
-        let elements = doc.querySelectorAll('.th-item'); // Пошук елементів фільмів
+        let elements = doc.querySelectorAll('a.sres-wrap.clearfix'); // Пошук елементів фільмів за новим селектором
 
         console.log('UAFlix: Кількість знайдених елементів фільмів:', elements.length); // Логування кількості знайдених елементів
 
         elements.forEach((el, index) => {
-            let title = el.querySelector('.th-title')?.textContent;
-            let url = el.querySelector('a')?.href;
+            let title = el.querySelector('h2')?.textContent;
+            let url = el.getAttribute('href'); // Отримуємо посилання на сторінку фільму
             let poster = el.querySelector('img')?.src;
 
             console.log(`UAFlix: Елемент ${index + 1}: Заголовок: ${title}, URL: ${url}, Постер: ${poster}`);
 
             items.push({
                 title: title,
-                url: url,
+                url: url, // Підключаємо правильний URL
                 poster: poster,
                 original_title: title,
                 type: 'movie',
@@ -156,4 +156,3 @@ function addSourceButton() {
 
 // Викликаємо функцію для додавання кнопки
 addSourceButton();
-
