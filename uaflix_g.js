@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.2
+// @version     1.3
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -26,9 +26,13 @@ const manifest = {
 Lampa.Manifest.plugins = Lampa.Manifest.plugins || [];
 Lampa.Manifest.plugins.push(manifest);
 
+// Проксі-сервер для обходу CORS
+const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // Проксі-сервер
+const targetUrlBase = 'https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=';
+
 // Функція для парсингу пошукових результатів
 function search(query, callback) {
-    let url = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${encodeURIComponent(query)}`;
+    let url = proxyUrl + targetUrlBase + encodeURIComponent(query); // Запит до проксі
 
     console.log('Запит на пошук:', url); // Логування запиту на пошук
 
@@ -61,7 +65,7 @@ function search(query, callback) {
 
 // Функція для отримання деталей фільму, включаючи відео
 function details(item, callback) {
-    let url = item.url; // Посилання на сторінку фільму
+    let url = proxyUrl + item.url; // Додаємо проксі до URL
 
     console.log('Завантаження деталей для фільму:', url); // Логування перед запитом на сторінку фільму
 
