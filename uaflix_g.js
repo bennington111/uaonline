@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.5
+// @version     1.6
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -109,6 +109,7 @@ function playVideo(videos) {
         document.body.appendChild(videoPlayer); // Додаємо плеєр на сторінку
         videoPlayer.play(); // Запускаємо відтворення
     } else {
+        console.log('UAFlix: Відео не знайдено для відтворення');
         alert('UAFlix: Відео не знайдено');
     }
 }
@@ -144,6 +145,7 @@ function addSourceButton() {
                     if (videos.length > 0) {
                         playVideo(videos); // Відтворюємо відео
                     } else {
+                        console.log('UAFlix: Відео не знайдено');
                         alert('UAFlix: Відео не знайдено');
                     }
                 });
@@ -154,3 +156,4 @@ function addSourceButton() {
 
 // Викликаємо функцію для додавання кнопки
 addSourceButton();
+
