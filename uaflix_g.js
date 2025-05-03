@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.7
+// @version     1.8
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -134,25 +134,4 @@ function addSourceButton() {
             // Обробка натискання на кнопку
             btn.on('click', function() {
                 console.log('UAFlix: Кнопка натиснута');
-                let item = {}; // Логіка для отримання вибраного фільму
-
-                // Перевіряємо, чи є інформація про фільм
-                console.log('UAFlix: item:', item); // Логування перед передачею в details()
-
-                // Викликаємо функцію для отримання відео
-                details(item, function(videos) {
-                    console.log('UAFlix: Відео знайдено:', videos);
-                    if (videos.length > 0) {
-                        playVideo(videos); // Відтворюємо відео
-                    } else {
-                        console.log('UAFlix: Відео не знайдено');
-                        alert('UAFlix: Відео не знайдено');
-                    }
-                });
-            });
-        }
-    });
-}
-
-// Викликаємо функцію для додавання кнопки
-addSourceButton();
+                let item = {url: 'https://uafix.net/films/spust
