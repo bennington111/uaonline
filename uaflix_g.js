@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.3
+// @version     2.4
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -72,20 +72,45 @@
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
 
+            // Шукаємо посилання на сторінку фільму
             const resultLink = doc.querySelector('.sres-wrap');
 
             if (resultLink) {
                 const href = resultLink.href;
                 console.log('[uaflix] Знайдено:', href);
-                // Відкриваємо сторінку фільму в Lampa
-                Lampa.Activity.push({
-                    url: href,
-                    title: `UAFlix: ${title}`,
-                    component: 'online_mod', // Використовуємо компонент для відтворення відео
-                    search: title,
-                    movie: movie,
-                    page: 1
-                });
+
+                // Завантажуємо сторінку фільму для пошуку m3u8
+                const moviePageResponse = await fetch(href);
+                const moviePageHtml = await moviePageResponse.text();
+
+                const moviePageDoc = new DOMParser().parseFromString(moviePageHtml, 'text/html');
+
+                // Шукаємо тег video і беремо посилання на m3u8
+                const m3u8Link = moviePageDoc.querySelector('video')?.getAttribute('src');
+
+                if (m3u8Link) {
+                    console.log('[uaflix] Знайдено m3u8 плейлист:', m3u8Link);
+
+                    // Відтворення відео через HLS.js
+                    if (Hls.isSupported()) {
+                        const video = document.createElement('video');
+                        document.body.appendChild(video); // Додаємо відео на сторінку
+                        const hls = new Hls();
+                        hls.loadSource(m3u8Link);
+                        hls.attachMedia(video);
+                        hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                            video.play(); // Відтворюємо відео після завантаження
+                        });
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        // Для Safari
+                        video.src = m3u8Link;
+                        video.addEventListener('canplay', function () {
+                            video.play();
+                        });
+                    }
+                } else {
+                    Lampa.Noty.show('Не вдалося знайти відео на UAFlix');
+                }
             } else {
                 Lampa.Noty.show('Нічого не знайдено на UAFlix');
             }
