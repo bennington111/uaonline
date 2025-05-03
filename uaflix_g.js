@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.2
+// @version     1.3
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -29,6 +29,8 @@
     function addSourceButton() {
         Lampa.Listener.follow('full', function (e) {
             if (e.type === 'complite') {
+                if ($('.view--uaflix').length) return;
+
                 const button_html = `
                 <div class="full-start__button selector view--uaflix" data-subtitle="uaflix ${mod_version}">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24" fill="currentColor">
@@ -40,39 +42,33 @@
                 </div>`;
 
                 const btn = $(button_html);
-                $('.full-start__buttons').append(btn);
 
                 btn.on('hover:enter', function () {
-                    const title = Lampa.Activity.active().data.title;
-                    const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${encodeURIComponent(title)}`;
+                    console.log('[Uaflix] Кнопка натиснута. Тестовий запуск.');
 
-                    fetch(searchUrl)
-                        .then(response => response.text())
-                        .then(html => {
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(html, 'text/html');
-                            const linkElement = doc.querySelector('.search-result a');
-                            if (linkElement) {
-                                const filmUrl = linkElement.href;
-                                fetch(filmUrl)
-                                    .then(response => response.text())
-                                    .then(filmHtml => {
-                                        const tsMatch = filmHtml.match(/https:\/\/[^"]+\/hls\/\d+\/segment\d+\.ts/);
-                                        if (tsMatch) {
-                                            const m3u8Url = tsMatch[0].replace(/segment\d+\.ts$/, 'master.m3u8');
-                                            Lampa.Player.play(m3u8Url, 'HLS');
-                                        } else {
-                                            Lampa.Noty.show('Не вдалося знайти відео');
-                                        }
-                                    });
-                            } else {
-                                Lampa.Noty.show('Фільм не знайдено');
-                            }
-                        });
+                    Lampa.Player.play({
+                        title: 'Тест UAFlix',
+                        url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+                        method: 'hls',
+                        quality: 'HD',
+                        timeline: [],
+                        subtitles: []
+                    });
                 });
+
+                $('.full-start__buttons .full-start__button').last().after(btn);
             }
         });
     }
 
-    addSourceButton();
+    if (window.appready) {
+        addSourceButton();
+    } else {
+        Lampa.Listener.follow('app', function (e) {
+            if (e.type === 'ready') addSourceButton();
+        });
+    }
+
+    console.log('[Uaflix] Плагін завантажено');
 })();
+
