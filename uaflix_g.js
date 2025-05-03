@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.3
+// @version     1.4
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -10,8 +10,8 @@
 // ==/UserScript==
 
 (function () {
-    const mod_version = '1.0.0';
     const mod_id = 'uaflix';
+    const mod_version = '1.0.1';
 
     const manifest = {
         version: mod_version,
@@ -26,11 +26,11 @@
     Lampa.Manifest.plugins = Lampa.Manifest.plugins || [];
     Lampa.Manifest.plugins.push(manifest);
 
+    console.log('[Uaflix] Плагін завантажено');
+
     function addSourceButton() {
         Lampa.Listener.follow('full', function (e) {
             if (e.type === 'complite') {
-                if ($('.view--uaflix').length) return;
-
                 const button_html = `
                 <div class="full-start__button selector view--uaflix" data-subtitle="uaflix ${mod_version}">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24" fill="currentColor">
@@ -44,31 +44,96 @@
                 const btn = $(button_html);
 
                 btn.on('hover:enter', function () {
-                    console.log('[Uaflix] Кнопка натиснута. Тестовий запуск.');
-
-                    Lampa.Player.play({
-                        title: 'Тест UAFlix',
-                        url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-                        method: 'hls',
-                        quality: 'HD',
-                        timeline: [],
-                        subtitles: []
+                    Lampa.Activity.push({
+                        url: '',
+                        title: 'UAFlix',
+                        component: 'uaflix',
+                        id: 'uaflix_view',
+                        page: 1
                     });
                 });
 
-                $('.full-start__buttons .full-start__button').last().after(btn);
+                $('.full-start__buttons').append(btn);
             }
         });
     }
 
-    if (window.appready) {
-        addSourceButton();
-    } else {
-        Lampa.Listener.follow('app', function (e) {
-            if (e.type === 'ready') addSourceButton();
+    function startUaflixComponent() {
+        Lampa.Component.add('uaflix', {
+            create: function () {
+                const activity = this;
+                const card = Lampa.Activity.active().data;
+                const title = encodeURIComponent(card.original_title || card.name || card.title);
+
+                const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&story=${title}`;
+
+                Lampa.Utils.request(searchUrl).then(html => {
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                    const linkElem = doc.querySelector('.th-item > a');
+
+                    if (!linkElem) {
+                        Lampa.Noty.show('Не знайдено на UAFlix');
+                        activity.destroy();
+                        return;
+                    }
+
+                    const filmUrl = linkElem.href;
+
+                    Lampa.Utils.request(filmUrl).then(filmHtml => {
+                        const filmDoc = new DOMParser().parseFromString(filmHtml, 'text/html');
+                        const iframe = filmDoc.querySelector('iframe');
+
+                        if (!iframe) {
+                            Lampa.Noty.show('Не знайдено iframe');
+                            activity.destroy();
+                            return;
+                        }
+
+                        const iframeSrc = iframe.src;
+
+                        Lampa.Utils.request(iframeSrc).then(playerHtml => {
+                            const m3u8Match = playerHtml.match(/(https?:\/\/[^\s'"<>]+\.m3u8)/);
+
+                            if (!m3u8Match) {
+                                Lampa.Noty.show('Посилання на потік не знайдено');
+                                activity.destroy();
+                                return;
+                            }
+
+                            const playlist = [
+                                {
+                                    title: 'UAFlix',
+                                    url: m3u8Match[1]
+                                }
+                            ];
+
+                            const object = {
+                                title: card.title,
+                                playlist: playlist
+                            };
+
+                            const component = new Lampa.Video(object);
+                            component.create();
+
+                        }).catch(err => {
+                            console.error('[Uaflix] Не вдалося завантажити iframe:', err);
+                            Lampa.Noty.show('Помилка iframe');
+                            activity.destroy();
+                        });
+                    }).catch(err => {
+                        console.error('[Uaflix] Помилка при відкритті фільму:', err);
+                        Lampa.Noty.show('Помилка фільму');
+                        activity.destroy();
+                    });
+                }).catch(err => {
+                    console.error('[Uaflix] Помилка пошуку:', err);
+                    Lampa.Noty.show('Помилка пошуку');
+                    activity.destroy();
+                });
+            }
         });
     }
 
-    console.log('[Uaflix] Плагін завантажено');
+    addSourceButton();
+    startUaflixComponent();
 })();
-
