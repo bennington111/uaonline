@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.9
+// @version     2.0
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -136,7 +136,10 @@ function addSourceButton() {
             console.log('UAFlix: Кнопка додана:', btn);
 
             // Обробка натискання на кнопку
-            btn.on('click', function() {
+            btn.on('click', function(event) {
+                event.preventDefault();  // Перешкоджаємо дефолтній поведінці (закриття меню)
+                event.stopPropagation(); // Перешкоджаємо поширенню події
+
                 console.log('UAFlix: Кнопка натиснута');
                 let item = {url: 'https://uafix.net/films/spustoshennja/'}; // Вибір фільму для тесту
 
