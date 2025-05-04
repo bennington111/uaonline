@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.2
+// @version     2.0
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -45,8 +45,7 @@
             $('.full-start__button').last().after(btn);
 
             // Додавання обробника події на натискання
-            btn.on('click', function () {
-                console.log("UAFlix: Кнопка натиснута, запускаємо відео...");
+            btn.on('hover:enter', function () {
                 loadOnline(movie);
             });
         }
@@ -64,14 +63,10 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
-        const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // Використовуємо публічний CORS Proxy
+        const proxyUrl = 'https://corsproxy.io/?';
 
         try {
             const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));
-            if (!response.ok) {
-                throw new Error('Failed to fetch');
-            }
-
             const html = await response.text();
 
             const parser = new DOMParser();
@@ -86,7 +81,7 @@
                 Lampa.Activity.push({
                     url: href,
                     title: `UAFlix: ${title}`,
-                    component: 'online_mod', // Використовуємо компонент для відтворення відео
+                    component: 'online', // Використовуємо компонент для відтворення відео
                     search: title,
                     movie: movie,
                     page: 1
