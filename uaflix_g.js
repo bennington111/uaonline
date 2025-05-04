@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.1
+// @version     2.2
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -63,9 +63,10 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
-        const proxyUrl = 'https://corsproxy.io/';
+        const proxyUrl = 'https://api.allorigins.win/get?url=';
 
         try {
+            // Використовуємо проксі для запиту сторінки фільму
             const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));
             const html = await response.text();
 
@@ -92,7 +93,7 @@
 
                     // Відкриваємо відео в Lampa
                     Lampa.Activity.push({
-                        url: videoUrl, // Відкриваємо посилання на відео
+                        url: videoUrl,  // Відкриваємо посилання на відео
                         title: `UAFlix: ${title}`,
                         component: 'online_mod', // Використовуємо компонент для відтворення відео
                         search: title,
