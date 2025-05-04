@@ -45,8 +45,7 @@
             $('.full-start__button').last().after(btn);
 
             // Додавання обробника події на натискання
-            btn.on('click', function () {
-                console.log("UAFlix: Кнопка натиснута, запускаємо відео...");
+            btn.on('hover:enter', function () {
                 loadOnline(movie);
             });
         }
@@ -64,39 +63,36 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
+        const proxyUrl = 'https://corsproxy.io/';
 
         try {
-            // Використовуємо публічний проксі
-            const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; 
             const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));
             const html = await response.text();
 
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
 
-            // Отримуємо посилання на сторінку фільму
             const resultLink = doc.querySelector('.sres-wrap');
 
             if (resultLink) {
-                const filmUrl = resultLink.href;
-                console.log('[uaflix] Знайдено:', filmUrl);
+                const href = resultLink.href;
+                console.log('[uaflix] Знайдено:', href);
+                
+                // Відкриваємо сторінку фільму в Lampa
+                const moviePageResponse = await fetch(proxyUrl + encodeURIComponent(href));
+                const moviePageHtml = await moviePageResponse.text();
 
-                // Тепер відкриваємо сторінку фільму і витягуємо прямий URL відео
-                const videoPageResponse = await fetch(proxyUrl + encodeURIComponent(filmUrl));
-                const videoPageHtml = await videoPageResponse.text();
-
-                // Парсимо HTML сторінки фільму
-                const videoDoc = new DOMParser().parseFromString(videoPageHtml, 'text/html');
-
-                // Шукаємо посилання на відео
-                const videoUrl = videoDoc.querySelector('iframe').src;
+                const movieDoc = new DOMParser().parseFromString(moviePageHtml, 'text/html');
+                
+                // Знаходимо iframe з посиланням на відео
+                const videoUrl = movieDoc.querySelector('iframe').src;
 
                 if (videoUrl) {
                     console.log('[uaflix] Відео URL:', videoUrl);
 
                     // Відкриваємо відео в Lampa
                     Lampa.Activity.push({
-                        url: videoUrl,  // Відкриваємо посилання на відео
+                        url: videoUrl, // Відкриваємо посилання на відео
                         title: `UAFlix: ${title}`,
                         component: 'online_mod', // Використовуємо компонент для відтворення відео
                         search: title,
