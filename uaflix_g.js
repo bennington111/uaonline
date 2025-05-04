@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     3.0
+// @version     3.1
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -56,6 +56,9 @@
                 btn.on('click', function() {
                     console.log("UAFlix: Кнопка натиснута, запускаємо відео...");
 
+                    // Отримуємо дані про фільм, які передаємо у loadOnline
+                    const movie = e.data.movie; // Десь в коді вже має бути інформація про фільм
+
                     // Запит на відео URL через проксі
                     fetch('http://localhost:3000/proxy?url=https://uafix.net/films/profi-stetxem/')
                         .then(response => response.json())
@@ -63,13 +66,8 @@
                             if (data.videoUrl) {
                                 console.log("UAFlix: Video URL found:", data.videoUrl);
 
-                                // Відтворюємо відео через Lampa API
-                                Lampa.API.open({
-                                    url: data.videoUrl,
-                                    title: 'UAFlix Video',
-                                    subtitle: 'Video from UAFlix',
-                                    sources: [{ url: data.videoUrl }]
-                                });
+                                // Викликаємо loadOnline для запуску відео
+                                loadOnline(movie, data.videoUrl);
                             } else {
                                 console.log("UAFlix: Video URL not found");
                             }
@@ -79,6 +77,23 @@
                         });
                 });
             }
+        });
+    }
+
+    // Функція для відтворення відео через Lampa API
+    function loadOnline(movie, videoUrl) {
+        console.log("UAFlix: Викликаємо loadOnline з відео URL", videoUrl);
+
+        Lampa.Component.add('online_mod', component);
+        Lampa.Activity.push({
+            url: videoUrl,
+            title: Lampa.Lang.translate('online_mod_title_full'),
+            component: 'online_mod',
+            search: movie.title,
+            search_one: movie.title,
+            search_two: movie.original_title,
+            movie: movie,
+            page: 1
         });
     }
 
