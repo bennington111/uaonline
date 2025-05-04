@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.0
+// @version     2.1
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -45,7 +45,8 @@
             $('.full-start__button').last().after(btn);
 
             // Додавання обробника події на натискання
-            btn.on('hover:enter', function () {
+            btn.on('click', function () {
+                console.log("UAFlix: Кнопка натиснута, запускаємо відео...");
                 loadOnline(movie);
             });
         }
@@ -67,6 +68,10 @@
 
         try {
             const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));
+            if (!response.ok) {
+                throw new Error('Failed to fetch');
+            }
+
             const html = await response.text();
 
             const parser = new DOMParser();
