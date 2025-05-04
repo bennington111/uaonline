@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     3.1
+// @version     3.2
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -23,80 +23,75 @@
         proxy: true
     };
 
+    // Реєстрація плагіна в Lampa
     Lampa.Manifest.plugins = Lampa.Manifest.plugins || [];
     Lampa.Manifest.plugins.push(manifest);
 
-    // Додавання кнопки плагіну
-    function addSourceButton() {
-        Lampa.Listener.follow('full', function (e) {
-            if (e.type === 'complite') {
-                console.log("UAFlix: Сторінка завантажена, додаємо кнопку.");
+    // Додаємо кнопку після повного завантаження сторінки
+    Lampa.Listener.follow('full', function (e) {
+        if (e.type === 'complite') {
+            const movie = e.data.movie;
+            const button_html = `
+            <div class="full-start__button selector view--uaflix" data-subtitle="UAFlix ${mod_version}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24" fill="currentColor">
+                    <path d="M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z
+                    M228.9,2l8,37.7l0,0L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z
+                    M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88L2,50.2L47.8,80L10,88z"/>
+                </svg>
+                <span>UAFlix</span>
+            </div>`;
+            const btn = $(button_html);
+            // Додаємо кнопку до DOM
+            $('.full-start__button').last().after(btn);
 
-                const button_html = `
-                    <div class="full-start__button selector view--uaflix" data-subtitle="uaflix ${mod_version}">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24" fill="currentColor">
-                            <path d="M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88L2,50.2L47.8,80L10,88z"/>
-                        </svg>
-                        <span>UAFlix</span>
-                    </div>`;
+            // Додавання обробника події на натискання
+            btn.on('hover:enter', function () {
+                loadOnline(movie);
+            });
+        }
+    });
 
-                const btn = $(button_html);
+    // Функція для пошуку фільму та запуску відео
+    async function loadOnline(movie) {
+        const title = movie.title || movie.name;
+        if (!title) {
+            Lampa.Noty.show('Не вдалося отримати назву фільму');
+            return;
+        }
 
-                // Перевіряємо, чи кнопка вже є, якщо так, то видаляємо її
-                if ($('.view--uaflix').length > 0) {
-                    console.log("UAFlix: Кнопка вже додана.");
-                    return;  // Кнопка вже є, не додаємо її повторно
-                }
+        Lampa.Noty.show(`Пошук UAFlix: ${title}`);
 
-                console.log("UAFlix: Додаємо кнопку на сторінку.");
-                // Додаємо кнопку після останнього елементу
-                $('.full-start__button.selector').last().after(btn);
+        const query = encodeURIComponent(title);
+        const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // Використовуємо ваш CORS Proxy
 
-                // Додаємо обробник натискання
-                btn.on('click', function() {
-                    console.log("UAFlix: Кнопка натиснута, запускаємо відео...");
+        try {
+            const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));
+            const html = await response.text();
 
-                    // Отримуємо дані про фільм, які передаємо у loadOnline
-                    const movie = e.data.movie; // Десь в коді вже має бути інформація про фільм
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
 
-                    // Запит на відео URL через проксі
-                    fetch('http://localhost:3000/proxy?url=https://uafix.net/films/profi-stetxem/')
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.videoUrl) {
-                                console.log("UAFlix: Video URL found:", data.videoUrl);
+            const resultLink = doc.querySelector('.sres-wrap');
 
-                                // Викликаємо loadOnline для запуску відео
-                                loadOnline(movie, data.videoUrl);
-                            } else {
-                                console.log("UAFlix: Video URL not found");
-                            }
-                        })
-                        .catch(error => {
-                            console.log("UAFlix: Error fetching video URL:", error);
-                        });
+            if (resultLink) {
+                const href = resultLink.href;
+                console.log('[uaflix] Знайдено:', href);
+                // Відкриваємо сторінку фільму в Lampa
+                Lampa.Activity.push({
+                    url: href,
+                    title: `UAFlix: ${title}`,
+                    component: 'online_mod', // Використовуємо компонент для відтворення відео
+                    search: title,
+                    movie: movie,
+                    page: 1
                 });
+            } else {
+                Lampa.Noty.show('Нічого не знайдено на UAFlix');
             }
-        });
+        } catch (e) {
+            console.error(e);
+            Lampa.Noty.show('Помилка при пошуку на UAFlix');
+        }
     }
-
-    // Функція для відтворення відео через Lampa API
-    function loadOnline(movie, videoUrl) {
-        console.log("UAFlix: Викликаємо loadOnline з відео URL", videoUrl);
-
-        Lampa.Component.add('online_mod', component);
-        Lampa.Activity.push({
-            url: videoUrl,
-            title: Lampa.Lang.translate('online_mod_title_full'),
-            component: 'online_mod',
-            search: movie.title,
-            search_one: movie.title,
-            search_two: movie.original_title,
-            movie: movie,
-            page: 1
-        });
-    }
-
-    // Запускаємо функцію додавання кнопки після повного завантаження сторінки
-    addSourceButton();
 })();
