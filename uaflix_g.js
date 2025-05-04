@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.8
+// @version     2.9
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -10,113 +10,69 @@
 // ==/UserScript==
 
 (function () {
-    const mod_version = '1.0.0';
-    const mod_id = 'uaflix';
+const mod_version = '1.0.0';
+const mod_id = 'uaflix';
 
-    const manifest = {
-        version: mod_version,
-        id: mod_id,
-        name: 'UAFlix',
-        description: 'Перегляд з сайту UAFlix (uafix.net)',
-        type: 'video',
-        component: 'online',
-        proxy: true
-    };
+const manifest = {
+    version: mod_version,
+    id: mod_id,
+    name: 'UAFlix',
+    description: 'Перегляд з сайту UAFlix (uafix.net)',
+    type: 'video',
+    component: 'online',
+    proxy: true
+};
 
-    // Реєстрація плагіна в Lampa
-    Lampa.Manifest.plugins = Lampa.Manifest.plugins || [];
-    Lampa.Manifest.plugins.push(manifest);
+Lampa.Manifest.plugins = Lampa.Manifest.plugins || [];
+Lampa.Manifest.plugins.push(manifest);
 
-    // Додаємо кнопку після повного завантаження сторінки
+// Додавання кнопки плагіну
+function addSourceButton() {
     Lampa.Listener.follow('full', function (e) {
         if (e.type === 'complite') {
-            const movie = e.data.movie;
             const button_html = `
-            <div class="full-start__button selector view--uaflix" data-subtitle="UAFlix ${mod_version}">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24" fill="currentColor">
-                    <path d="M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z
-                    M228.9,2l8,37.7l0,0L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z
-                    M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88L2,50.2L47.8,80L10,88z"/>
-                </svg>
-                <span>UAFlix</span>
-            </div>`;
-            const btn = $(button_html);
-            // Додаємо кнопку до DOM
-            $('.full-start__button').last().after(btn);
+                <div class="full-start__button selector view--uaflix" data-subtitle="uaflix ${mod_version}">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24" fill="currentColor">
+                        <path d="M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88L2,50.2L47.8,80L10,88z"/>
+                    </svg>
+                    <span>UAFlix</span>
+                </div>`;
 
-            // Додавання обробника події на натискання
-            btn.on('hover:enter', function () {
-                loadOnline(movie);
+            const btn = $(button_html);
+            // Додаємо кнопку на сторінку
+            $('.full-start__button.selector').remove();  // Якщо кнопка вже є - видаляємо
+            $('.full-start__button.selector').last().after(btn);
+
+            // Обробник натискання кнопки
+            btn.on('click', function() {
+                console.log("UAFlix: Button clicked, starting video...");
+
+                // Отримання URL відео через проксі (це потрібно зробити через ваш сервер)
+                fetch('http://localhost:3000/proxy?url=https://uafix.net/films/profi-stetxem/')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.videoUrl) {
+                            console.log("UAFlix: Video URL found:", data.videoUrl);
+
+                            // Відтворення відео через Lampa API
+                            Lampa.API.open({
+                                url: data.videoUrl,
+                                title: 'UAFlix Video',
+                                subtitle: 'Video from UAFlix',
+                                sources: [{ url: data.videoUrl }]
+                            });
+                        } else {
+                            console.log("UAFlix: Video URL not found");
+                        }
+                    })
+                    .catch(error => {
+                        console.log("UAFlix: Error fetching video URL:", error);
+                    });
             });
         }
     });
+}
 
-    // Функція для пошуку фільму та запуску відео
-    async function loadOnline(movie) {
-        const title = movie.title || movie.name;
-        if (!title) {
-            Lampa.Noty.show('Не вдалося отримати назву фільму');
-            return;
-        }
-
-        Lampa.Noty.show(`Пошук UAFlix: ${title}`);
-
-        const query = encodeURIComponent(title);
-        const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
-        const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // Використовуємо CORS-проксі
-
-        try {
-            const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));
-            const html = await response.text();
-
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-
-            // Шукаємо посилання на сторінку фільму
-            const resultLink = doc.querySelector('.sres-wrap');
-
-            if (resultLink) {
-                const href = resultLink.href;
-                console.log('[uaflix] Знайдено:', href);
-
-                // Завантажуємо сторінку фільму для пошуку m3u8
-                const moviePageResponse = await fetch(href);
-                const moviePageHtml = await moviePageResponse.text();
-
-                const moviePageDoc = new DOMParser().parseFromString(moviePageHtml, 'text/html');
-
-                // Шукаємо тег video і беремо посилання на m3u8
-                const m3u8Link = moviePageDoc.querySelector('video')?.getAttribute('src');
-
-                if (m3u8Link) {
-                    console.log('[uaflix] Знайдено m3u8 плейлист:', m3u8Link);
-
-                    // Відтворення відео через HLS.js
-                    if (Hls.isSupported()) {
-                        const video = document.createElement('video');
-                        document.body.appendChild(video); // Додаємо відео на сторінку
-                        const hls = new Hls();
-                        hls.loadSource(m3u8Link);
-                        hls.attachMedia(video);
-                        hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                            video.play(); // Відтворюємо відео після завантаження
-                        });
-                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                        // Для Safari
-                        video.src = m3u8Link;
-                        video.addEventListener('canplay', function () {
-                            video.play();
-                        });
-                    }
-                } else {
-                    Lampa.Noty.show('Не вдалося знайти відео на UAFlix');
-                }
-            } else {
-                Lampa.Noty.show('Нічого не знайдено на UAFlix');
-            }
-        } catch (e) {
-            console.error(e);
-            Lampa.Noty.show('Помилка при пошуку на UAFlix');
-        }
-    }
-})();
+// Додаємо кнопку, коли сторінка повністю завантажена
+addSourceButton();
+});
