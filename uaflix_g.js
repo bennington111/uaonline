@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.2
+// @version     2.3
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -63,7 +63,7 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
-        const proxyUrl = 'https://api.allorigins.win/get?url=';
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';  // або використовуйте свій власний проксі
 
         try {
             // Використовуємо проксі для запиту сторінки фільму
@@ -86,7 +86,8 @@
                 const movieDoc = new DOMParser().parseFromString(moviePageHtml, 'text/html');
                 
                 // Знаходимо iframe з посиланням на відео
-                const videoUrl = movieDoc.querySelector('iframe').src;
+                const iframe = movieDoc.querySelector('iframe');
+                const videoUrl = iframe ? iframe.src : null;
 
                 if (videoUrl) {
                     console.log('[uaflix] Відео URL:', videoUrl);
