@@ -63,7 +63,7 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
-        const proxyUrl = 'https://corsproxy.io/?';
+        const proxyUrl = 'http://localhost:3000/proxy?url='; //локальний проксі
 
         try {
             const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));
