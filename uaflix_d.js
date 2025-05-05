@@ -1,12 +1,4 @@
 // ==UserScript==
-// @name UAFIX Online
-// @version 1.0.6
-// @author YourName
-// @description Плагін для перегляду контенту з uafix.net
-// @icon https://uafix.net/favicon.ico
-// ==/UserScript==
-
-// ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
 // @version     2.0
@@ -23,144 +15,131 @@
     const UAFLIX_DOMAIN = 'https://uafix.net';
     const CORS_PROXY = 'https://corsproxy.io/?';
 
-    class UaflixPlugin {
-        constructor() {
-            this.name = 'UAFlix';
-            this.id = PLUGIN_ID;
-            this.type = 'online';
-            this.version = PLUGIN_VERSION;
-            this.cache = {};
-        }
+    // Реєстрація плагіна (як у вашому оригінальному коді)
+    const manifest = {
+        version: PLUGIN_VERSION,
+        id: PLUGIN_ID,
+        name: 'UAFlix',
+        description: 'Перегляд з сайту UAFlix (uafix.net)',
+        type: 'video',
+        component: 'online',
+        proxy: true
+    };
 
-        init() {
-            this.addStyles();
-            Lampa.Player.listener.follow('app', (e) => {
-                if (e.type == 'ready' && e.data.component == 'online') {
-                    this.onReadyOnline(e.data.params);
-                }
-            });
-        }
+    Lampa.Manifest.plugins = Lampa.Manifest.plugins || [];
+    Lampa.Manifest.plugins.push(manifest);
 
-        addStyles() {
-            const style = document.createElement('style');
-            style.textContent = `
-                .online--uaflix .online__head { background: linear-gradient(90deg, rgba(0,75,130,0.8) 0%, rgba(0,120,200,0.8) 100%); }
-                .online--uaflix .online__title:before { content: "UAFlix"; background: #0078c8; }
-            `;
-            document.head.appendChild(style);
-        }
+    // Додавання стилів
+    const style = document.createElement('style');
+    style.textContent = `
+        .online--uaflix .online__head { background: linear-gradient(90deg, rgba(0,75,130,0.8) 0%, rgba(0,120,200,0.8) 100%); }
+        .online--uaflix .online__title:before { content: "UAFlix"; background: #0078c8; }
+        .view--uaflix svg { color: #0078c8; }
+    `;
+    document.head.appendChild(style);
 
-        onReadyOnline(params) {
-            if (params.plugin == PLUGIN_ID) {
-                this.create(params);
-            }
+    // Обробник для сторінки online
+    Lampa.Listener.follow('app', (e) => {
+        if (e.type === 'ready' && e.data.component === 'online' && e.data.params.plugin === PLUGIN_ID) {
+            initOnlinePage(e.data.params, e.data.object);
         }
+    });
 
-        create(params) {
-            const component = params.object;
+    function initOnlinePage(params, component) {
+        component.html = `
+            <div class="online__head">
+                <div class="online__title">${params.title}</div>
+            </div>
+            <div class="online__content">
+                <div class="online__loading">Пошук на UAFlix...</div>
+            </div>
+        `;
+
+        searchMovies(params, component);
+    }
+
+    async function searchMovies(params, component) {
+        try {
+            const searchUrl = `${UAFLIX_DOMAIN}/index.php?do=search&subaction=search&story=${encodeURIComponent(params.search)}`;
+            const html = await fetchWithProxy(searchUrl);
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
             
-            component.html = `
-                <div class="online__head">
-                    <div class="online__title"></div>
-                </div>
-                <div class="online__content">
-                    <div class="online__loading">Завантаження...</div>
-                </div>
-            `;
+            const results = Array.from(doc.querySelectorAll('.sres-wrap')).map(item => {
+                const link = item.querySelector('a');
+                return {
+                    title: link ? link.textContent.trim() : '',
+                    url: link ? link.href : '',
+                    poster: item.querySelector('img') ? item.querySelector('img').src : ''
+                };
+            }).filter(item => item.url);
 
-            component.start = () => {
-                this.loadData(component, params);
-            };
-
-            component.start();
-        }
-
-        async loadData(component, params) {
-            try {
-                const searchUrl = `${UAFLIX_DOMAIN}/index.php?do=search&subaction=search&story=${encodeURIComponent(params.search)}`;
-                const html = await this.fetchWithProxy(searchUrl);
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                const results = Array.from(doc.querySelectorAll('.sres-wrap')).map(item => {
-                    const link = item.querySelector('a');
-                    const title = link ? link.textContent.trim() : '';
-                    const url = link ? link.href : '';
-                    const poster = item.querySelector('img') ? item.querySelector('img').src : '';
-                    
-                    return { title, url, poster };
-                }).filter(item => item.url);
-
-                this.showResults(component, params, results);
-            } catch (e) {
-                console.error('[UAFlix] Помилка:', e);
-                component.html.find('.online__loading').text('Помилка завантаження');
-            }
-        }
-
-        showResults(component, params, results) {
-            let html = '';
-            
-            if (results.length) {
-                html = results.map(item => `
-                    <div class="online__item selector" data-url="${item.url}">
-                        <div class="online__item-poster" style="background-image: url(${item.poster || ''})"></div>
-                        <div class="online__item-title">${item.title}</div>
-                    </div>
-                `).join('');
-            } else {
-                html = '<div class="online__empty">Нічого не знайдено</div>';
-            }
-
-            component.html.find('.online__content').html(html);
-            component.html.find('.online__item').on('hover:enter', (e) => {
-                const url = $(e.currentTarget).data('url');
-                this.loadMovie(component, params, url);
-            });
-        }
-
-        async loadMovie(component, params, url) {
-            component.html.find('.online__content').html('<div class="online__loading">Завантаження фільму...</div>');
-            
-            try {
-                const html = await this.fetchWithProxy(url);
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                const iframe = doc.querySelector('iframe');
-                if (iframe && iframe.src) {
-                    Lampa.Player.play({
-                        url: iframe.src,
-                        title: params.title,
-                        type: 'movie',
-                        plugin: PLUGIN_ID
-                    });
-                } else {
-                    component.html.find('.online__loading').text('Не вдалося знайти відео');
-                }
-            } catch (e) {
-                console.error('[UAFlix] Помилка:', e);
-                component.html.find('.online__loading').text('Помилка завантаження фільму');
-            }
-        }
-
-        async fetchWithProxy(url) {
-            const response = await fetch(`${CORS_PROXY}${encodeURIComponent(url)}`, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0',
-                    'Referer': UAFLIX_DOMAIN
-                }
-            });
-            return await response.text();
+            showResults(component, params, results);
+        } catch (e) {
+            console.error('[UAFlix] Помилка пошуку:', e);
+            component.html.find('.online__loading').text('Помилка пошуку');
         }
     }
 
-    // Реєстрація плагіна
-    Lampa.Plugin.register(new UaflixPlugin());
+    function showResults(component, params, results) {
+        let html = '';
+        
+        if (results.length > 0) {
+            html = results.map(item => `
+                <div class="online__item selector" data-url="${item.url}">
+                    <div class="online__item-poster" style="background-image: url(${item.poster || ''})"></div>
+                    <div class="online__item-title">${item.title}</div>
+                </div>
+            `).join('');
+        } else {
+            html = '<div class="online__empty">Нічого не знайдено</div>';
+        }
 
-    // Додавання кнопки
+        component.html.find('.online__content').html(html);
+        component.html.find('.online__item').on('hover:enter', (e) => {
+            const url = $(e.currentTarget).data('url');
+            loadMoviePage(component, params, url);
+        });
+    }
+
+    async function loadMoviePage(component, params, url) {
+        component.html.find('.online__content').html('<div class="online__loading">Завантаження фільму...</div>');
+        
+        try {
+            const html = await fetchWithProxy(url);
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            const iframe = doc.querySelector('iframe');
+            if (iframe && iframe.src) {
+                Lampa.Player.play({
+                    url: iframe.src,
+                    title: params.title,
+                    type: 'movie',
+                    plugin: PLUGIN_ID
+                });
+            } else {
+                component.html.find('.online__loading').text('Відео не знайдено');
+            }
+        } catch (e) {
+            console.error('[UAFlix] Помилка завантаження:', e);
+            component.html.find('.online__loading').text('Помилка завантаження');
+        }
+    }
+
+    async function fetchWithProxy(url) {
+        const response = await fetch(`${CORS_PROXY}${encodeURIComponent(url)}`, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0',
+                'Referer': UAFLIX_DOMAIN
+            }
+        });
+        return await response.text();
+    }
+
+    // Додавання кнопки (як у вашому оригінальному коді)
     Lampa.Listener.follow('full', (e) => {
-        if (e.type === 'complete') {
+        if (e.type === 'complite') {
             const movie = e.data.movie;
             const button = $(`
                 <div class="full-start__button selector view--uaflix" data-subtitle="UAFlix ${PLUGIN_VERSION}">
