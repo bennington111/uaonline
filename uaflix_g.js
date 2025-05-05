@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.5
+// @version     2.6
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -63,7 +63,7 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
-        const proxyUrl = 'http://localhost:3000/proxy?url=';  // Локальний проксі
+        const proxyUrl = 'https://corsproxy.io/?';  // Використовуємо віддалене проксі для пошуку
 
         try {
             // Використовуємо проксі для запиту сторінки пошуку
@@ -79,15 +79,33 @@
             if (resultLink) {
                 const href = resultLink.href;
                 console.log('[uaflix] Знайдено:', href);
-                // Відкриваємо сторінку фільму
-                Lampa.Activity.push({
-                    url: href,
-                    title: `UAFlix: ${title}`,
-                    component: 'online_mod', // Використовуємо компонент для відтворення відео
-                    search: title,
-                    movie: movie,
-                    page: 1
-                });
+
+                // Тепер використовуємо локальний проксі для відкриття сторінки фільму
+                const localProxyUrl = 'http://localhost:3000/proxy?url=';
+
+                // Відкриваємо сторінку фільму через локальний проксі
+                const moviePageResponse = await fetch(localProxyUrl + encodeURIComponent(href));
+                const moviePageHtml = await moviePageResponse.text();
+
+                const moviePageDoc = new DOMParser().parseFromString(moviePageHtml, 'text/html');
+                const iframe = moviePageDoc.querySelector('iframe');
+
+                if (iframe) {
+                    const videoUrl = iframe.getAttribute('src');
+                    console.log('[uaflix] Відео URL:', videoUrl);
+
+                    // Відкриваємо відео
+                    Lampa.Activity.push({
+                        url: videoUrl,
+                        title: `UAFlix: ${title}`,
+                        component: 'online_mod',
+                        search: title,
+                        movie: movie,
+                        page: 1
+                    });
+                } else {
+                    Lampa.Noty.show('Не вдалося знайти відео для цього фільму');
+                }
             } else {
                 Lampa.Noty.show('Нічого не знайдено на UAFlix');
             }
