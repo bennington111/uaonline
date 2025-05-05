@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.0
+// @version     2.1
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -68,33 +68,24 @@
         try {
             // Використовуємо проксі для запиту сторінки фільму
             const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));
-            const html = await response.text();
-            console.log('[uaflix] Пошуковий HTML:', html);  // Додатковий лог для перевірки відповіді
+            const data = await response.json();
+            
+            // Логування даних, щоб перевірити, що ми отримали
+            console.log('[uaflix] Пошуковий результат:', data);
 
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
+            if (data && data.videoUrl) {
+                const videoUrl = data.videoUrl; // Отримуємо URL відео
+                console.log('[uaflix] Video URL:', videoUrl);  // Логування відео URL
 
-            // Шукаємо мета-тег og:video:iframe для отримання iframe URL
-            const metaIframe = doc.querySelector('meta[property="og:video:iframe"]');
-            console.log('[uaflix] Мета-тег з iframe:', metaIframe);  // Логування мета-тега
-
-            if (metaIframe) {
-                const iframeSrc = metaIframe.getAttribute('content');  // Отримуємо URL із content атрибута
-                console.log('[uaflix] URL відео:', iframeSrc);  // Логування URL
-
-                if (iframeSrc) {
-                    // Відкриваємо відео в Lampa
-                    Lampa.Activity.push({
-                        url: iframeSrc,  // Відкриваємо iframe посилання
-                        title: `UAFlix: ${title}`,
-                        component: 'online_mod', // Використовуємо компонент для відтворення відео
-                        search: title,
-                        movie: movie,
-                        page: 1
-                    });
-                } else {
-                    Lampa.Noty.show('Не знайдено відео для відтворення');
-                }
+                // Відкриваємо відео в Lampa
+                Lampa.Activity.push({
+                    url: videoUrl,  // Відкриваємо відео URL, отриманий з проксі
+                    title: `UAFlix: ${title}`,
+                    component: 'online_mod', // Використовуємо компонент для відтворення відео
+                    search: title,
+                    movie: movie,
+                    page: 1
+                });
             } else {
                 Lampa.Noty.show('Нічого не знайдено на UAFlix');
             }
