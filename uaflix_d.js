@@ -6,191 +6,186 @@
 // @icon https://uafix.net/favicon.ico
 // ==/UserScript==
 
+// ==UserScript==
+// @name        Uaflix
+// @namespace   uaflix
+// @version     2.0
+// @description Плагін для перегляду фільмів з Ua джерел
+// @author      You
+// @match       *://*/*
+// @grant       none
+// @icon        https://uafix.net/favicon.ico
+// ==/UserScript==
+
 (function() {
-    // Чекаємо, поки Lampa буде готова
-    function waitForLampa() {
-        if (typeof Lampa !== 'undefined' && Lampa.Plugin) {
-            initPlugin();
-        } else {
-            setTimeout(waitForLampa, 100);
+    const PLUGIN_ID = 'uaflix';
+    const PLUGIN_VERSION = '2.0';
+    const UAFLIX_DOMAIN = 'https://uafix.net';
+    const CORS_PROXY = 'https://corsproxy.io/?';
+
+    class UaflixPlugin {
+        constructor() {
+            this.name = 'UAFlix';
+            this.id = PLUGIN_ID;
+            this.type = 'online';
+            this.version = PLUGIN_VERSION;
+            this.cache = {};
+        }
+
+        init() {
+            this.addStyles();
+            Lampa.Player.listener.follow('app', (e) => {
+                if (e.type == 'ready' && e.data.component == 'online') {
+                    this.onReadyOnline(e.data.params);
+                }
+            });
+        }
+
+        addStyles() {
+            const style = document.createElement('style');
+            style.textContent = `
+                .online--uaflix .online__head { background: linear-gradient(90deg, rgba(0,75,130,0.8) 0%, rgba(0,120,200,0.8) 100%); }
+                .online--uaflix .online__title:before { content: "UAFlix"; background: #0078c8; }
+            `;
+            document.head.appendChild(style);
+        }
+
+        onReadyOnline(params) {
+            if (params.plugin == PLUGIN_ID) {
+                this.create(params);
+            }
+        }
+
+        create(params) {
+            const component = params.object;
+            
+            component.html = `
+                <div class="online__head">
+                    <div class="online__title"></div>
+                </div>
+                <div class="online__content">
+                    <div class="online__loading">Завантаження...</div>
+                </div>
+            `;
+
+            component.start = () => {
+                this.loadData(component, params);
+            };
+
+            component.start();
+        }
+
+        async loadData(component, params) {
+            try {
+                const searchUrl = `${UAFLIX_DOMAIN}/index.php?do=search&subaction=search&story=${encodeURIComponent(params.search)}`;
+                const html = await this.fetchWithProxy(searchUrl);
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const results = Array.from(doc.querySelectorAll('.sres-wrap')).map(item => {
+                    const link = item.querySelector('a');
+                    const title = link ? link.textContent.trim() : '';
+                    const url = link ? link.href : '';
+                    const poster = item.querySelector('img') ? item.querySelector('img').src : '';
+                    
+                    return { title, url, poster };
+                }).filter(item => item.url);
+
+                this.showResults(component, params, results);
+            } catch (e) {
+                console.error('[UAFlix] Помилка:', e);
+                component.html.find('.online__loading').text('Помилка завантаження');
+            }
+        }
+
+        showResults(component, params, results) {
+            let html = '';
+            
+            if (results.length) {
+                html = results.map(item => `
+                    <div class="online__item selector" data-url="${item.url}">
+                        <div class="online__item-poster" style="background-image: url(${item.poster || ''})"></div>
+                        <div class="online__item-title">${item.title}</div>
+                    </div>
+                `).join('');
+            } else {
+                html = '<div class="online__empty">Нічого не знайдено</div>';
+            }
+
+            component.html.find('.online__content').html(html);
+            component.html.find('.online__item').on('hover:enter', (e) => {
+                const url = $(e.currentTarget).data('url');
+                this.loadMovie(component, params, url);
+            });
+        }
+
+        async loadMovie(component, params, url) {
+            component.html.find('.online__content').html('<div class="online__loading">Завантаження фільму...</div>');
+            
+            try {
+                const html = await this.fetchWithProxy(url);
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const iframe = doc.querySelector('iframe');
+                if (iframe && iframe.src) {
+                    Lampa.Player.play({
+                        url: iframe.src,
+                        title: params.title,
+                        type: 'movie',
+                        plugin: PLUGIN_ID
+                    });
+                } else {
+                    component.html.find('.online__loading').text('Не вдалося знайти відео');
+                }
+            } catch (e) {
+                console.error('[UAFlix] Помилка:', e);
+                component.html.find('.online__loading').text('Помилка завантаження фільму');
+            }
+        }
+
+        async fetchWithProxy(url) {
+            const response = await fetch(`${CORS_PROXY}${encodeURIComponent(url)}`, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0',
+                    'Referer': UAFLIX_DOMAIN
+                }
+            });
+            return await response.text();
         }
     }
 
-    function initPlugin() {
-        // Зберігаємо оригінальний код кнопки з uaflix_work.js
-        const originalPlugin = {
-            name: 'UAFIX Online',
-            icon: 'https://uafix.net/favicon.ico',
-            group: 'online',
-            version: '1.0.6',
-            component: {
-                template: `
-                    <div class="plugin-uaflix">
-                        <button @click="openMenu" class="plugin-uaflix__button">UAFIX</button>
-                        <div v-if="showMenu" class="plugin-uaflix__menu">
-                            <div @click="searchContent" class="plugin-uaflix__menu-item">Пошук</div>
-                            <div v-if="showSearch" class="plugin-uaflix__search">
-                                <input v-model="searchQuery" placeholder="Введіть назву">
-                                <button @click="doSearch">Шукати</button>
-                                <div class="plugin-uaflix__results">
-                                    <div v-for="item in searchResults" @click="playItem(item)" class="plugin-uaflix__result-item">
-                                        {{ item.title }} ({{ item.year }})
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `,
-                data: () => ({
-                    showMenu: false,
-                    showSearch: false,
-                    searchQuery: '',
-                    searchResults: []
-                }),
-                methods: {
-                    openMenu() {
-                        this.showMenu = !this.showMenu;
-                        if (!this.showMenu) {
-                            this.showSearch = false;
-                            this.searchResults = [];
-                        }
-                    },
-                    searchContent() {
-                        this.showSearch = true;
-                    },
-                    async doSearch() {
-                        if (!this.searchQuery.trim()) return;
-                        
-                        try {
-                            const results = await this.searchUAFIX(this.searchQuery);
-                            this.searchResults = results;
-                        } catch (e) {
-                            console.error('Search error:', e);
-                            Lampa.Noty.show('Помилка пошуку');
-                        }
-                    },
-                    async searchUAFIX(query) {
-                        const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&story=${encodeURIComponent(query)}`;
-                        const response = await fetch(`https://cors-anywhere.herokuapp.com/${searchUrl}`);
-                        const html = await response.text();
-                        
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(html, 'text/html');
-                        
-                        const results = [];
-                        const items = doc.querySelectorAll('.short');
-                        
-                        items.forEach(item => {
-                            const titleEl = item.querySelector('.short-title a');
-                            const yearEl = item.querySelector('.short-year');
-                            
-                            if (titleEl) {
-                                results.push({
-                                    title: titleEl.textContent.trim(),
-                                    url: titleEl.href,
-                                    year: yearEl ? yearEl.textContent.trim() : ''
-                                });
-                            }
-                        });
-                        
-                        return results;
-                    },
-                    async playItem(item) {
-                        try {
-                            const videoData = await this.getVideoFromUAFIX(item.url);
-                            if (!videoData) throw new Error('Відео не знайдено');
-                            
-                            Lampa.Player.play({
-                                title: item.title,
-                                url: videoData.url,
-                                type: videoData.type
-                            });
-                            
-                            this.showMenu = false;
-                            this.showSearch = false;
-                        } catch (e) {
-                            console.error('Play error:', e);
-                            Lampa.Noty.show('Помилка відтворення');
-                        }
-                    },
-                    async getVideoFromUAFIX(url) {
-                        const response = await fetch(`https://cors-anywhere.herokuapp.com/${url}`);
-                        const html = await response.text();
-                        
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(html, 'text/html');
-                        
-                        const videoTag = doc.querySelector('video');
-                        if (!videoTag) throw new Error('Тег video не знайдено');
-                        
-                        const videoUrl = videoTag.getAttribute('src');
-                        if (!videoUrl) throw new Error('Посилання на відео відсутнє');
-                        
-                        return {
-                            url: videoUrl,
-                            type: videoUrl.includes('.m3u8') ? 'hls' : 'video'
-                        };
-                    }
-                }
-            }
-        };
+    // Реєстрація плагіна
+    Lampa.Plugin.register(new UaflixPlugin());
 
-        // Додаємо плагін
-        Lampa.Plugin.add('uaflix', originalPlugin);
-
-        // Додаємо стилі
-        Lampa.Template.add(`
-            <style>
-                .plugin-uaflix {
-                    position: relative;
-                    display: inline-block;
-                    margin-left: 15px;
-                }
-                .plugin-uaflix__button {
-                    background: #3f51b5;
-                    color: white;
-                    border: none;
-                    padding: 8px 15px;
-                    border-radius: 4px;
-                    cursor: pointer;
-                }
-                .plugin-uaflix__menu {
-                    position: absolute;
-                    top: 100%;
-                    left: 0;
-                    background: #2a2a2a;
-                    padding: 10px;
-                    border-radius: 4px;
-                    z-index: 1000;
-                    min-width: 200px;
-                }
-                .plugin-uaflix__menu-item {
-                    padding: 8px;
-                    cursor: pointer;
-                }
-                .plugin-uaflix__menu-item:hover {
-                    background: #3f51b5;
-                }
-                .plugin-uaflix__search {
-                    margin-top: 10px;
-                }
-                .plugin-uaflix__results {
-                    max-height: 400px;
-                    overflow-y: auto;
-                    margin-top: 10px;
-                }
-                .plugin-uaflix__result-item {
-                    padding: 8px;
-                    cursor: pointer;
-                    border-bottom: 1px solid #444;
-                }
-                .plugin-uaflix__result-item:hover {
-                    background: #3f51b5;
-                }
-            </style>
-        `);
-    }
-
-    // Запускаємо очікування Lampa
-    waitForLampa();
+    // Додавання кнопки
+    Lampa.Listener.follow('full', (e) => {
+        if (e.type === 'complete') {
+            const movie = e.data.movie;
+            const button = $(`
+                <div class="full-start__button selector view--uaflix" data-subtitle="UAFlix ${PLUGIN_VERSION}">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24" fill="currentColor">
+                        <path d="M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z
+                        M228.9,2l8,37.7l0,0L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z
+                        M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88L2,50.2L47.8,80L10,88z"/>
+                    </svg>
+                    <span>UAFlix</span>
+                </div>
+            `);
+            
+            $('.full-start__button').last().after(button);
+            
+            button.on('hover:enter', () => {
+                Lampa.Activity.push({
+                    url: '',
+                    title: movie.title,
+                    component: 'online',
+                    search: movie.title,
+                    search_one: movie.original_title,
+                    plugin: PLUGIN_ID,
+                    movie: movie
+                });
+            });
+        }
+    });
 })();
