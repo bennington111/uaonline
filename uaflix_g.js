@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.0
+// @version     2.1
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -72,22 +72,38 @@
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
 
-            const resultLink = doc.querySelector('.sres-wrap');
-
+            const resultLink = doc.querySelector('.sres-wrap a');
+            
             if (resultLink) {
                 const href = resultLink.href;
                 console.log('[uaflix] Знайдено:', href);
-                // Відкриваємо сторінку фільму в Lampa
-                Lampa.Activity.push({
-                    url: '',
-                    title: Lampa.Lang.translate('title_online'),
-                    component: 'online',
-                    search: e.data.movie.title,
-                    search_one: e.data.movie.title,
-                    search_two: e.data.movie.original_title,
-                    movie: e.data.movie,
-                    page: 1
-                });
+
+                // Отримуємо сторінку фільму
+                const filmResponse = await fetch(proxyUrl + encodeURIComponent(href));
+                const filmHtml = await filmResponse.text();
+                const filmDoc = parser.parseFromString(filmHtml, 'text/html');
+                
+                // Шукаємо iframe з відео
+                const iframe = filmDoc.querySelector('iframe');
+                const videoUrl = iframe ? iframe.src : null;
+
+                if (videoUrl) {
+                    console.log('[uaflix] Відео URL:', videoUrl);
+                
+                    // Відкриваємо сторінку фільму в Lampa
+                    Lampa.Activity.push({
+                        url: videoUrl,
+                        title: `UAFlix: ${title}`,
+                        component: 'online',
+                        search: title,
+                        search_one: movie.title,
+                        search_two: movie.original_title,
+                        movie: movie,
+                        page: 1
+                    });
+                } else {
+                    Lampa.Noty.show('Не вдалося знайти відео на сторінці');
+                }
             } else {
                 Lampa.Noty.show('Нічого не знайдено на UAFlix');
             }
