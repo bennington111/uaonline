@@ -67,9 +67,9 @@
 
         try {
             // Використовуємо проксі для запиту сторінки фільму
-            const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));
+            const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));  // Відправляємо правильний URL через проксі
             const data = await response.json();
-
+            
             // Логування всього результату для діагностики
             console.log('[uaflix] Пошуковий результат:', data);
 
