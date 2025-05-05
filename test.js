@@ -1,5 +1,5 @@
 // ==UserScript==
-// @version     1.2
+// @version     1.3
 // ==/UserScript==
 
 (function () {
@@ -48,13 +48,19 @@
     function loadTestVideo() {
         const videoUrl = 'https://videos.pexels.com/video-files/4019911/4019911-hd_1080_1920_24fps.mp4'; // Пряме посилання на відео
 
-        // Запускаємо відео в плеєрі Lampa через компонент 'online_mod'
-        Lampa.Activity.push({
-            url: videoUrl,
-            title: 'UAFlix Test Video',
-            component: 'online_mod',
-            page: 1,
-            // Можна додати додаткові параметри для плеєра, якщо потрібно
-        });
+        // Перевірка URL для правильного запуску
+        if (videoUrl) {
+            console.log('[uaflix] Знайдено посилання на відео:', videoUrl);
+            // Запускаємо відео в плеєрі Lampa через компонент 'online_mod'
+            Lampa.Activity.push({
+                url: videoUrl,
+                title: 'UAFlix Test Video',
+                component: 'online_mod',
+                page: 1,
+                // Можна додати додаткові параметри для плеєра, якщо потрібно
+            });
+        } else {
+            Lampa.Noty.show('Не вдалося знайти відео');
+        }
     }
 })();
