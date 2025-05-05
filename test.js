@@ -1,5 +1,5 @@
 // ==UserScript==
-// @version     1.1
+// @version     1.2
 // ==/UserScript==
 
 (function () {
@@ -46,7 +46,7 @@
 
     // Функція для запуску тестового відео
     function loadTestVideo() {
-        const videoUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'; // Пряме посилання на відео
+        const videoUrl = 'https://videos.pexels.com/video-files/4019911/4019911-hd_1080_1920_24fps.mp4'; // Пряме посилання на відео
 
         // Запускаємо відео в плеєрі Lampa через компонент 'online_mod'
         Lampa.Activity.push({
