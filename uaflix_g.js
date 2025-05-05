@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.2
+// @version     2.3
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -69,19 +69,22 @@
             // Використовуємо проксі для запиту сторінки фільму
             const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));
             const html = await response.text();
+            console.log('[uaflix] Пошуковий HTML:', html);  // Додатковий лог для перевірки відповіді
 
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
 
             const resultLink = doc.querySelector('.sres-wrap');
+            console.log('[uaflix] Результат пошуку:', resultLink);
 
             if (resultLink) {
                 const href = resultLink.href;
                 console.log('[uaflix] Знайдено:', href);
-                
+
                 // Відкриваємо сторінку фільму в Lampa
                 const moviePageResponse = await fetch(proxyUrl + encodeURIComponent(href));
                 const moviePageHtml = await moviePageResponse.text();
+                console.log('[uaflix] Сторінка фільму HTML:', moviePageHtml);
 
                 const movieDoc = new DOMParser().parseFromString(moviePageHtml, 'text/html');
                 
