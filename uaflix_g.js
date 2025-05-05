@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.3
+// @version     2.4
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -66,16 +66,17 @@
         const proxyUrl = 'http://localhost:3000/proxy?url=';  // Локальний проксі
 
         try {
-            // Використовуємо проксі для запиту сторінки фільму
-            const response = await fetch(proxyUrl + searchUrl);  // Передаємо без encodeURIComponent
+            // Використовуємо проксі для запиту сторінки пошуку
+            const response = await fetch(proxyUrl + searchUrl);
             const data = await response.json();
             
             // Логування всього результату для діагностики
             console.log('[uaflix] Пошуковий результат:', data);
 
-            // Якщо videoUrl є в результатах, відкриваємо
+            // Якщо ми знайшли посилання на фільм в результатах пошуку
             if (data && data.videoUrl) {
-                const videoUrl = data.videoUrl;  // Отримуємо URL відео
+                // Витягуємо правильне посилання на сторінку фільму
+                const videoUrl = data.videoUrl;
                 console.log('[uaflix] Video URL:', videoUrl);  // Логування відео URL
 
                 // Відкриваємо відео в Lampa
