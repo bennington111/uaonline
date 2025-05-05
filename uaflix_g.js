@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.7
+// @version     2.8
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -63,48 +63,42 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
-        const proxyUrl = 'https://corsproxy.io/?';  // Використовуємо віддалене проксі для пошуку
+        const proxyUrl = 'http://localhost:3000/proxy?url='; // Використовуємо локальний проксі
 
         try {
-            // Використовуємо проксі для запиту сторінки пошуку
             const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));
             const html = await response.text();
 
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
 
-            // Шукаємо правильне посилання на сторінку фільму
-            const resultLink = doc.querySelector('.sres-wrap a');
+            const resultLink = doc.querySelector('.sres-wrap');
 
             if (resultLink) {
                 const href = resultLink.href;
                 console.log('[uaflix] Знайдено:', href);
-
-                // Тепер використовуємо локальний проксі для відкриття сторінки фільму
-                const localProxyUrl = 'http://localhost:3000/proxy?url=';
-
-                // Відкриваємо сторінку фільму через локальний проксі
-                const moviePageResponse = await fetch(localProxyUrl + encodeURIComponent(href));
-                const moviePageHtml = await moviePageResponse.text();
-
-                const moviePageDoc = new DOMParser().parseFromString(moviePageHtml, 'text/html');
-                const iframe = moviePageDoc.querySelector('iframe');
-
-                if (iframe) {
-                    const videoUrl = iframe.getAttribute('src');
-                    console.log('[uaflix] Відео URL:', videoUrl);
-
-                    // Відкриваємо відео
-                    Lampa.Activity.push({
-                        url: videoUrl,
-                        title: `UAFlix: ${title}`,
-                        component: 'online_mod',
-                        search: title,
-                        movie: movie,
-                        page: 1
+                // Відкриваємо сторінку фільму в Lampa
+                Lampa.Activity.push({
+                    url: href,
+                    title: `UAFlix: ${title}`,
+                    component: 'online_mod', // Використовуємо компонент для відтворення відео
+                    search: title,
+                    movie: movie,
+                    page: 1
+                });
+                
+                // Парсимо відео за допомогою локального проксі
+                const videoUrl = await fetchVideoUrl(href);
+                if (videoUrl) {
+                    // Запускаємо відео за допомогою Lampa.Player.play
+                    Lampa.Player.play({
+                        url: videoUrl,       // Пряме посилання на відео
+                        title: `UAFlix: ${title}`, // Назва фільму
+                        auto_play: true,     // Вмикаємо автоматичне відтворення
+                        stream_url: videoUrl // Інше посилання на відео (якщо потрібно)
                     });
                 } else {
-                    Lampa.Noty.show('Не вдалося знайти відео для цього фільму');
+                    Lampa.Noty.show('Не знайдено відео для відтворення');
                 }
             } else {
                 Lampa.Noty.show('Нічого не знайдено на UAFlix');
@@ -112,6 +106,30 @@
         } catch (e) {
             console.error(e);
             Lampa.Noty.show('Помилка при пошуку на UAFlix');
+        }
+    }
+
+    // Функція для отримання прямого посилання на відео
+    async function fetchVideoUrl(filmUrl) {
+        const proxyUrl = 'http://localhost:3000/proxy?url='; // Використовуємо локальний проксі
+        const videoPageUrl = encodeURIComponent(filmUrl);
+
+        try {
+            const response = await fetch(proxyUrl + videoPageUrl);
+            const data = await response.json();
+
+            // Отримуємо відео URL
+            const videoUrl = data.videoUrl;
+
+            if (videoUrl) {
+                console.log('[uaflix] Відео URL:', videoUrl);
+                return videoUrl; // Повертаємо пряме посилання на відео
+            } else {
+                return null;
+            }
+        } catch (error) {
+            console.error('Не вдалося отримати відео URL', error);
+            return null;
         }
     }
 })();
