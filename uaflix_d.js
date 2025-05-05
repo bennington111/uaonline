@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.1
+// @version     2.0
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -15,7 +15,7 @@
     const UAFLIX_DOMAIN = 'https://uafix.net';
     const CORS_PROXY = 'https://corsproxy.io/?';
 
-    // Реєстрація плагіна (як у вашому оригінальному коді)
+    // Реєстрація плагіна
     const manifest = {
         version: PLUGIN_VERSION,
         id: PLUGIN_ID,
@@ -29,14 +29,14 @@
     Lampa.Manifest.plugins = Lampa.Manifest.plugins || [];
     Lampa.Manifest.plugins.push(manifest);
 
-    // Додавання стилів
+    // Додавання стилів для кнопки
     const style = document.createElement('style');
     style.textContent = `
         .view--uaflix svg { color: #0078c8; }
     `;
     document.head.appendChild(style);
 
-    // Додавання кнопки (як у вашому оригінальному коді)
+    // Додавання кнопки
     Lampa.Listener.follow('full', function(e) {
         if (e.type === 'complite') {
             const movie = e.data.movie;
@@ -59,7 +59,7 @@
         }
     });
 
-    // Основна функція для завантаження фільму
+    // Основна функція
     async function loadOnline(movie) {
         const title = movie.title || movie.name;
         if (!title) {
@@ -70,32 +70,32 @@
         Lampa.Noty.show(`Пошук UAFlix: ${title}`);
 
         try {
-            const searchUrl = `${UAFLIX_DOMAIN}/index.php?do=search&subaction=search&story=${encodeURIComponent(title)}`;
-            const html = await fetchWithProxy(searchUrl);
+            const query = encodeURIComponent(title);
+            const searchUrl = `${UAFLIX_DOMAIN}/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
+            
+            const response = await fetch(`${CORS_PROXY}${encodeURIComponent(searchUrl)}`);
+            const html = await response.text();
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
-            
+
             const resultLink = doc.querySelector('.sres-wrap a');
             
             if (resultLink) {
                 const href = resultLink.href;
                 console.log('[UAFlix] Знайдено сторінку фільму:', href);
-
-                // Завантажуємо сторінку фільму
-                const filmHtml = await fetchWithProxy(href);
-                const filmDoc = parser.parseFromString(filmHtml, 'text/html');
                 
-                // Шукаємо iframe з відео
-                const iframe = filmDoc.querySelector('iframe');
-                if (iframe && iframe.src) {
-                    Lampa.Player.play({
-                        url: iframe.src,
-                        title: title,
-                        type: 'movie'
-                    });
-                } else {
-                    Lampa.Noty.show('Не вдалося знайти відео на сторінці');
-                }
+                // Відкриваємо сторінку фільму в Lampa
+                Lampa.Activity.push({
+                    url: href,  // Використовуємо посилання на сторінку фільму
+                    title: `UAFlix: ${title}`,
+                    component: 'online',
+                    search: title,
+                    search_one: movie.title,
+                    search_two: movie.original_title,
+                    movie: movie,
+                    page: 1,
+                    uaflix_page: true  // Позначка для обробки
+                });
             } else {
                 Lampa.Noty.show('Нічого не знайдено на UAFlix');
             }
@@ -105,14 +105,35 @@
         }
     }
 
-    // Функція для виконання запитів через CORS-проксі
-    async function fetchWithProxy(url) {
-        const response = await fetch(`${CORS_PROXY}${encodeURIComponent(url)}`, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0',
-                'Referer': UAFLIX_DOMAIN
-            }
-        });
-        return await response.text();
-    }
+    // Обробник для відкритої сторінки фільму
+    Lampa.Listener.follow('app', function(e) {
+        if (e.type === 'ready' && e.data.params && e.data.params.uaflix_page) {
+            const url = e.data.params.url;
+            console.log('[UAFlix] Обробка сторінки фільму:', url);
+            
+            // Отримуємо сторінку фільму
+            fetch(`${CORS_PROXY}${encodeURIComponent(url)}`)
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    // Шукаємо iframe з відео
+                    const iframe = doc.querySelector('iframe');
+                    if (iframe && iframe.src) {
+                        Lampa.Player.play({
+                            url: iframe.src,
+                            title: e.data.params.title.replace('UAFlix: ', ''),
+                            type: 'movie'
+                        });
+                    } else {
+                        Lampa.Noty.show('Не вдалося знайти відео на сторінці');
+                    }
+                })
+                .catch(error => {
+                    console.error('[UAFlix] Помилка:', error);
+                    Lampa.Noty.show('Помилка завантаження сторінки фільму');
+                });
+        }
+    });
 })();
