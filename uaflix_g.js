@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.1
+// @version     2.2
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -63,46 +63,46 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
-        const proxyUrl = 'https://corsproxy.io/?';
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';  // або використовуйте свій власний проксі
 
         try {
+            // Використовуємо проксі для запиту сторінки фільму
             const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));
             const html = await response.text();
 
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
 
-            const resultLink = doc.querySelector('.sres-wrap a');
-            
+            const resultLink = doc.querySelector('.sres-wrap');
+
             if (resultLink) {
                 const href = resultLink.href;
                 console.log('[uaflix] Знайдено:', href);
-
-                // Отримуємо сторінку фільму
-                const filmResponse = await fetch(proxyUrl + encodeURIComponent(href));
-                const filmHtml = await filmResponse.text();
-                const filmDoc = parser.parseFromString(filmHtml, 'text/html');
                 
-                // Шукаємо iframe з відео
-                const iframe = filmDoc.querySelector('iframe');
+                // Відкриваємо сторінку фільму в Lampa
+                const moviePageResponse = await fetch(proxyUrl + encodeURIComponent(href));
+                const moviePageHtml = await moviePageResponse.text();
+
+                const movieDoc = new DOMParser().parseFromString(moviePageHtml, 'text/html');
+                
+                // Знаходимо iframe з посиланням на відео
+                const iframe = movieDoc.querySelector('iframe');
                 const videoUrl = iframe ? iframe.src : null;
 
                 if (videoUrl) {
                     console.log('[uaflix] Відео URL:', videoUrl);
-                
-                    // Відкриваємо сторінку фільму в Lampa
+
+                    // Відкриваємо відео в Lampa
                     Lampa.Activity.push({
-                        url: videoUrl,
+                        url: videoUrl,  // Відкриваємо посилання на відео
                         title: `UAFlix: ${title}`,
-                        component: 'online',
+                        component: 'online_mod', // Використовуємо компонент для відтворення відео
                         search: title,
-                        search_one: movie.title,
-                        search_two: movie.original_title,
                         movie: movie,
                         page: 1
                     });
                 } else {
-                    Lampa.Noty.show('Не вдалося знайти відео на сторінці');
+                    Lampa.Noty.show('Не знайдено відео для відтворення');
                 }
             } else {
                 Lampa.Noty.show('Нічого не знайдено на UAFlix');
