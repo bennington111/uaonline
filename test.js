@@ -56,7 +56,7 @@
             Lampa.Activity.push({
                 url: videoUrl,
                 title: 'UAFlix Test Video',
-                component: 'video', // Використовуємо компонент 'video' для відтворення відео
+                component: 'online_mod', // Використовуємо компонент 'video' для відтворення відео
                 page: 1,
                 stream_url: videoUrl, // Передаємо відео URL
                 auto_play: true, // Налаштовуємо авто-відтворення відео
