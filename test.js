@@ -1,5 +1,5 @@
 // ==UserScript==
-// @version     1.3
+// @version     1.4
 // ==/UserScript==
 
 (function () {
@@ -51,13 +51,15 @@
         // Перевірка URL для правильного запуску
         if (videoUrl) {
             console.log('[uaflix] Знайдено посилання на відео:', videoUrl);
+            
             // Запускаємо відео в плеєрі Lampa через компонент 'online_mod'
             Lampa.Activity.push({
                 url: videoUrl,
                 title: 'UAFlix Test Video',
                 component: 'online_mod',
                 page: 1,
-                // Можна додати додаткові параметри для плеєра, якщо потрібно
+                stream_url: videoUrl, // Передаємо відео URL
+                auto_play: true, // Налаштовуємо авто-відтворення відео
             });
         } else {
             Lampa.Noty.show('Не вдалося знайти відео');
