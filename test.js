@@ -1,68 +1,159 @@
 // ==UserScript==
-// @version     1.6
+// @version     1.5
 // ==/UserScript==
 
-(function () {
-    const mod_version = '1.0.0';
-    const mod_id = 'uaflix_test';
+(function() {
+    'use strict';
 
+    const PLUGIN_ID = 'uaonline';
+    const PLUGIN_VERSION = '1.5';
+    const CORS_PROXY = 'https://corsproxy.io/?';
+    const DEFAULT_ICON = 'https://bennington111.github.io/uaonline/icon.png';
+
+    // Реєстрація плагіна
     const manifest = {
-        version: mod_version,
-        id: mod_id,
-        name: 'UAFlix Test',
-        description: 'Тестовий плагін для прямого відео',
+        version: PLUGIN_VERSION,
+        id: PLUGIN_ID,
+        name: 'UAOnline',
+        description: 'Український онлайн контент',
         type: 'video',
         component: 'online',
-        proxy: false
+        icon: DEFAULT_ICON
     };
 
-    // Реєстрація плагіна в Lampa
     Lampa.Manifest.plugins = Lampa.Manifest.plugins || [];
     Lampa.Manifest.plugins.push(manifest);
 
-    // Додаємо кнопку після повного завантаження сторінки
-    Lampa.Listener.follow('full', function (e) {
+    // Додавання стилів
+    const style = document.createElement('style');
+    style.textContent = `
+        .view--uaonline svg {
+            color: #0057b7;
+        }
+        .online--uaonline .online__head {
+            background: linear-gradient(90deg, rgba(0,87,183,0.8) 0%, rgba(0,87,183,0.6) 100%);
+        }
+        .online--uaonline .online__title:before {
+            content: "UAOnline";
+            background: #0057b7;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Обробник для сторінки online
+    Lampa.Listener.follow('app', (e) => {
+        if (e.type === 'ready' && e.data.component === 'online' && e.data.params.plugin === PLUGIN_ID) {
+            initOnlinePage(e.data.params, e.data.object);
+        }
+    });
+
+    function initOnlinePage(params, component) {
+        component.html = `
+            <div class="online__head">
+                <div class="online__title">${params.title}</div>
+            </div>
+            <div class="online__content">
+                <div class="online__loading">Завантаження...</div>
+            </div>
+        `;
+
+        component.start = () => {
+            loadData(component, params);
+        };
+
+        component.start();
+    }
+
+    async function loadData(component, params) {
+        try {
+            // Тут буде логіка пошуку контенту
+            // Для прикладу - фіктивні дані
+            const results = [{
+                title: 'Приклад відео',
+                url: 'https://videos.pexels.com/video-files/4019911/4019911-hd_1080_1920_24fps.mp4',
+                poster: 'https://image.tmdb.org/t/p/w500/example.jpg'
+            }];
+
+            showResults(component, params, results);
+        } catch (e) {
+            console.error('[UAOnline] Помилка:', e);
+            component.html.find('.online__loading').text('Помилка завантаження');
+        }
+    }
+
+    function showResults(component, params, results) {
+        let html = '';
+        
+        if (results.length) {
+            html = results.map(item => `
+                <div class="online__item selector" data-url="${item.url}" data-title="${item.title}" data-poster="${item.poster || ''}">
+                    <div class="online__item-poster" style="background-image: url(${item.poster || ''})"></div>
+                    <div class="online__item-title">${item.title}</div>
+                </div>
+            `).join('');
+        } else {
+            html = '<div class="online__empty">Нічого не знайдено</div>';
+        }
+
+        component.html.find('.online__content').html(html);
+        component.html.find('.online__item').on('hover:enter', (e) => {
+            const url = $(e.currentTarget).data('url');
+            const title = $(e.currentTarget).data('title');
+            const poster = $(e.currentTarget).data('poster');
+            
+            playVideo(url, title, poster);
+        });
+    }
+
+    function playVideo(url, title, poster) {
+        if (!url) {
+            Lampa.Noty.show('Посилання на відео відсутнє');
+            return;
+        }
+
+        Lampa.Noty.show(`Запуск відео: ${title}`);
+
+        // Безпосередній запуск плеєра Lampa
+        Lampa.Player.play({
+            url: url,
+            title: title,
+            type: 'movie',
+            poster: poster,
+            plugin: PLUGIN_ID,
+            params: {
+                direct: true
+            }
+        });
+    }
+
+    // Додавання кнопки
+    Lampa.Listener.follow('full', (e) => {
         if (e.type === 'complite') {
             const movie = e.data.movie;
-            const button_html = `
-            <div class="full-start__button selector view--uaflix-test" data-subtitle="UAFlix Test ${mod_version}">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24" fill="currentColor">
-                    <path d="M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z
-                    M228.9,2l8,37.7l0,0L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z
-                    M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88L2,50.2L47.8,80L10,88z"/>
-                </svg>
-                <span>UAFlix Test</span>
-            </div>`;
-            const btn = $(button_html);
-            // Додаємо кнопку до DOM
-            $('.full-start__button').last().after(btn);
-
-            // Додавання обробника події на натискання
-            btn.on('hover:enter', function () {
-                loadTestVideo();
+            const button = $(`
+                <div class="full-start__button selector view--uaonline" data-subtitle="UAOnline ${PLUGIN_VERSION}">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+                    </svg>
+                    <span>UAOnline</span>
+                </div>
+            `);
+            
+            $('.full-start__button').last().after(button);
+            
+            button.on('hover:enter', () => {
+                Lampa.Activity.push({
+                    url: '',
+                    title: movie.title,
+                    component: 'online',
+                    search: movie.title,
+                    search_one: movie.original_title,
+                    plugin: PLUGIN_ID,
+                    movie: movie
+                });
             });
         }
     });
 
-    // Функція для запуску тестового відео
-    function loadTestVideo() {
-        const videoUrl = 'https://videos.pexels.com/video-files/4019911/4019911-hd_1080_1920_24fps.mp4'; // Пряме посилання на відео
-
-        // Перевірка URL для правильного запуску
-        if (videoUrl) {
-            console.log('[uaflix] Знайдено посилання на відео:', videoUrl);
-            
-            // Використовуємо компонент для відтворення відео через Lampa
-            Lampa.Activity.push({
-                url: videoUrl,
-                title: 'UAFlix Test Video',
-                component: 'online_mod', // Використовуємо компонент 'video' для відтворення відео
-                page: 1,
-                stream_url: videoUrl, // Передаємо відео URL
-                auto_play: true, // Налаштовуємо авто-відтворення відео
-            });
-        } else {
-            Lampa.Noty.show('Не вдалося знайти відео');
-        }
-    }
+    console.log(`UAOnline v${PLUGIN_VERSION} завантажено`);
 })();
