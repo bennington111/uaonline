@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.3
+// @version     2.4
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -74,30 +74,18 @@
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
 
-            const resultLink = doc.querySelector('.sres-wrap');
-            console.log('[uaflix] Результат пошуку:', resultLink);
+            // Шукаємо мета-тег og:video:iframe для отримання iframe URL
+            const metaIframe = doc.querySelector('meta[property="og:video:iframe"]');
+            console.log('[uaflix] Мета-тег з iframe:', metaIframe);  // Логування мета-тега
 
-            if (resultLink) {
-                const href = resultLink.href;
-                console.log('[uaflix] Знайдено:', href);
+            if (metaIframe) {
+                const iframeSrc = metaIframe.getAttribute('content');  // Отримуємо URL із content атрибута
+                console.log('[uaflix] URL відео:', iframeSrc);  // Логування URL
 
-                // Відкриваємо сторінку фільму в Lampa
-                const moviePageResponse = await fetch(proxyUrl + encodeURIComponent(href));
-                const moviePageHtml = await moviePageResponse.text();
-                console.log('[uaflix] Сторінка фільму HTML:', moviePageHtml);
-
-                const movieDoc = new DOMParser().parseFromString(moviePageHtml, 'text/html');
-                
-                // Знаходимо iframe з посиланням на відео
-                const iframe = movieDoc.querySelector('iframe');
-                const videoUrl = iframe ? iframe.src : null;
-
-                if (videoUrl) {
-                    console.log('[uaflix] Відео URL:', videoUrl);
-
+                if (iframeSrc) {
                     // Відкриваємо відео в Lampa
                     Lampa.Activity.push({
-                        url: videoUrl,  // Відкриваємо посилання на відео
+                        url: iframeSrc,  // Відкриваємо iframe посилання
                         title: `UAFlix: ${title}`,
                         component: 'online_mod', // Використовуємо компонент для відтворення відео
                         search: title,
