@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.2
+// @version     2.3
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -67,7 +67,7 @@
 
         try {
             // Використовуємо проксі для запиту сторінки фільму
-            const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));  // Відправляємо правильний URL через проксі
+            const response = await fetch(proxyUrl + searchUrl);  // Передаємо без encodeURIComponent
             const data = await response.json();
             
             // Логування всього результату для діагностики
