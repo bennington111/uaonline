@@ -53,7 +53,6 @@
             console.log('[uaflix] Знайдено посилання на відео:', videoUrl);
             
             // Запускаємо відео в плеєрі Lampa через компонент 'online_mod'
-            Lampa.Component.add('online_mod', component);
             Lampa.Activity.push({
                 url: videoUrl,
                 title: 'UAFlix Test Video',
