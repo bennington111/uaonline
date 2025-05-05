@@ -1,3 +1,7 @@
+// ==UserScript==
+// @version     1.1
+// ==/UserScript==
+
 (function () {
     const mod_version = '1.0.0';
     const mod_id = 'uaflix_test';
@@ -44,11 +48,13 @@
     function loadTestVideo() {
         const videoUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'; // Пряме посилання на відео
 
+        // Запускаємо відео в плеєрі Lampa через компонент 'online_mod'
         Lampa.Activity.push({
             url: videoUrl,
             title: 'UAFlix Test Video',
             component: 'online_mod',
-            page: 1
+            page: 1,
+            // Можна додати додаткові параметри для плеєра, якщо потрібно
         });
     }
 })();
