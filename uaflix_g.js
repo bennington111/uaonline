@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     2.3
+// @version     2.0
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -63,10 +63,9 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
-        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';  // або використовуйте свій власний проксі
+        const proxyUrl = 'https://corsproxy.io/?';
 
         try {
-            // Використовуємо проксі для запиту сторінки фільму
             const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));
             const html = await response.text();
 
@@ -78,32 +77,17 @@
             if (resultLink) {
                 const href = resultLink.href;
                 console.log('[uaflix] Знайдено:', href);
-                
                 // Відкриваємо сторінку фільму в Lampa
-                const moviePageResponse = await fetch(proxyUrl + encodeURIComponent(href));
-                const moviePageHtml = await moviePageResponse.text();
-
-                const movieDoc = new DOMParser().parseFromString(moviePageHtml, 'text/html');
-                
-                // Знаходимо iframe з посиланням на відео
-                const iframe = movieDoc.querySelector('iframe');
-                const videoUrl = iframe ? iframe.src : null;
-
-                if (videoUrl) {
-                    console.log('[uaflix] Відео URL:', videoUrl);
-
-                    // Відкриваємо відео в Lampa
-                    Lampa.Activity.push({
-                        url: videoUrl,  // Відкриваємо посилання на відео
-                        title: `UAFlix: ${title}`,
-                        component: 'online_mod', // Використовуємо компонент для відтворення відео
-                        search: title,
-                        movie: movie,
-                        page: 1
-                    });
-                } else {
-                    Lampa.Noty.show('Не знайдено відео для відтворення');
-                }
+                Lampa.Activity.push({
+                    url: '',
+                    title: Lampa.Lang.translate('title_online'),
+                    component: 'online',
+                    search: e.data.movie.title,
+                    search_one: e.data.movie.title,
+                    search_two: e.data.movie.original_title,
+                    movie: e.data.movie,
+                    page: 1
+                });
             } else {
                 Lampa.Noty.show('Нічого не знайдено на UAFlix');
             }
