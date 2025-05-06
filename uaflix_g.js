@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.4
+// @version     1.5
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -77,7 +77,9 @@
 
             const searchParser = new DOMParser();
             const searchDoc = searchParser.parseFromString(searchHtml, 'text/html');
-            const resultLink = searchDoc.querySelector('.sres-wrap a');
+
+            // Шукаємо перший елемент з посиланням на сторінку фільму
+            const resultLink = searchDoc.querySelector('a[href^="https://uafix.net/films/"]');
 
             if (resultLink) {
                 const filmPageUrl = resultLink.href;
