@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.0
+// @version     1.1
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -46,6 +46,7 @@
 
             // Додавання обробника події на натискання
             btn.on('click', function () {
+                console.log('UAFlix: Кнопка натиснута');
                 loadOnline(movie);
             });
         }
@@ -53,6 +54,7 @@
 
     // Функція для пошуку фільму та запуску відео
     async function loadOnline(movie) {
+        console.log('UAFlix: Функція loadOnline викликається');
         const title = movie.title || movie.name;
         if (!title) {
             Lampa.Noty.show('Не вдалося отримати назву фільму');
@@ -68,6 +70,8 @@
         try {
             const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));
             const html = await response.text();
+
+            console.log('UAFlix: Отримана HTML відповідь:', html);
 
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
