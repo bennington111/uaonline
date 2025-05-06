@@ -1,49 +1,60 @@
+// ==UserScript==
+// @version     1.6
+// ==/UserScript==
+
 (function () {
-    console.log('[UAOnline] Старт плагіна');
+    const mod_version = '1.0.0';
+    const mod_id = 'uaflix_test';
 
-    function waitForModuleReady(callback) {
-        if (typeof Lampa === 'undefined' || typeof Lampa.Module === 'undefined') {
-            console.log('[UAOnline] Lampa або Lampa.Module ще не готовий, чекаємо...');
-            setTimeout(() => waitForModuleReady(callback), 500);
-        } else {
-            console.log('[UAOnline] Lampa.Module готовий');
-            callback();
+    const manifest = {
+        version: mod_version,
+        id: mod_id,
+        name: 'UAFlix Test Video',
+        description: 'Тестовий плагін для відтворення відео',
+        type: 'video',
+        component: 'online',
+        proxy: false
+    };
+
+    // Реєстрація плагіна в Lampa
+    Lampa.Manifest.plugins = Lampa.Manifest.plugins || [];
+    Lampa.Manifest.plugins.push(manifest);
+
+    // Додаємо кнопку після повного завантаження сторінки
+    Lampa.Listener.follow('full', function (e) {
+        if (e.type === 'complite') {
+            const movie = e.data.movie;
+            const button_html = `
+            <div class="full-start__button selector view--uaflix" data-subtitle="UAFlix Test ${mod_version}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 260" width="24" height="24" fill="currentColor">
+                    <path d="M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z
+                    M228.9,2l8,37.7l0,0L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z
+                    M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88L2,50.2L47.8,80L10,88z"/>
+                </svg>
+                <span>UAFlix Test Video</span>
+            </div>`;
+            const btn = $(button_html);
+            // Додаємо кнопку до DOM
+            $('.full-start__button').last().after(btn);
+
+            // Додавання обробника події на натискання
+            btn.on('hover:enter', function () {
+                playTestVideo();
+            });
         }
-    }
-
-    function addSourceModule() {
-        console.log('[UAOnline] Додаємо пустий модуль для активації секції "Онлайн"');
-        Lampa.Module.add({
-            component: 'online',
-            name: 'Онлайн UA Online',
-            condition: () => true,
-            onSearch: function (query, callback) {
-                callback([]); // нічого не повертаємо — лише для активації блоку
-            },
-            onCancel: function () {}
-        });
-    }
-
-    function addSourceButton() {
-        console.log('[UAOnline] Додаємо кнопку джерела');
-        Lampa.Listener.follow('full', (e) => {
-            if (e.type === 'complite') {
-                console.log('[UAOnline] Вставляємо кнопку джерела після завантаження сторінки');
-                e.object.appendSource({
-                    title: 'UA Online',
-                    url: '',
-                    component: 'uaonline',
-                    onClick: () => {
-                        console.log('[UAOnline] Натиснуто кнопку джерела');
-                        // Тут можна викликати перегляд або інше
-                    }
-                });
-            }
-        });
-    }
-
-    waitForModuleReady(() => {
-        addSourceModule();
-        addSourceButton();
     });
+
+    // Функція для відтворення тестового відео
+    function playTestVideo() {
+        const videoUrl = 'https://zetvideo.net/vod/15027';
+        console.log('[uaflix] Відтворення тестового відео:', videoUrl);
+
+        // Запускаємо відео через Lampa.Player.play
+        Lampa.Player.play({
+            url: videoUrl,       // Пряме посилання на відео
+            title: 'UAFlix Test Video', // Назва відео
+            auto_play: true,     // Вмикаємо автоматичне відтворення
+            stream_url: videoUrl // Інше посилання на відео (якщо потрібно)
+        });
+    }
 })();
