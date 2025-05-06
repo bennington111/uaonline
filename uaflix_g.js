@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.1
+// @version     1.2
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -45,7 +45,7 @@
             $('.full-start__button').last().after(btn);
 
             // Додавання обробника події на натискання
-            btn.on('click', function () {
+            btn.on('hover:enter', function () {
                 console.log('UAFlix: Кнопка натиснута');
                 loadOnline(movie);
             });
