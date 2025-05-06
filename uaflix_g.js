@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.5
+// @version     1.6
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -95,6 +95,7 @@
                 const videoDoc = videoParser.parseFromString(videoHtml, 'text/html');
                 const iframe = videoDoc.querySelector('iframe');
 
+                // Якщо знаходимо iframe, спробуємо отримати URL відео з src
                 if (iframe && iframe.src) {
                     const videoUrl = iframe.src;
                     console.log('[uaflix] Знайдено відео URL:', videoUrl);
