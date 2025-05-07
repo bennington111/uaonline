@@ -65,7 +65,7 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://kinoukr.com/index.php?do=search&story=${query}`;
-        const proxyUrlSearch = 'https://corsproxy.io/?'; // Для пошуку сторінки фільму
+        const proxyUrlSearch = 'https://corsproxy.io/'; // Для пошуку сторінки фільму
 
         try {
             // Спочатку шукаємо посилання на сторінку фільму через проксі
