@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.2
+// @version     1.3
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -65,7 +65,7 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
-        const proxyUrlSearch = 'https://corsproxy.io/?'; // Проксі для пошуку сторінки фільму
+        const proxyUrlSearch = 'https://api.allorigins.win/get?url='; // Проксі для пошуку сторінки фільму
         const proxyUrlVideo = 'https://api.allorigins.win/get?url='; // Проксі для отримання відео
 
         try {
@@ -131,7 +131,7 @@
     // Функція для пошуку відео URL в документі
     function findVideoUrl(doc) {
         let videoUrl = null;
-        // Приклад пошуку через скрипти або теги
+        // Шукаємо через регулярний вираз або інші елементи
         const scriptTags = doc.querySelectorAll('script');
         scriptTags.forEach(script => {
             if (script.innerText.includes('videoUrl')) {
@@ -148,3 +148,4 @@
         return videoUrl;
     }
 })();
+
