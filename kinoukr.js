@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.6
+// @version     1.7
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -65,12 +65,13 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://kinoukr.com/index.php?do=search&story=${query}`;
-        const proxyUrlSearch = 'https://corsproxy.io/?'; // Для пошуку сторінки фільму
+        const proxyUrlSearch = 'https://api.allorigins.win/get?url='; // Для пошуку сторінки фільму
         const proxyUrlVideo = 'https://api.allorigins.win/get?url='; // Для парсингу HTML сторінки фільму
 
         try {
             // Спочатку шукаємо посилання на сторінку фільму через проксі
             const searchResponse = await fetch(proxyUrlSearch + encodeURIComponent(searchUrl));
+            console.log(`Запит на проксі: ${proxyUrlSearch}${encodedUrl}`); // Для дебагу
             const searchHtml = await searchResponse.text();
 
             console.log('Kinoukr: Отримана HTML відповідь пошуку:', searchHtml);
