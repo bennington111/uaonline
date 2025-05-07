@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.4
+// @version     1.5
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -78,9 +78,11 @@
             const searchParser = new DOMParser();
             const searchDoc = searchParser.parseFromString(searchHtml, 'text/html');
 
+            // Логування для перевірки, що шукаємо правильний елемент
+            console.log('Kinoukr: Пошук елементів на сторінці результатів пошуку...');
+
             // Шукаємо перший елемент з посиланням на сторінку фільму
             const resultLink = searchDoc.querySelector('a.mask.flex-col.ps-link');
-
             if (resultLink) {
                 let filmPageUrl = resultLink.href;
                 console.log('[Kinoukr] Знайдено посилання на фільм:', filmPageUrl);
