@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.1
+// @version     1.2
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -65,8 +65,8 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
-        const proxyUrlSearch = 'https://corsproxy.io/?'; // Для пошуку сторінки фільму
-        const proxyUrlVideo = 'https://api.allorigins.win/get?url='; // Локальне проксі для отримання відео
+        const proxyUrlSearch = 'https://corsproxy.io/?'; // Проксі для пошуку сторінки фільму
+        const proxyUrlVideo = 'https://api.allorigins.win/get?url='; // Проксі для отримання відео
 
         try {
             // Спочатку шукаємо посилання на сторінку фільму через проксі
@@ -82,7 +82,7 @@
                 const filmPageUrl = resultLink.href;
                 console.log('[uaflix] Знайдено посилання на фільм:', filmPageUrl);
 
-                // Тепер отримуємо відео URL через локальне проксі
+                // Тепер отримуємо HTML сторінку фільму через проксі
                 const videoResponse = await fetch(proxyUrlVideo + encodeURIComponent(filmPageUrl));
                 const videoHtml = await videoResponse.text();
                 console.log('UAFlix: Отримана HTML відповідь для відео:', videoHtml);
@@ -90,25 +90,8 @@
                 const videoParser = new DOMParser();
                 const videoDoc = videoParser.parseFromString(videoHtml, 'text/html');
 
-                // Перехоплюємо запити для отримання відео через m3u8
-                const originalFetch = window.fetch;
-                window.fetch = function (url, options) {
-                    if (url.includes('.m3u8')) {
-                        console.log('[uaflix] Перехоплено запит на m3u8: ' + url);
-                        // Виводимо посилання на екран або передаємо в плеєр
-                        Lampa.Player.play({ url: url, title: `UAFlix: ${title}` });
-                    }
-                    return originalFetch.apply(this, arguments);
-                };
-
-                // Після перехоплення посилання відтворюємо відео
-                const videoUrl = JSON.parse(videoHtml).videoUrl;
-
-                if (videoUrl) {
-                    console.log('[uaflix] Знайдено відео URL:', videoUrl);
-                } else {
-                    Lampa.Noty.show('Не вдалося знайти відео');
-                }
+                // Перехоплюємо запит на відео через m3u8
+                interceptFetchForM3u8(videoDoc, title);
             } else {
                 Lampa.Noty.show('Нічого не знайдено на UAFlix');
             }
@@ -116,5 +99,52 @@
             console.error(e);
             Lampa.Noty.show('Помилка при пошуку на UAFlix');
         }
+    }
+
+    // Функція для перехоплення запиту на m3u8 і передачі його до плеєра
+    function interceptFetchForM3u8(doc, title) {
+        console.log('UAFlix: Перехоплюємо запит на m3u8');
+
+        // Модифікація fetch, щоб перехопити запит на відео
+        const originalFetch = window.fetch;
+        window.fetch = function (url, options) {
+            if (url.includes('.m3u8')) {
+                console.log('[uaflix] Перехоплено запит на m3u8: ' + url);
+                // Тепер передаємо URL в плеєр для відтворення
+                Lampa.Player.play({ url: url, title: `UAFlix: ${title}` });
+            }
+            return originalFetch.apply(this, arguments);
+        };
+
+        // Шукаємо відео URL у документі (це може бути в коді сторінки або через елементи)
+        const videoUrl = findVideoUrl(doc);
+        if (videoUrl) {
+            console.log('[uaflix] Знайдено відео URL:', videoUrl);
+            // Відтворюємо відео
+            Lampa.Player.play({ url: videoUrl, title: `UAFlix: ${title}` });
+        } else {
+            console.log('[uaflix] Відео URL не знайдено');
+            Lampa.Noty.show('Не вдалося знайти відео');
+        }
+    }
+
+    // Функція для пошуку відео URL в документі
+    function findVideoUrl(doc) {
+        let videoUrl = null;
+        // Приклад пошуку через скрипти або теги
+        const scriptTags = doc.querySelectorAll('script');
+        scriptTags.forEach(script => {
+            if (script.innerText.includes('videoUrl')) {
+                try {
+                    const videoData = JSON.parse(script.innerText);
+                    if (videoData.videoUrl) {
+                        videoUrl = videoData.videoUrl;
+                    }
+                } catch (e) {
+                    console.log('Не вдалося парсити JSON:', e);
+                }
+            }
+        });
+        return videoUrl;
     }
 })();
