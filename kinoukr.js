@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.2
+// @version     1.3
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -65,7 +65,8 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://kinoukr.com/index.php?do=search&story=${query}`;
-        const proxyUrlSearch = 'https://corsproxy.io/'; // Для пошуку сторінки фільму
+        const proxyUrlSearch = 'https://corsproxy.io/?'; // Для пошуку сторінки фільму
+        const proxyUrlVideo = 'https://api.allorigins.win/get?url='; // Для парсингу HTML сторінки фільму
 
         try {
             // Спочатку шукаємо посилання на сторінку фільму через проксі
@@ -84,14 +85,14 @@
                 const filmPageUrl = resultLink.href;
                 console.log('[Kinoukr] Знайдено посилання на фільм:', filmPageUrl);
 
-                // Тепер отримуємо відео URL з сторінки фільму через проксі
-                const videoResponse = await fetch(filmPageUrl);
-                const videoHtml = await videoResponse.text();
+                // Тепер отримуємо відео URL з сторінки фільму через AllOrigins
+                const videoResponse = await fetch(proxyUrlVideo + encodeURIComponent(filmPageUrl));
+                const videoHtml = await videoResponse.json();
 
                 console.log('Kinoukr: Отримана HTML відповідь для відео:', videoHtml);
 
                 const videoParser = new DOMParser();
-                const videoDoc = videoParser.parseFromString(videoHtml, 'text/html');
+                const videoDoc = videoParser.parseFromString(videoHtml.contents, 'text/html');
 
                 // Шукаємо iframe і витягуємо URL з атрибута src
                 const iframe = videoDoc.querySelector('iframe');
