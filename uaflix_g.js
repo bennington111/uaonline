@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.4
+// @version     1.5
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -26,6 +26,26 @@
     // Реєстрація плагіна в Lampa
     Lampa.Manifest.plugins = Lampa.Manifest.plugins || [];
     Lampa.Manifest.plugins.push(manifest);
+
+    // Перехоплення запитів через fetch
+    const originalFetch = window.fetch;
+    window.fetch = function(url, options) {
+        if (url.includes('.m3u8')) {
+            console.log('[uaflix] Перехоплено m3u8 URL через fetch: ' + url);
+            Lampa.Player.play({ url: url, title: 'UAFlix: Відтворення відео' });
+        }
+        return originalFetch.apply(this, arguments);
+    };
+
+    // Перехоплення запитів через XMLHttpRequest
+    const originalXHR = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
+        if (url.includes('.m3u8')) {
+            console.log('[uaflix] Перехоплено m3u8 URL через XMLHttpRequest: ' + url);
+            Lampa.Player.play({ url: url, title: 'UAFlix: Відтворення відео' });
+        }
+        return originalXHR.apply(this, arguments);
+    };
 
     // Додаємо кнопку після повного завантаження сторінки
     Lampa.Listener.follow('full', function (e) {
@@ -65,7 +85,7 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
-        const proxyUrlSearch = 'https://corsproxy.io/?'; // Проксі для пошуку сторінки фільму
+        const proxyUrlSearch = 'https://api.allorigins.win/get?url='; // Проксі для пошуку сторінки фільму
         const proxyUrlVideo = 'https://api.allorigins.win/get?url='; // Проксі для отримання відео
 
         try {
@@ -100,16 +120,6 @@
             Lampa.Noty.show('Помилка при пошуку на UAFlix');
         }
     }
-
-    // Модифікація XMLHttpRequest для перехоплення запитів на m3u8
-    const originalXHR = XMLHttpRequest.prototype.open;
-    XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
-        if (url.includes('.m3u8')) {
-            console.log('[uaflix] Перехоплено m3u8 URL через XMLHttpRequest: ' + url);
-            Lampa.Player.play({ url: url, title: 'UAFlix: Відтворення відео' });
-        }
-        return originalXHR.apply(this, arguments);
-    };
 
     // Функція для перехоплення запиту на m3u8 і передачі його до плеєра
     function interceptFetchForM3u8(doc, title) {
