@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.3
+// @version     1.4
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -82,8 +82,15 @@
             const resultLink = searchDoc.querySelector('a.mask.flex-col.ps-link');
 
             if (resultLink) {
-                const filmPageUrl = resultLink.href;
+                let filmPageUrl = resultLink.href;
                 console.log('[Kinoukr] Знайдено посилання на фільм:', filmPageUrl);
+
+                // Якщо посилання не містить .html, додаємо його
+                if (!filmPageUrl.endsWith('.html')) {
+                    filmPageUrl += '.html';
+                }
+
+                console.log('[Kinoukr] Оновлене посилання на фільм:', filmPageUrl);
 
                 // Тепер отримуємо відео URL з сторінки фільму через AllOrigins
                 const videoResponse = await fetch(proxyUrlVideo + encodeURIComponent(filmPageUrl));
