@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.3
+// @version     1.4
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -105,47 +105,16 @@
     function interceptFetchForM3u8(doc, title) {
         console.log('UAFlix: Перехоплюємо запит на m3u8');
 
-        // Модифікація fetch, щоб перехопити запит на відео
-        const originalFetch = window.fetch;
-        window.fetch = function (url, options) {
-            if (url.includes('.m3u8')) {
-                console.log('[uaflix] Перехоплено запит на m3u8: ' + url);
-                // Тепер передаємо URL в плеєр для відтворення
-                Lampa.Player.play({ url: url, title: `UAFlix: ${title}` });
-            }
-            return originalFetch.apply(this, arguments);
-        };
-
-        // Шукаємо відео URL у документі (це може бути в коді сторінки або через елементи)
-        const videoUrl = findVideoUrl(doc);
-        if (videoUrl) {
+        // Шукаємо відео URL в документі
+        const videoElement = doc.querySelector('video');
+        if (videoElement && videoElement.src) {
+            const videoUrl = videoElement.src;
             console.log('[uaflix] Знайдено відео URL:', videoUrl);
-            // Відтворюємо відео
+            // Відтворюємо відео в плеєрі Lampa
             Lampa.Player.play({ url: videoUrl, title: `UAFlix: ${title}` });
         } else {
             console.log('[uaflix] Відео URL не знайдено');
             Lampa.Noty.show('Не вдалося знайти відео');
         }
     }
-
-    // Функція для пошуку відео URL в документі
-    function findVideoUrl(doc) {
-        let videoUrl = null;
-        // Шукаємо через регулярний вираз або інші елементи
-        const scriptTags = doc.querySelectorAll('script');
-        scriptTags.forEach(script => {
-            if (script.innerText.includes('videoUrl')) {
-                try {
-                    const videoData = JSON.parse(script.innerText);
-                    if (videoData.videoUrl) {
-                        videoUrl = videoData.videoUrl;
-                    }
-                } catch (e) {
-                    console.log('Не вдалося парсити JSON:', e);
-                }
-            }
-        });
-        return videoUrl;
-    }
 })();
-
