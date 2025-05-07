@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.8
+// @version     1.0
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -72,13 +72,10 @@
             // Спочатку шукаємо посилання на сторінку фільму через проксі
             const searchResponse = await fetch(proxyUrlSearch + encodeURIComponent(searchUrl));
             const searchHtml = await searchResponse.text();
-
             console.log('UAFlix: Отримана HTML відповідь пошуку:', searchHtml);
 
             const searchParser = new DOMParser();
             const searchDoc = searchParser.parseFromString(searchHtml, 'text/html');
-
-            // Шукаємо перший елемент з посиланням на сторінку фільму
             const resultLink = searchDoc.querySelector('a[href^="https://uafix.net/films/"]');
 
             if (resultLink) {
@@ -88,20 +85,27 @@
                 // Тепер отримуємо відео URL через локальне проксі
                 const videoResponse = await fetch(proxyUrlVideo + encodeURIComponent(filmPageUrl));
                 const videoHtml = await videoResponse.text();
-
                 console.log('UAFlix: Отримана HTML відповідь для відео:', videoHtml);
 
                 const videoParser = new DOMParser();
                 const videoDoc = videoParser.parseFromString(videoHtml, 'text/html');
 
-                // Шукаємо videoUrl без iframe
+                // Перехоплюємо запити для отримання відео через m3u8
+                const originalFetch = window.fetch;
+                window.fetch = function (url, options) {
+                    if (url.includes('.m3u8')) {
+                        console.log('[uaflix] Перехоплено запит на m3u8: ' + url);
+                        // Виводимо посилання на екран або передаємо в плеєр
+                        Lampa.Player.play({ url: url, title: `UAFlix: ${title}` });
+                    }
+                    return originalFetch.apply(this, arguments);
+                };
+
+                // Після перехоплення посилання відтворюємо відео
                 const videoUrl = JSON.parse(videoHtml).videoUrl;
 
                 if (videoUrl) {
                     console.log('[uaflix] Знайдено відео URL:', videoUrl);
-
-                    // Відкриваємо відео в плеєрі Lampa
-                    Lampa.Player.play({ url: videoUrl, title: `UAFlix: ${title}` });
                 } else {
                     Lampa.Noty.show('Не вдалося знайти відео');
                 }
