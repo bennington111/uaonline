@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.0
+// @version     1.1
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -66,7 +66,7 @@
         const query = encodeURIComponent(title);
         const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
         const proxyUrlSearch = 'https://corsproxy.io/?'; // Для пошуку сторінки фільму
-        const proxyUrlVideo = 'https://cors-anywhere.herokuapp.com/'; // Локальне проксі для отримання відео
+        const proxyUrlVideo = 'https://api.allorigins.win/get?url='; // Локальне проксі для отримання відео
 
         try {
             // Спочатку шукаємо посилання на сторінку фільму через проксі
