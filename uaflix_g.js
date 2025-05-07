@@ -101,16 +101,23 @@
         }
     }
 
+    // Модифікація XMLHttpRequest для перехоплення запитів на m3u8
+    const originalXHR = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
+        if (url.includes('.m3u8')) {
+            console.log('[uaflix] Перехоплено m3u8 URL через XMLHttpRequest: ' + url);
+            Lampa.Player.play({ url: url, title: 'UAFlix: Відтворення відео' });
+        }
+        return originalXHR.apply(this, arguments);
+    };
+
     // Функція для перехоплення запиту на m3u8 і передачі його до плеєра
     function interceptFetchForM3u8(doc, title) {
         console.log('UAFlix: Перехоплюємо запит на m3u8');
-
-        // Шукаємо відео URL в документі
         const videoElement = doc.querySelector('video');
         if (videoElement && videoElement.src) {
             const videoUrl = videoElement.src;
             console.log('[uaflix] Знайдено відео URL:', videoUrl);
-            // Відтворюємо відео в плеєрі Lampa
             Lampa.Player.play({ url: videoUrl, title: `UAFlix: ${title}` });
         } else {
             console.log('[uaflix] Відео URL не знайдено');
