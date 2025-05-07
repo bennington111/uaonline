@@ -64,7 +64,7 @@
         Lampa.Noty.show(`Пошук Kinoukr: ${title}`);
 
         const query = encodeURIComponent(title);
-        const searchUrl = `https://kinoukr.com/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
+        const searchUrl = `https://kinoukr.com/index.php?do=search&story=${query}`;
 
         try {
             // Спочатку шукаємо посилання на сторінку фільму
