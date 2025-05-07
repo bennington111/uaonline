@@ -65,7 +65,7 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
-        const proxyUrlSearch = 'https://cors-anywhere.herokuapp.com/'; // Для пошуку сторінки фільму
+        const proxyUrlSearch = 'https://corsproxy.io/?'; // Для пошуку сторінки фільму
         const proxyUrlVideo = 'https://cors-anywhere.herokuapp.com/'; // Локальне проксі для отримання відео
 
         try {
