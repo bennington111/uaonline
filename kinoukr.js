@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.1
+// @version     1.2
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -20,7 +20,7 @@
         description: 'Перегляд з сайту Kinoukr',
         type: 'video',
         component: 'online',
-        proxy: false
+        proxy: true
     };
 
     // Реєстрація плагіна в Lampa
@@ -65,10 +65,10 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://kinoukr.com/index.php?do=search&story=${query}`;
-        const proxyUrlSearch = 'https://corsproxy.io/?'; // Проксі для пошуку сторінки фільму
-        
+        const proxyUrlSearch = 'https://corsproxy.io/?'; // Для пошуку сторінки фільму
+
         try {
-            // Спочатку шукаємо посилання на сторінку фільму
+            // Спочатку шукаємо посилання на сторінку фільму через проксі
             const searchResponse = await fetch(proxyUrlSearch + encodeURIComponent(searchUrl));
             const searchHtml = await searchResponse.text();
 
@@ -78,13 +78,13 @@
             const searchDoc = searchParser.parseFromString(searchHtml, 'text/html');
 
             // Шукаємо перший елемент з посиланням на сторінку фільму
-            const resultLink = searchDoc.querySelector('a[href^="https://kinoukr.com/"]');
+            const resultLink = searchDoc.querySelector('a.mask.flex-col.ps-link');
 
             if (resultLink) {
                 const filmPageUrl = resultLink.href;
                 console.log('[Kinoukr] Знайдено посилання на фільм:', filmPageUrl);
 
-                // Тепер отримуємо відео URL без використання проксі
+                // Тепер отримуємо відео URL з сторінки фільму через проксі
                 const videoResponse = await fetch(filmPageUrl);
                 const videoHtml = await videoResponse.text();
 
