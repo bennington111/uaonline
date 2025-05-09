@@ -153,7 +153,7 @@
             var id = targetParam[1];
 
             var page = params.page || 1;
-            var url = baseUrl + '/' + id + '?page=' + page + '&language=' + Lampa.Storage.get('tmdb_lang', 'ru') + '&api_key=' + Lampa.TMDB.key() + '&lnum_token=' + token + '&session_id=' + SESSION_ID;
+            var url = baseUrl + '/' + id + '?page=' + page + '&language=' + Lampa.Storage.get('tmdb_lang', 'ua') + '&api_key=' + Lampa.TMDB.key() + '&lnum_token=' + token + '&session_id=' + SESSION_ID;
 
             getFromCache(url, params, function (json) {
                 if (!json.results) {
@@ -286,7 +286,7 @@
                 }
 
                 var baseUrl = getBaseUrl(lineType);
-                var lang = Lampa.Storage.get('tmdb_lang', 'ru');
+                var lang = Lampa.Storage.get('tmdb_lang', 'ua');
                 var token = getToken(lineType);
                 var page = params.page || 1;
                 var url = baseUrl + '/' + lineId + '?language=' + lang + '&page=' + page + '&api_key=' + Lampa.TMDB.key() + '&lnum_token=' + token + '&session_id=' + SESSION_ID;
