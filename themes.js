@@ -19,7 +19,7 @@
         neon_mod: '#e13fe4',
         emerald: '#43cea2',
         blue_yellow: '#0095ff',
-        orange: #FF7B00
+        orange: '#FF7B00'
     };
 
     // Функция для применения темы и обновления loader'а
