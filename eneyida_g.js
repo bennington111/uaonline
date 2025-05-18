@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Eneyida
 // @namespace   eneyida
-// @version     1.1
+// @version     1.2
 // @description Плагін для перегляду фільмів з eneyida.tv з отриманням прямого посилання на відео
 // @author      Name
 // @icon        https://eneyida.tv/favicon.ico
@@ -48,28 +48,28 @@
         }
     });
 
-    async function getVideoUrl(filmPageUrl) {
-        const proxy = 'https://cors.apn.monster/';
+async function getVideoUrl(filmPageUrl) {
+    const proxy = 'https://cors.apn.monster/';
 
-        // Крок 1: Отримуємо HTML сторінки фільму eneyida.tv
-        const filmResp = await fetch(proxy + filmPageUrl);
-        const filmHtml = await filmResp.text();
+    // Крок 1: Отримуємо HTML сторінки фільму eneyida.tv
+    const filmResp = await fetch(proxy + filmPageUrl);
+    const filmHtml = await filmResp.text();
 
-        // Витягуємо iframe з hdvbua.pro
-        const iframeMatch = filmHtml.match(/https?:\/\/hdvbua\.pro\/embed\/\d+/);
-        if (!iframeMatch) throw new Error('Iframe hdvbua.pro не знайдено');
-        const embedUrl = iframeMatch[0];
+    // Витягуємо посилання на embed сторінку hdvbua.pro
+    const embedMatch = filmHtml.match(/https?:\/\/hdvbua\.pro\/embed\/\d+/);
+    if (!embedMatch) throw new Error('Embed hdvbua.pro не знайдено');
+    const embedUrl = embedMatch[0];
 
-        // Крок 2: Отримуємо HTML сторінки плеєра hdvbua.pro
-        const embedResp = await fetch(proxy + embedUrl);
-        const embedHtml = await embedResp.text();
+    // Крок 2: Отримуємо HTML сторінки плеєра hdvbua.pro
+    const embedResp = await fetch(proxy + embedUrl);
+    const embedHtml = await embedResp.text();
 
-        // Витягуємо пряме посилання на m3u8
-        const m3u8Match = embedHtml.match(/https?:\/\/s\d+\.hdvbua\.pro\/[^'"]+\.m3u8/);
-        if (!m3u8Match) throw new Error('Пряме посилання m3u8 не знайдено');
+    // Парсимо JS, шукаємо file: "https://....m3u8"
+    const m3u8Match = embedHtml.match(/file:\s*"([^"]+\.m3u8)"/);
+    if (!m3u8Match) throw new Error('Пряме посилання m3u8 не знайдено у JS');
 
-        return m3u8Match[0];
-    }
+    return m3u8Match[1];
+}
 
     async function loadOnline(movie) {
         const title = movie.title || movie.name;
