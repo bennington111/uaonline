@@ -106,9 +106,10 @@
 
             // Запускаємо відео через Lampa плеєр
             Lampa.Player.play({
-                url: videoUrl,
-                title: `Eneyida: ${title}`,
-                type: 'embed'
+              url: videoUrl,
+              title: `Eneyida: ${title}`,
+              type: 'embed'  // щоб Lampa відкрив iframe
+              referrer: 'https://eneyida.tv'
             });
 
         } catch (e) {
