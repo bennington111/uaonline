@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Uaflix
 // @namespace   uaflix
-// @version     1.5
+// @version     2.0
 // @description Плагін для перегляду фільмів з Ua джерел
 // @author      You
 // @match       *://*/*
@@ -46,7 +46,6 @@
 
             // Додавання обробника події на натискання
             btn.on('hover:enter', function () {
-                console.log('UAFlix: Кнопка натиснута');
                 loadOnline(movie);
             });
         }
@@ -54,7 +53,6 @@
 
     // Функція для пошуку фільму та запуску відео
     async function loadOnline(movie) {
-        console.log('UAFlix: Функція loadOnline викликається');
         const title = movie.title || movie.name;
         if (!title) {
             Lampa.Noty.show('Не вдалося отримати назву фільму');
@@ -65,46 +63,29 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
-        const proxyUrlSearch = 'https://cors.apn.monster/'; // Для пошуку сторінки фільму
-        const proxyUrlVideo = 'https://cors.apn.monster/'; // Проксі для отримання відео
+        const proxyUrl = 'https://cors.apn.monster/'; //Використовуємо проксі
 
         try {
-            // Спочатку шукаємо посилання на сторінку фільму через проксі
-            const searchResponse = await fetch(proxyUrlSearch + encodeURIComponent(searchUrl));
-            const searchHtml = await searchResponse.text();
+            const response = await fetch(proxyUrl + encodeURIComponent(searchUrl));
+            const html = await response.text();
 
-            console.log('UAFlix: Отримана HTML відповідь пошуку:', searchHtml);
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
 
-            const searchParser = new DOMParser();
-            const searchDoc = searchParser.parseFromString(searchHtml, 'text/html');
-
-            // Шукаємо перший елемент з посиланням на сторінку фільму
-            const resultLink = searchDoc.querySelector('a[href^="https://uafix.net/films/"]');
+            const resultLink = doc.querySelector('.sres-wrap');
 
             if (resultLink) {
-                const filmPageUrl = resultLink.href;
-                console.log('[uaflix] Знайдено посилання на фільм:', filmPageUrl);
-
-                // Тепер отримуємо відео URL через локальне проксі
-                const videoResponse = await fetch(proxyUrlVideo + encodeURIComponent(filmPageUrl));
-                const videoHtml = await videoResponse.text();
-
-                console.log('UAFlix: Отримана HTML відповідь для відео:', videoHtml);
-
-                const videoParser = new DOMParser();
-                const videoDoc = videoParser.parseFromString(videoHtml, 'text/html');
-
-                // Шукаємо videoUrl без iframe
-                const videoUrl = JSON.parse(videoHtml).videoUrl;
-
-                if (videoUrl) {
-                    console.log('[uaflix] Знайдено відео URL:', videoUrl);
-
-                    // Відкриваємо відео в плеєрі Lampa
-                    Lampa.Player.play({ url: videoUrl, title: `UAFlix: ${title}` });
-                } else {
-                    Lampa.Noty.show('Не вдалося знайти відео');
-                }
+                const href = resultLink.href;
+                console.log('[uaflix] Знайдено:', href);
+                // Відкриваємо сторінку фільму в Lampa
+                Lampa.Activity.push({
+                    url: href,
+                    title: `UAFlix: ${title}`,
+                    component: 'online_mod', // Використовуємо компонент для відтворення відео
+                    search: title,
+                    movie: movie,
+                    page: 1
+                });
             } else {
                 Lampa.Noty.show('Нічого не знайдено на UAFlix');
             }
