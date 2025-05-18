@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name        Eneyida
 // @namespace   eneyida
-// @version     1.0
-// @description Плагін для перегляду фільмів з eneyida.tv
+// @version     1.1
+// @description Плагін для перегляду фільмів з eneyida.tv з отриманням прямого посилання на відео
 // @author      Name
 // @icon        https://eneyida.tv/favicon.ico
 // ==/UserScript==
@@ -48,8 +48,30 @@
         }
     });
 
+    async function getVideoUrl(filmPageUrl) {
+        const proxy = 'https://cors.apn.monster/';
+
+        // Крок 1: Отримуємо HTML сторінки фільму eneyida.tv
+        const filmResp = await fetch(proxy + filmPageUrl);
+        const filmHtml = await filmResp.text();
+
+        // Витягуємо iframe з hdvbua.pro
+        const iframeMatch = filmHtml.match(/https?:\/\/hdvbua\.pro\/embed\/\d+/);
+        if (!iframeMatch) throw new Error('Iframe hdvbua.pro не знайдено');
+        const embedUrl = iframeMatch[0];
+
+        // Крок 2: Отримуємо HTML сторінки плеєра hdvbua.pro
+        const embedResp = await fetch(proxy + embedUrl);
+        const embedHtml = await embedResp.text();
+
+        // Витягуємо пряме посилання на m3u8
+        const m3u8Match = embedHtml.match(/https?:\/\/s\d+\.hdvbua\.pro\/[^'"]+\.m3u8/);
+        if (!m3u8Match) throw new Error('Пряме посилання m3u8 не знайдено');
+
+        return m3u8Match[0];
+    }
+
     async function loadOnline(movie) {
-        console.log('Eneyida: Функція loadOnline викликається');
         const title = movie.title || movie.name;
         if (!title) {
             Lampa.Noty.show('Не вдалося отримати назву фільму');
@@ -58,63 +80,21 @@
 
         Lampa.Noty.show(`Пошук Eneyida: ${title}`);
 
-        const query = encodeURIComponent(title);
-        const searchUrl = `https://eneyida.tv/index.php?do=search&subaction=search&search_start=0&full_search=0&story=${query}`;
-        const proxyUrl = 'https://cors.apn.monster/';
-
         try {
-            // Пошук сторінки фільму через проксі
-            const searchResponse = await fetch(proxyUrl + searchUrl);
-            const searchHtml = await searchResponse.text();
+            // Викликаємо функцію, яка отримує прямий URL відео
+            const videoUrl = await getVideoUrl(movie.pageUrl);
+            console.log('[Eneyida] Знайдено пряме посилання на відео:', videoUrl);
 
-            console.log('Eneyida: Отримана HTML відповідь пошуку:', searchHtml);
-
-            const searchParser = new DOMParser();
-            const searchDoc = searchParser.parseFromString(searchHtml, 'text/html');
-
-            // Шукаємо перше посилання на фільм
-            const resultLink = searchDoc.querySelector('a[href$=".html"]');
-            if (!resultLink) {
-                Lampa.Noty.show('Нічого не знайдено на Eneyida');
-                return;
-            }
-
-            const filmPageUrl = resultLink.href.startsWith('http')
-                ? resultLink.href
-                : 'https://eneyida.tv' + resultLink.getAttribute('href');
-
-            console.log('[Eneyida] Знайдено посилання на фільм:', filmPageUrl);
-
-            // Отримуємо сторінку фільму
-            const videoResponse = await fetch(proxyUrl + filmPageUrl);
-            const videoHtml = await videoResponse.text();
-
-            console.log('Eneyida: Отримана HTML відповідь для відео:', videoHtml);
-
-            const videoParser = new DOMParser();
-            const videoDoc = videoParser.parseFromString(videoHtml, 'text/html');
-
-            // Шукаємо iframe з відео
-            const iframe = videoDoc.querySelector('iframe');
-            if (!iframe) {
-                Lampa.Noty.show('Не вдалося знайти відео на сторінці фільму');
-                return;
-            }
-
-            const videoUrl = iframe.getAttribute('src');
-            console.log('[Eneyida] Знайдено відео URL:', videoUrl);
-
-            // Запускаємо відео через Lampa плеєр
+            // Запускаємо відео у плеєрі Lampa з типом hls
             Lampa.Player.play({
-              url: videoUrl,
-              title: `Eneyida: ${title}`,
-              type: 'embed'  // щоб Lampa відкрив iframe
-              referrer: 'https://eneyida.tv'
+                url: videoUrl,
+                title: `Eneyida: ${title}`,
+                type: 'hls'
             });
 
         } catch (e) {
             console.error(e);
-            Lampa.Noty.show('Помилка при пошуку на Eneyida');
+            Lampa.Noty.show('Не вдалося отримати відео');
         }
     }
 })();
