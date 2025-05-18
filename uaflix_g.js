@@ -27,26 +27,6 @@
     Lampa.Manifest.plugins = Lampa.Manifest.plugins || [];
     Lampa.Manifest.plugins.push(manifest);
 
-    // Перехоплення запитів через fetch
-    const originalFetch = window.fetch;
-    window.fetch = function(url, options) {
-        if (url.includes('.m3u8')) {
-            console.log('[uaflix] Перехоплено m3u8 URL через fetch: ' + url);
-            Lampa.Player.play({ url: url, title: 'UAFlix: Відтворення відео' });
-        }
-        return originalFetch.apply(this, arguments);
-    };
-
-    // Перехоплення запитів через XMLHttpRequest
-    const originalXHR = XMLHttpRequest.prototype.open;
-    XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
-        if (url.includes('.m3u8')) {
-            console.log('[uaflix] Перехоплено m3u8 URL через XMLHttpRequest: ' + url);
-            Lampa.Player.play({ url: url, title: 'UAFlix: Відтворення відео' });
-        }
-        return originalXHR.apply(this, arguments);
-    };
-
     // Додаємо кнопку після повного завантаження сторінки
     Lampa.Listener.follow('full', function (e) {
         if (e.type === 'complite') {
@@ -85,53 +65,52 @@
 
         const query = encodeURIComponent(title);
         const searchUrl = `https://uafix.net/index.php?do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=${query}`;
-        const proxyUrlSearch = 'https://api.allorigins.win/get?url='; // Проксі для пошуку сторінки фільму
-        const proxyUrlVideo = 'https://api.allorigins.win/get?url='; // Проксі для отримання відео
+        const proxyUrlSearch = 'https://cors.apn.monster/'; // Для пошуку сторінки фільму
+        const proxyUrlVideo = 'https://cors.apn.monster/'; // Проксі для отримання відео
 
         try {
             // Спочатку шукаємо посилання на сторінку фільму через проксі
             const searchResponse = await fetch(proxyUrlSearch + encodeURIComponent(searchUrl));
             const searchHtml = await searchResponse.text();
+
             console.log('UAFlix: Отримана HTML відповідь пошуку:', searchHtml);
 
             const searchParser = new DOMParser();
             const searchDoc = searchParser.parseFromString(searchHtml, 'text/html');
+
+            // Шукаємо перший елемент з посиланням на сторінку фільму
             const resultLink = searchDoc.querySelector('a[href^="https://uafix.net/films/"]');
 
             if (resultLink) {
                 const filmPageUrl = resultLink.href;
                 console.log('[uaflix] Знайдено посилання на фільм:', filmPageUrl);
 
-                // Тепер отримуємо HTML сторінку фільму через проксі
+                // Тепер отримуємо відео URL через локальне проксі
                 const videoResponse = await fetch(proxyUrlVideo + encodeURIComponent(filmPageUrl));
                 const videoHtml = await videoResponse.text();
+
                 console.log('UAFlix: Отримана HTML відповідь для відео:', videoHtml);
 
                 const videoParser = new DOMParser();
                 const videoDoc = videoParser.parseFromString(videoHtml, 'text/html');
 
-                // Перехоплюємо запит на відео через m3u8
-                interceptFetchForM3u8(videoDoc, title);
+                // Шукаємо videoUrl без iframe
+                const videoUrl = JSON.parse(videoHtml).videoUrl;
+
+                if (videoUrl) {
+                    console.log('[uaflix] Знайдено відео URL:', videoUrl);
+
+                    // Відкриваємо відео в плеєрі Lampa
+                    Lampa.Player.play({ url: videoUrl, title: `UAFlix: ${title}` });
+                } else {
+                    Lampa.Noty.show('Не вдалося знайти відео');
+                }
             } else {
                 Lampa.Noty.show('Нічого не знайдено на UAFlix');
             }
         } catch (e) {
             console.error(e);
             Lampa.Noty.show('Помилка при пошуку на UAFlix');
-        }
-    }
-
-    // Функція для перехоплення запиту на m3u8 і передачі його до плеєра
-    function interceptFetchForM3u8(doc, title) {
-        console.log('UAFlix: Перехоплюємо запит на m3u8');
-        const videoElement = doc.querySelector('video');
-        if (videoElement && videoElement.src) {
-            const videoUrl = videoElement.src;
-            console.log('[uaflix] Знайдено відео URL:', videoUrl);
-            Lampa.Player.play({ url: videoUrl, title: `UAFlix: ${title}` });
-        } else {
-            console.log('[uaflix] Відео URL не знайдено');
-            Lampa.Noty.show('Не вдалося знайти відео');
         }
     }
 })();
