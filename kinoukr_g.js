@@ -1,21 +1,21 @@
 // ==UserScript==
-// @name        KinoUkr Multi-source Player
+// @name        KinoUkr Multi-source Player with Custom Modal
 // @namespace   kinoukr
-// @version     1.0
-// @description Пошук і вибір джерела відео з kinoukr.com для Lampa
+// @version     1.1
+// @description Пошук і вибір джерела відео з kinoukr.com для Lampa з власним модальним вікном пошуку
 // @author      YourName
 // @icon        https://kinoukr.com/favicon.ico
 // ==/UserScript==
 
 (function () {
-    const mod_version = '1.0';
-    const mod_id = 'kinoukr_multi_source';
+    const mod_version = '1.1';
+    const mod_id = 'kinoukr_multi_source_custom_modal';
 
     const manifest = {
         version: mod_version,
         id: mod_id,
-        name: 'KinoUkr Multi-source Player',
-        description: 'Пошук і вибір джерела відео з kinoukr.com',
+        name: 'KinoUkr Multi-source Custom Modal',
+        description: 'Пошук і вибір джерела відео з kinoukr.com з власним модальним вікном',
         type: 'video',
         component: 'online',
         proxy: true
@@ -51,22 +51,37 @@
         }
     });
 
-    async function openSearchPrompt(initialTitle) {
-        Lampa.Modal.prompt({
-            title: 'Пошук фільму на kinoukr.com',
-            value: initialTitle || '',
-            submit: async (searchQuery) => {
-                try {
-                    const results = await searchFilms(searchQuery);
-                    if (!results.length) {
-                        Lampa.Noty.show('Нічого не знайдено');
-                        return;
+    function openSearchPrompt(initialValue, onSubmit) {
+        const html = `
+            <div style="padding:15px;">
+                <input id="search_input" type="text" style="width:100%; padding:10px; font-size:16px;" value="${initialValue || ''}" placeholder="Введіть назву фільму">
+                <button id="search_btn" style="margin-top:10px; width:100%; padding:10px; font-size:16px;">Пошук</button>
+            </div>
+        `;
+
+        Lampa.Modal.open({
+            title: 'Пошук фільму',
+            html,
+            onOpen: () => {
+                const input = document.getElementById('search_input');
+                const btn = document.getElementById('search_btn');
+
+                btn.addEventListener('click', () => {
+                    const val = input.value.trim();
+                    if (val) {
+                        Lampa.Modal.close();
+                        onSubmit(val);
                     }
-                    showResults(results);
-                } catch (e) {
-                    Lampa.Noty.show('Помилка пошуку');
-                    console.error(e);
-                }
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        btn.click();
+                    }
+                });
+
+                input.focus();
             }
         });
     }
@@ -74,15 +89,15 @@
     async function searchFilms(query) {
         const searchUrl = `https://kinoukr.com/index.php?do=search&subaction=search&story=${encodeURIComponent(query)}`;
         console.log('[KinoUkr] Пошук:', searchUrl);
-    
+
         const resp = await fetch(proxy + searchUrl);
         const html = await resp.text();
-    
+
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
-    
+
         const items = Array.from(doc.querySelectorAll('.post-title a'));
-    
+
         return items.map(a => ({
             title: a.textContent.trim(),
             url: a.href || a.getAttribute('href')
@@ -123,16 +138,11 @@
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
 
-        // Витягуємо всі посилання на відео-хости (наприклад, в <a> або <iframe>)
-        // В твоєму випадку — шукаємо посилання у тегах <a> з href, які ведуть на зовнішні домени
-        // Ось приклад (потрібно адаптувати під реальний html kinoukr.com)
-
         const links = [];
 
-        // Знайдемо всі <a> з href, що ведуть на зовнішні відео хости (можна фільтрувати по доменах)
         doc.querySelectorAll('a[href]').forEach(a => {
             const href = a.href || a.getAttribute('href');
-            if (/^(https?:)?\/\/(ashdi\.vip|tortuga\.tw|.*)$/.test(href)) {
+            if (/^(https?:)?\/\/(ashdi\.vip|tortuga\.tw|.+)$/i.test(href)) {
                 links.push(href.startsWith('http') ? href : 'https:' + href);
             }
         });
@@ -141,7 +151,6 @@
             throw new Error('Джерела відео не знайдено');
         }
 
-        // Показуємо список джерел для вибору
         showVideoSources(links, title);
     }
 
@@ -159,7 +168,7 @@
                     Lampa.Player.play({
                         url: sources[idx],
                         title: title,
-                        type: 'embed' // Без проксі, бо проксі блокується
+                        type: 'embed'
                     });
                 }
             }
