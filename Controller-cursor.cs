@@ -15,10 +15,20 @@ using Uaflix.Models.UaFlix;
 
 namespace Uaflix.Controllers
 {
+    //[ApiController]
+    [Route("uaflix")]
     public class UaflixController : BaseController
     {
         ProxyManager proxyManager = new ProxyManager(ModInit.UaFlix);
         static HttpClient httpClient = new HttpClient();
+
+        // --- Допоміжний словник для зберігання AshdiEpisode по сезону та id серії ---
+        static Dictionary<string, AshdiEpisode> ashdiEpisodesDict = new Dictionary<string, AshdiEpisode>();
+
+        static UaflixController()
+        {
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+        }
 
         // Допоміжні класи для парсингу Ashdi JSON
         public class AshdiEpisode
@@ -40,6 +50,26 @@ namespace Uaflix.Controllers
             public List<AshdiSeason> folder { get; set; }
         }
 
+        // --- Lampac API models ---
+        public class LampacVoice
+        {
+            public string id { get; set; }
+            public string title { get; set; }
+            public List<LampacSeason> seasons { get; set; }
+        }
+        public class LampacSeason
+        {
+            public string id { get; set; }
+            public string title { get; set; }
+            public List<LampacEpisode> episodes { get; set; }
+        }
+        public class LampacEpisode
+        {
+            public string id { get; set; }
+            public string title { get; set; }
+            public string file { get; set; }
+        }
+
         void Log(string msg)
         {
             System.IO.File.AppendAllText("lampac-log.txt", $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}\r\n");
@@ -58,6 +88,7 @@ namespace Uaflix.Controllers
             return input;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index(
             long id = 0,
             string imdb_id = "",
@@ -74,6 +105,9 @@ namespace Uaflix.Controllers
             string country = "",
             bool rjson = false)
         {
+            if (string.IsNullOrWhiteSpace(title) && string.IsNullOrWhiteSpace(original_title))
+                return Content("Потрібно вказати назву для пошуку.", "text/html; charset=utf-8");
+
             Log($"=== Index START === t={t} s={s} e={e}");
 
             string host = $"{Request.Scheme}://{Request.Host}";
@@ -88,60 +122,130 @@ namespace Uaflix.Controllers
             }
             else
             {
-                result = await Search(title, original_title, kinopoisk_id, imdb_id, memKey);
+                if (!string.IsNullOrWhiteSpace(title))
+                    result = await Search(title, original_title, kinopoisk_id, imdb_id, memKey);
+                if (result == null && !string.IsNullOrWhiteSpace(original_title))
+                    result = await Search(original_title, title, kinopoisk_id, imdb_id, memKey);
             }
 
-            // --- Серіали ---
+            // --- rjson: повертаємо JSON з прямим лінком на відео (Lampac-style) ---
+            if (rjson && !string.IsNullOrEmpty(e) && !string.IsNullOrEmpty(s))
+            {
+                if (!hybridCache.TryGetValue(memKey, out Result rjsonRes) || rjsonRes.serial == null)
+                    return Json(new { method = "error", message = "Серія не знайдена." });
+
+                var voiceKey = rjsonRes.serial.Keys.First();
+                var voices = rjsonRes.serial[voiceKey];
+                var season = voices.FirstOrDefault(v => v.id == s);
+                if (season == null)
+                    return Json(new { method = "error", message = "Сезон не знайдено." });
+                var serialEp = season.episodes.FirstOrDefault(ep => ep.id == e);
+                if (serialEp == null)
+                    return Json(new { method = "error", message = "Серія не знайдена." });
+                var firstLink = serialEp.links.First().link;
+
+                return Json(new {
+                    method = "play",
+                    url = firstLink,
+                    title = $"{title ?? original_title} ({e})"
+                });
+            }
+
+            // --- Серіали (lite-режим) ---
             if (result != null && result.serial != null && result.serial.Count > 0)
             {
-                // 1. Вибір озвучки
-                if (string.IsNullOrEmpty(t) || !result.serial.ContainsKey(t))
+                // Завжди автоматично вибираємо першу озвучку
+                var voiceKey = result.serial.Keys.First();
+                var voices = result.serial[voiceKey];
+                // Якщо є кілька сезонів і s не задано — повертаємо список сезонів
+                if (voices.Count > 1 && (string.IsNullOrEmpty(s) || s == "0" || s == "-1"))
                 {
-                    var vtpl = new VoiceTpl();
-                    foreach (var voice in result.serial.Keys)
-                        vtpl.Append(voice, false, $"{host}/uaflix?id={id}&imdb_id={imdb_id}&kinopoisk_id={kinopoisk_id}&title={HttpUtility.UrlEncode(title)}&original_title={HttpUtility.UrlEncode(original_title)}&t={HttpUtility.UrlEncode(voice)}");
-                    return Content(vtpl.ToHtml(), "text/html; charset=utf-8");
-                }
-
-                // 2. Вибір серії
-                var voices = result.serial[t];
-                var allEpisodes = new List<Serial>();
-                foreach (var voice in voices)
-                {
-                    if (voice.episodes != null)
-                        allEpisodes.AddRange(voice.episodes);
-                }
-
-                if (string.IsNullOrEmpty(e) || !allEpisodes.Any(ep => ep.id == e))
-                {
-                    var etpl = new EpisodeTpl();
-                    foreach (var episode in allEpisodes)
-                    {
-                        etpl.Append(
-                            episode.id, // використовуємо id як назву
-                            $"{title ?? original_title} ({episode.id})",
-                            "1", // сезон
-                            episode.id,
-                            $"{host}/uaflix?id={id}&imdb_id={imdb_id}&kinopoisk_id={kinopoisk_id}&title={HttpUtility.UrlEncode(title)}&original_title={HttpUtility.UrlEncode(original_title)}&t={HttpUtility.UrlEncode(t)}&e={episode.id}"
+                    var stpl = new SeasonTpl();
+                    foreach (var seasonItem in voices)
+                        stpl.Append(
+                            seasonItem.id,
+                            $"{host}/uaflix?id={id}&imdb_id={imdb_id}&kinopoisk_id={kinopoisk_id}&title={HttpUtility.UrlEncode(title)}&original_title={HttpUtility.UrlEncode(original_title)}&s={HttpUtility.UrlEncode(seasonItem.id)}",
+                            seasonItem.id
                         );
-                    }
-                    return Content(etpl.ToHtml(), "text/html; charset=utf-8");
+                    System.IO.File.WriteAllText("result.txt", "HTML SeasonTpl:\n" + stpl.ToHtml());
+                    return Content(stpl.ToHtml(), "text/html; charset=utf-8");
                 }
 
-                // 3. Віддача відео для серії
-                var serialEp = allEpisodes.First(ep => ep.id == e);
-                var tpl2 = new MovieTpl(title, original_title, 1);
-                var streamquality = new StreamQualityTpl();
-                foreach (var link in serialEp.links)
-                    streamquality.Append(link.link, link.quality);
-                tpl2.Append(
-                    $"{serialEp.id}",
-                    streamquality.Firts().link,
-                    streamquality: streamquality
-                );
-                var html2 = tpl2.ToHtml();
-                html2 = DecodeUnicodeEscapes(html2);
-                return Content(html2, "text/html; charset=utf-8");
+                // Вибір сезону (або автоматично перший)
+                var seasonKey = s;
+                Log($"serial: початковий seasonKey='{seasonKey}'");
+                if (string.IsNullOrEmpty(seasonKey) || seasonKey == "0" || seasonKey == "-1" || !voices.Any(v => v.id == seasonKey))
+                {
+                    seasonKey = voices.First().id;
+                    Log($"serial: seasonKey змінено на '{seasonKey}'");
+                }
+                var season = voices.First(v => v.id == seasonKey);
+                Log($"serial: вибрано сезон '{seasonKey}', episodes.Count={season.episodes?.Count}");
+
+                // Якщо є кілька серій і e не задано — повертаємо список серій
+                Log($"serial: перевіряємо умову для списку серій: season.episodes.Count={season.episodes?.Count}, e='{e}'");
+                if (season.episodes != null && season.episodes.Count > 1 && (string.IsNullOrEmpty(e) || e == "0" || e == "-1"))
+                {
+                    Log("serial: показуємо список серій");
+                    var sb = new System.Text.StringBuilder();
+                    bool isFirst = true;
+                    foreach (var episode in season.episodes)
+                    {
+                        Log($"serial: додаємо серію {episode.id}");
+                        // Беремо AshdiEpisode з допоміжного словника
+                        string dictKey = $"{seasonKey}|{episode.id}";
+                        AshdiEpisode ashdiEp = null;
+                        ashdiEpisodesDict.TryGetValue(dictKey, out ashdiEp);
+                        // Витягуємо номер сезону (s) і серії (e) як число
+                        string sNum = System.Text.RegularExpressions.Regex.Match(seasonKey, "\\d+").Value;
+                        string eNum = System.Text.RegularExpressions.Regex.Match(episode.id, "\\d+").Value;
+                        var dataJson = new {
+                            method = "call",
+                            url = $"{host}/uaflix?rjson=True&e={episode.id}&s={HttpUtility.UrlEncode(seasonKey)}&id={id}&imdb_id={imdb_id}&kinopoisk_id={kinopoisk_id}&title={HttpUtility.UrlEncode(title)}&original_title={HttpUtility.UrlEncode(original_title)}",
+                            s = sNum,
+                            e = eNum,
+                            imdb_id = imdb_id,
+                            kinopoisk_id = kinopoisk_id,
+                            title = string.IsNullOrEmpty(ashdiEp?.title) ? null : ashdiEp.title,
+                            original_title = original_title
+                        };
+                        string focused = isFirst ? " focused" : "";
+                        sb.Append("<div class=\"videos__item videos__movie selector" + focused + "\" data-json='");
+                        sb.Append(Newtonsoft.Json.JsonConvert.SerializeObject(dataJson));
+                        sb.Append("'>");
+                        if (!string.IsNullOrEmpty(ashdiEp?.poster))
+                            sb.Append("<div class=\"videos__item-imgbox videos__movie-imgbox\"><img src=\"" + ashdiEp.poster + "\"></div>");
+                        else
+                            sb.Append("<div class=\"videos__item-imgbox videos__movie-imgbox\"></div>");
+                        sb.Append("<div class=\"videos__item-title\">" + System.Net.WebUtility.HtmlEncode(ashdiEp?.title ?? episode.id) + "</div>");
+                        if (!string.IsNullOrEmpty(ashdiEp?.subtitle))
+                            sb.Append("<div class=\"videos__item-info\">" + System.Net.WebUtility.HtmlEncode(ashdiEp.subtitle) + "</div>");
+                        sb.Append("</div>");
+                        isFirst = false;
+                    }
+                    var episodeHtml = sb.ToString();
+                    Log($"serial: EpisodeTpl HTML length={episodeHtml.Length}");
+                    System.IO.File.WriteAllText("result.txt", "HTML EpisodeTpl (custom):\n" + episodeHtml);
+                    return Content(episodeHtml, "text/html; charset=utf-8");
+                }
+                else
+                {
+                    Log($"serial: умова для списку серій не виконана, переходимо до відтворення");
+                }
+
+                // Вибір серії (або автоматично перша)
+                var episodeId = e;
+                if (season.episodes == null || season.episodes.Count == 0)
+                {
+                    System.IO.File.WriteAllText("result.txt", "HTML No episodes");
+                    return Content("Пошук не дав результатів.", "text/html; charset=utf-8");
+                }
+                if (string.IsNullOrEmpty(episodeId) || episodeId == "0" || episodeId == "-1" || !season.episodes.Any(ep => ep.id == episodeId))
+                    episodeId = season.episodes.First().id;
+
+                // Перенаправляємо на rjson endpoint для відтворення
+                var videoUrl = $"/uaflix?rjson=True&e={episodeId}&s={HttpUtility.UrlEncode(seasonKey)}&id={id}&imdb_id={imdb_id}&kinopoisk_id={kinopoisk_id}&title={HttpUtility.UrlEncode(title)}&original_title={HttpUtility.UrlEncode(original_title)}";
+                return Redirect(videoUrl);
             }
 
             // --- Фільми ---
@@ -162,10 +266,12 @@ namespace Uaflix.Controllers
                 }
                 var html = tpl.ToHtml();
                 html = DecodeUnicodeEscapes(html);
+                System.IO.File.WriteAllText("result.txt", "HTML MovieTpl (movie):\n" + html);
                 return Content(html, "text/html; charset=utf-8");
             }
 
             // Якщо нічого не знайдено
+            System.IO.File.WriteAllText("result.txt", "HTML Not found");
             return Content("Пошук не дав результатів.", "text/html; charset=utf-8");
         }
 
@@ -179,6 +285,7 @@ namespace Uaflix.Controllers
             Log($"search: searchUrl {searchUrl}");
 
             var searchHtml = await httpClient.GetStringAsync(searchUrl);
+            System.IO.File.WriteAllText("search.html", searchHtml);
             Log($"search: отримано HTML пошуку, довжина = {searchHtml.Length}");
 
             var doc = new HtmlDocument();
@@ -188,7 +295,17 @@ namespace Uaflix.Controllers
             var filmNodes = doc.DocumentNode.SelectNodes("//a[contains(@class,'sres-wrap')]");
             Log($"search: filmNodes.Count = {(filmNodes != null ? filmNodes.Count : 0)}");
             if (filmNodes == null || filmNodes.Count == 0)
+            {
+                var allLinks = doc.DocumentNode.SelectNodes("//a");
+                if (allLinks != null)
+                {
+                    foreach (var link in allLinks)
+                    {
+                        Log("a class: " + link.GetAttributeValue("class", "") + ", href: " + link.GetAttributeValue("href", ""));
+                    }
+                }
                 return null;
+            }
 
             string filmUrl = filmNodes[0].GetAttributeValue("href", "");
             Log($"search: filmUrl = {filmUrl}");
@@ -213,41 +330,47 @@ namespace Uaflix.Controllers
                 {
                     string fileJson = ashdiFileMatch.Groups[1].Value;
                     Log($"search: знайдено file:'[...]' (довжина json: {fileJson.Length})");
+                    System.IO.File.WriteAllText("ashdi.json", fileJson);
                     
                     // Парсимо Ashdi JSON
                     var voices = JsonConvert.DeserializeObject<List<AshdiVoice>>(fileJson);
-                    
-                    // Конвертуємо в твої моделі
+                    Log($"Ashdi: voices.Count = {voices.Count}");
+                    foreach (var v in voices)
+                        Log($"Ashdi: voice '{v.title}', seasons: {(v.folder != null ? v.folder.Count : 0)}");
+
+                    // Очищаємо словник перед новим парсингом
+                    ashdiEpisodesDict.Clear();
+
+                    // Конвертуємо в твої моделі (Lampac-style: Voice -> List<Season> -> List<Episode>)
                     var serialDict = new Dictionary<string, List<Voice>>();
-                    
                     foreach (var voice in voices)
                     {
-                        var episodesList = new List<Serial>();
-                        
-                        // Збираємо всі серії з усіх сезонів
+                        var voiceSeasons = new List<Voice>();
                         foreach (var season in voice.folder ?? new List<AshdiSeason>())
                         {
+                            var episodesList = new List<Serial>();
+                            Log($"Ashdi: season '{season.title}', episodes: {(season.folder != null ? season.folder.Count : 0)}");
                             foreach (var episode in season.folder ?? new List<AshdiEpisode>())
                             {
+                                Log($"Ashdi: episode '{episode.title}', id: {episode.id}, file: {episode.file}");
                                 episodesList.Add(new Serial
                                 {
                                     id = episode.id,
                                     links = new List<(string link, string quality)> { (episode.file, "1080p") }
                                 });
+                                // Додаємо у словник для подальшого доступу у Index
+                                string dictKey = $"{season.title.Trim()}|{episode.id}";
+                                ashdiEpisodesDict[dictKey] = episode;
                             }
-                        }
-                        
-                        serialDict[voice.title.Trim()] = new List<Voice>
-                        {
-                            new Voice
+                            voiceSeasons.Add(new Voice
                             {
-                                id = voice.title.Trim(),
-                                name = voice.title.Trim(),
+                                id = season.title.Trim(),
+                                name = season.title.Trim(),
                                 episodes = episodesList
-                            }
-                        };
+                            });
+                        }
+                        serialDict[voice.title.Trim()] = voiceSeasons;
                     }
-                    
                     var res = new Result
                     {
                         serial = serialDict,
@@ -303,6 +426,14 @@ namespace Uaflix.Controllers
             }
 
             return null;
+        }
+
+        // --- Endpoint для відтворення серії ---
+        [HttpGet("video")]
+        public IActionResult Video(string e, string s, long id = 0, string imdb_id = "", long kinopoisk_id = 0, string title = "", string original_title = "")
+        {
+            // Цей endpoint більше не потрібен, залишено для сумісності
+            return Json(new { method = "error", message = "Використовуйте rjson=True" });
         }
     }
 }
