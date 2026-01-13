@@ -47,6 +47,14 @@
   	'.torrent-item__details': {
   		'font-size': '0.9em'	
   	},
+
+    'rules': [
+        {
+            reg: /(UA|UKR|Український|Україна|Ukrainian|укр|Дубльований)/i,
+            color: '#50C878',
+            bold: true
+        }
+    ],
     
     // Base badge look (emerald theme)
     '.torrent-item__bitrate > span.ts-bitrate, .torrent-item__seeds > span.ts-seeds, .torrent-item__grabs > span.ts-grabs, .torrent-item__size.ts-size': {
