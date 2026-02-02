@@ -4,7 +4,7 @@
     const menuItems = [
         {
             id: 'netflix',
-            title: 'Netflix',
+            title: 'Netflix серіали',
             icon: `<svg height="30" viewBox="124.528 16 262.944 480" xmlns="http://www.w3.org/2000/svg">
                     <path d="m216.398 16h-91.87v480c30.128-7.135 61.601-10.708 91.87-12.052z" fill="#E50914"/>
                     <path d="m387.472 496v-480h-91.87v468.904c53.636 3.416 91.87 11.096 91.87 11.096z" fill="#E50914"/>
@@ -13,6 +13,17 @@
             url: "discover/tv?language=uk&with_networks=213",
             source: "tmdb"
         },
+		{
+			id: 'netflix_movies',
+			title: 'Netflix фільми',
+			icon: `<svg height="30" viewBox="124.528 16 262.944 480" xmlns="http://www.w3.org/2000/svg">
+                    <path d="m216.398 16h-91.87v480c30.128-7.135 61.601-10.708 91.87-12.052z" fill="#E50914"/>
+                    <path d="m387.472 496v-480h-91.87v468.904c53.636 3.416 91.87 11.096 91.87 11.096z" fill="#E50914"/>
+                    <path d="m387.472 496-171.074-480h-91.87l167.03 468.655c55.75 3.276 95.914 11.345 95.914 11.345z" fill="#E50914"/>
+                   </svg>`,
+			url: "discover/movie?language=uk-UA&with_watch_providers=8&watch_region=UA&sort_by=popularity.desc",
+			source: "tmdb"
+		},
         {
             id: 'disney',
             title: 'Disney+',
@@ -59,6 +70,26 @@
                    </svg>`,
             url: "discover/tv?language=uk&with_networks=453",
             source: "tmdb"
+        },
+		{
+			id: 'erotica',
+			title: 'Еротика',
+			icon: `<svg height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#FF1493"/>
+				   </svg>`,  // Рожеве серце як іконка (можна змінити)
+			url: "discover/movie?language=uk-UA&with_keywords=155477|190370|207767|256466&include_adult=true&sort_by=popularity.desc&vote_count.gte=20",
+			source: "tmdb"
+		},
+        {
+    "id": "sports_movies",
+    "title": "Спортивні фільми",
+    "icon": `<svg height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" stroke="#4CAF50" stroke-width="2"/>
+              <path d="M12 2 L2 12 L12 22 L22 12 Z" fill="#4CAF50" opacity="0.3"/>
+              <path d="M7 7 L17 17 M17 7 L7 17" stroke="#FFFFFF" stroke-width="2"/>
+            </svg>`,  // простий іконка з м'ячем/стадіоном (можна замінити на свій)
+    "url": "discover/movie?language=uk-UA&with_keywords=6075&sort_by=popularity.desc&vote_count.gte=30&include_adult=false",
+    "source": "tmdb"
         }
     ];
 
